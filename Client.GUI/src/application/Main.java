@@ -1,5 +1,7 @@
 package application;
 	
+import client.ClientUI;
+import client.logic.ClientController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
@@ -11,12 +13,15 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		try {
-			Parent root = FXMLLoader.load(getClass().getResource("Order.fxml"));
+			ClientUI.clientChat = new ClientController("localhost", 5555); 										// Set a port
+			Parent root = FXMLLoader.load(getClass().getResource("/client/gui/Order.fxml"));					// Get order scene
 			Scene scene = new Scene(root);
-			scene.getStylesheets().add(getClass().getResource("OrderStyles.css").toExternalForm());
-			primaryStage.setScene(scene);
+			scene.getStylesheets().add(getClass().getResource("/client/gui/OrderStyles.css").toExternalForm());	// Load the css page
+			primaryStage.setScene(scene);																		// Set the starting page to scene
 			primaryStage.sizeToScene();
-			primaryStage.setResizable(false);
+			// Set the minimum size of the Screen
+			primaryStage.setMinHeight(600);
+			primaryStage.setMinWidth(800);
 			primaryStage.show();
 		} catch(Exception e) {
 			e.printStackTrace();
