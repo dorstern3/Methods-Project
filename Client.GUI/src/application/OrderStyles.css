@@ -1,0 +1,8 @@
+/* JavaFX CSS - Leave this comment until you have at least create one rule which uses -fx-Property */
+
+
+.Update_box , .Show_data_box{
+	-fx-border-width: 2px;
+	-fx-border-color: black;	
+	-fx-border-style: solid;
+}
