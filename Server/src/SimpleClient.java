@@ -16,11 +16,12 @@ public class SimpleClient extends AbstractClient {
 
     public static void main(String[] args) {
         try {
+        	
             SimpleClient client = new SimpleClient("localhost", 5555);
             client.openConnection(); // מתחבר לשרת
             
             // שולח מספר מנוי לבדיקה מול ה-DB
-            client.sendToServer("12345"); 
+            client.sendToServer("123"); 
             
         } catch (IOException e) {
             e.printStackTrace();

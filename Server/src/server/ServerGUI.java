@@ -50,9 +50,10 @@ public class ServerGUI extends Application {
     /**
      * פונקציה שהשרת קורא לה כדי לעדכן את הממשק[cite: 11, 13]
      */
-    public void updateClientInfo(String ip, String host, String status) {
-        // Platform.runLater דרוש כדי לעדכן רכיבי JavaFX מתוך Thread אחר
-        Platform.runLater(() -> {
+ // בתוך מחלקת ServerGUI
+    public void updateClientDetails(String ip, String host, String status) {
+        javafx.application.Platform.runLater(() -> {
+            // תחליף את שמות ה-Labels כאן בשמות שהגדרת אצלך
             ipLabel.setText("IP Address: " + ip);
             hostLabel.setText("Host Name: " + host);
             statusLabel.setText("Status: " + status);
