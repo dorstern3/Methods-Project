@@ -1,8 +1,3 @@
-// DB Details
-// username: root
-// password: Aa123456
-
-
 package db;
 
 import java.sql.Connection;
@@ -10,19 +5,29 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBconnection {
-    // פרטי ההתחברות מרוכזים כאן פעם אחת בלבד
     private static final String DB_URL = "jdbc:mysql://localhost:3306/gonature_db?serverTimezone=UTC";
     private static final String USER = "root";
     private static final String PASS = "Aa123456";
 
+    // משתנה סטטי שיחזיק את החיבור היחיד של השרת
+    private static Connection conn = null;
+
     /**
-     * פונקציה סטטית שיוצרת ומחזירה חיבור לבסיס הנתונים
+     * מחזירה את החיבור הקיים, או יוצרת חדש אם אין כזה.
      */
-    public static Connection getConnection() throws SQLException, ClassNotFoundException {
-        // טעינת הדרייבר
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        
-        // יצירת והחזרת החיבור
-        return DriverManager.getConnection(DB_URL, USER, PASS);
+    public static Connection getConnection() {
+        try {
+            if (conn == null || conn.isClosed()) {
+                // טעינת הדרייבר
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                // יצירת החיבור
+                conn = DriverManager.getConnection(DB_URL, USER, PASS);
+                System.out.println(">>> Database Connection Established (Singleton).");
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            System.err.println("Database Connection Failed!");
+            e.printStackTrace();
+        }
+        return conn;
     }
 }
