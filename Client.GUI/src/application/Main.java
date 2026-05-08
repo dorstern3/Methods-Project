@@ -3,6 +3,7 @@ package application;
 import client.ClientUI;
 import client.logic.ClientController;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
@@ -33,6 +34,12 @@ public class Main extends Application {
 			primaryStage.setMinHeight(600);
 			primaryStage.setMinWidth(800);
 			primaryStage.show();
+			
+			// Close task while exiting the application with the exit button
+			primaryStage.setOnCloseRequest(event ->{
+				Platform.exit();
+				System.exit(0);
+			});
 			
 		} catch(Exception e) {
 			System.out.println("Error: Connection to server failed!");

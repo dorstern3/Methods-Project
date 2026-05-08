@@ -47,6 +47,7 @@
                         <Insets bottom="20.0" top="20.0" />
                      </padding>
                   </HBox>
+                  <Button fx:id="disconnect" layoutX="708.0" layoutY="10.0" mnemonicParsing="false" onAction="#disconnect" text="Disconnect" AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="10.0" />
                </children>
             </AnchorPane>
             <HBox alignment="CENTER" spacing="10.0" styleClass="Show_data_box" VBox.vgrow="ALWAYS">
@@ -58,11 +59,11 @@
                   <TableView fx:id="orderTable" minWidth="600.0" prefHeight="265.0" prefWidth="659.0" HBox.hgrow="ALWAYS">
                     <columns>
                       <TableColumn fx:id="colOrderNumber" prefWidth="100.0" text="Order Number" />
-                      <TableColumn fx:id="colOrderDate" prefWidth="120.0" text="Date" />
+                      <TableColumn fx:id="colOrderDate" prefWidth="120.0" text="Order date" />
                         <TableColumn fx:id="colNumberOfVisitors" prefWidth="50.0" text="Visitors" />
                         <TableColumn fx:id="colConfirmationCode" prefWidth="120.0" text="Confirmation Code" />
                         <TableColumn fx:id="colSubscriberId" prefWidth="100.0" text="Subscriber ID" />
-                        <TableColumn fx:id="colDateOfPlacingOrder" prefWidth="120.0" text="Date of Order" />
+                        <TableColumn fx:id="colDateOfPlacingOrder" prefWidth="120.0" text="Date of placing Order" />
                     </columns>
                      <HBox.margin>
                         <Insets right="10.0" />
