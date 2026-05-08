@@ -1,1 +1,1 @@
-SELECT * FROM gonature_db.order;
+SELECT * FROM gonature_db.`order`;
