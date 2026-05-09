@@ -27,20 +27,20 @@ public class OrderLogic {
 	// Send an order object to be updated
 	public  synchronized String sendOrderUpdate(Order order) {
 		isDataReady = false;
-		System.out.println("[LOGIC] Sending Order to client");
 		ClientUI.clientChat.accept(order); 										// 	Send the order to update to the server
 		waitForServer();
 		return (String) response;
 	}
 	
+	// Call for all the orders from the server
 	public synchronized ArrayList<Order> getAllOrders(){
 		isDataReady = false;
-		System.out.println("[LOGIC] Sending message to client");
-		ClientUI.clientChat.accept("123");										// Ask the server for all the orders
+		ClientUI.clientChat.accept("123");										// Ask the server for all the order of subscriber 123
 		waitForServer();
 		return (ArrayList<Order>) response;
 	}
 	
+	// Helper function to set the response and let the function that calls the server stop the waiting
 	public synchronized void setResponseFromServer(Object response) {
 		this.response = response;
 		isDataReady = true;
@@ -53,9 +53,10 @@ public class OrderLogic {
 		} catch (InterruptedException e) { e.printStackTrace();}
 	}
 	
+	
+	// Disconnect the client from server
 	public void disconnect() {
 		try {
-			System.out.println("[Logic] Close connection");
 			ClientUI.clientChat.closeConnection();
 		} catch (IOException e) {
 			e.printStackTrace();

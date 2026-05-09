@@ -20,16 +20,15 @@ public class ClientController extends AbstractClient{
 
 	
 	@Override
+	// Send the response back to logic level
 	protected void handleMessageFromServer(Object msg) {
-		System.out.println("[SERVER]: Sending response back to Logic");
-		orderLogic.setResponseFromServer(msg);									// Send the response back to logic level
+		orderLogic.setResponseFromServer(msg);
 	}
 	
 	// Send a request to the server
 	public void accept(Object msg) {
 		try {
-			System.out.println("[CLIENT] Sending request to Test Server...");
-			sendToServer(msg);													// Send the message to the Server
+			sendToServer(msg);
 		} catch(IOException e){
 			System.out.println("Could not send a message to server");
 		}
@@ -37,14 +36,15 @@ public class ClientController extends AbstractClient{
 	}
 	
 	@Override
+	// Exit and close application when server is down
 	protected void connectionClosed() {
 		Platform.exit();
 		System.exit(0);
 	}
 	
 	@Override
+	// Exit and close application when server is down unexpectedly
 	protected void connectionException(Exception exception) {
-	    System.out.println("[Client] Connection lost unexpectedly!");
 	    Platform.exit();
 	    System.exit(0); 
 	}

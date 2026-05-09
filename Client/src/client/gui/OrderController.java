@@ -20,6 +20,7 @@ public class OrderController {
 	@FXML private TextField NumOfVisitors;
 	@FXML private TextField OrderNumber;
 	@FXML private DatePicker NewDate;
+	@FXML private TextField status;
 	
 	// Fields of the Table
 	@FXML private TableView<Order> orderTable;
@@ -49,33 +50,42 @@ public class OrderController {
 	
 	public void onUpdate() {
 		try {
-			// Change the values of the fields as required 
+			// Change the values of the fields as required
+			status.setText("");
 			int visitors = Integer.parseInt(NumOfVisitors.getText());
 			int orderNum = Integer.parseInt(OrderNumber.getText());
 			java.sql.Date date = java.sql.Date.valueOf(NewDate.getValue());
-			// Send the order to the logic level
-			Order orderToUpdate = new Order(orderNum ,date ,visitors ,0 , 0 , null);
-			System.out.println("[UI] Sending update...");
+			
+			if(NewDate.getValue() == null) {
+				status.setText("Please select a date!");
+				return;
+			}
+			
+			status.setText("Updating...");
+			Order orderToUpdate = new Order(orderNum ,date ,visitors ,0 , 0 , null);	// Send the order to the logic level
 			String response = orderLogic.sendOrderUpdate(orderToUpdate);
-			// Print the response
-			System.out.println("[UI] Server says: " + response);
-		}
-		catch (NullPointerException e) {
-	        System.out.println("[UI] Please select a date!");
-	    } catch (NumberFormatException e) {
-	        System.out.println("[UI] Please enter valid numbers!");
+			
+			// Reset the fields && set a message that the order has updated
+			NumOfVisitors.setText("");
+			OrderNumber.setText("");
+			status.setText(response);
+			
+		} catch (NumberFormatException e) {
+			status.setText("Please enter valid numbers!");
+	    } catch (Exception e) {
+	        status.setText("An unexpected error occurred.");
+	        e.printStackTrace();
 	    }
 	}
 	
 	
 	public void onShowTable() {
 		ArrayList<Order> orderFromDB = orderLogic.getAllOrders();				// Get data from logic level
-		System.out.println("[UI] Sending requset to logic...");
 		orders.setAll(orderFromDB);												// Set the observable list for UI
 	}
 	
+	// Call for disconnecting the client from server
 	public void disconnect() {
-		System.out.println("[UI] Sending requset to disconnect...");
 		orderLogic.disconnect();
 	}
 }

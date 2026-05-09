@@ -14,16 +14,13 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		try {
+			// Open connection to the server
 			ClientUI.clientChat = new ClientController("192.168.1.115", 5555); 
-			System.out.println("Connecting to server...");
 			ClientUI.clientChat.openConnection(); 
 			
-			System.out.println("Client connected to server successfully.");
-
-			
+			// Load the Order page
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/client/gui/Order.fxml"));
 			Parent root = loader.load();
-			
 			Scene scene = new Scene(root);
 			String css = getClass().getResource("/client/gui/OrderStyles.css").toExternalForm();
 			scene.getStylesheets().add(css);
