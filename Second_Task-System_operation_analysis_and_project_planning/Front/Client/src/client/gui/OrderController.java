@@ -9,6 +9,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -20,7 +21,7 @@ public class OrderController {
 	@FXML private TextField NumOfVisitors;
 	@FXML private TextField OrderNumber;
 	@FXML private DatePicker NewDate;
-	@FXML private TextField status;
+	@FXML private Label status;
 	
 	// Fields of the Table
 	@FXML private TableView<Order> orderTable;
@@ -54,12 +55,12 @@ public class OrderController {
 			status.setText("");
 			int visitors = Integer.parseInt(NumOfVisitors.getText());
 			int orderNum = Integer.parseInt(OrderNumber.getText());
-			java.sql.Date date = java.sql.Date.valueOf(NewDate.getValue());
-			
 			if(NewDate.getValue() == null) {
 				status.setText("Please select a date!");
 				return;
 			}
+			java.sql.Date date = java.sql.Date.valueOf(NewDate.getValue());
+			
 			
 			status.setText("Updating...");
 			Order orderToUpdate = new Order(orderNum ,date ,visitors ,0 , 0 , null);	// Send the order to the logic level
@@ -68,6 +69,7 @@ public class OrderController {
 			// Reset the fields && set a message that the order has updated
 			NumOfVisitors.setText("");
 			OrderNumber.setText("");
+			NewDate.setValue(null);
 			status.setText(response);
 			
 		} catch (NumberFormatException e) {
