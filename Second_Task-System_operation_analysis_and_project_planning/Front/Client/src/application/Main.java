@@ -1,5 +1,7 @@
 package application;
 	
+import java.util.List;
+
 import client.ClientUI;
 import client.logic.ClientController;
 import javafx.application.Application;
@@ -15,7 +17,14 @@ public class Main extends Application {
 	public void start(Stage primaryStage) {
 		try {
 			// Open connection to the server
-			ClientUI.clientChat = new ClientController("192.168.1.115", 5555); 
+			String ip = "192.168.1.115";
+			int port = 5555;
+			
+			List<String> args = getParameters().getRaw();
+			if (!args.isEmpty()) {
+				ip = args.get(0);
+			}
+			ClientUI.clientChat = new ClientController(ip, port); 
 			ClientUI.clientChat.openConnection(); 
 			
 			// Load the Order page
