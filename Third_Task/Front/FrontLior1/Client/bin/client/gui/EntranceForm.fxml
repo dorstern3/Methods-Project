@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.String?>
-<?import javafx.collections.FXCollections?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
@@ -12,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="550.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.EntranceController">
+<AnchorPane prefHeight="550.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.EntranceController">
    <children>
       
       <Label layoutX="40.0" layoutY="20.0" text="GoNature - Park Entrance Control" textFill="#2c3e50">
@@ -30,10 +28,10 @@
                      <children>
                         <VBox layoutX="14.0" layoutY="20.0" spacing="10.0">
                            <children>
-                              <Label text="Enter Order ID or Visitor ID Number:">
+                              <Label text="Enter Order ID ">
                                  <font><Font size="14.0" /></font>
                               </Label>
-                              <TextField fx:id="orderIdInput" promptText="e.g., 12345" prefHeight="30.0" prefWidth="250.0" />
+                              <TextField fx:id="orderIdInput" prefHeight="30.0" prefWidth="250.0" promptText="e.g., 12345" />
                               <Button mnemonicParsing="false" onAction="#onCheckOrderClicked" prefHeight="30.0" prefWidth="120.0" text="Check Order" />
                            </children>
                         </VBox>
@@ -55,13 +53,13 @@
                         <VBox layoutX="180.0" layoutY="15.0" spacing="10.0">
                            <children>
                               <Label text="Amount of Visitors:" />
-                              <TextField fx:id="casualAmountInput" promptText="e.g., 2" prefWidth="100.0" />
+                              <TextField fx:id="casualAmountInput" prefWidth="100.0" promptText="e.g., 2" />
                            </children>
                         </VBox>
                         <VBox layoutX="300.0" layoutY="15.0" spacing="10.0">
                            <children>
                               <Label text="ID (If Subscriber):" />
-                              <TextField fx:id="casualIdInput" promptText="Optional" prefWidth="150.0" />
+                              <TextField fx:id="casualIdInput" prefWidth="150.0" promptText="Optional" />
                            </children>
                         </VBox>
                         <Button layoutX="14.0" layoutY="90.0" mnemonicParsing="false" onAction="#onCheckCasualClicked" prefHeight="30.0" prefWidth="200.0" text="Check Capacity &amp; Price" />

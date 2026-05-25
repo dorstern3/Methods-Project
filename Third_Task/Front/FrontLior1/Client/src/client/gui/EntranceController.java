@@ -44,6 +44,26 @@ public class EntranceController {
         // Initialize ComboBox for Casual Visitors
         if (visitorTypeCombo != null) {
             visitorTypeCombo.getItems().addAll("Regular", "Subscriber", "Group");
+            
+            // Disable the ID input field by default
+            if (casualIdInput != null) {
+                casualIdInput.setDisable(true);
+                
+                // --- Simple Action Event: Toggle ID field based on visitor type ---
+                visitorTypeCombo.setOnAction(event -> {
+                    // Extract the currently selected value
+                    String selected = visitorTypeCombo.getValue();
+                    
+                    if ("Subscriber".equals(selected)) {
+                        casualIdInput.setDisable(false); // Enable for subscribers
+                        casualIdInput.setPromptText("Enter Subscriber ID (Required)");
+                    } else {
+                        casualIdInput.setDisable(true);  // Disable for others
+                        casualIdInput.clear();           // Clear any old input
+                        casualIdInput.setPromptText("ID not required");
+                    }
+                });
+            }
         }
     }
 
@@ -89,6 +109,19 @@ public class EntranceController {
             return;
         }
 
+        // --- Added: ID Validation strictly for Subscribers ---
+        if ("Subscriber".equals(type)) {
+            String subId = casualIdInput.getText().trim();
+            if (subId.isEmpty()) {
+                showMessage("Subscriber ID is strictly required to apply the discount.", "red");
+                return;
+            }
+            /* * FUTURE DB INTEGRATION: 
+             * Here you will verify if 'subId' actually exists in the Subscribers database table 
+             * before proceeding to calculate the price.
+             */
+        }
+
         try {
             int amount = Integer.parseInt(amountStr);
             
@@ -103,7 +136,6 @@ public class EntranceController {
                 showMessage("An organized group cannot exceed 15 participants.", "red");
                 return;
             }
-            // ----------------------------------------------------
             
             // Checking available space in the park via the server (Mock)
             boolean hasSpace = entranceLogic.checkCasualAvailability(amount);
