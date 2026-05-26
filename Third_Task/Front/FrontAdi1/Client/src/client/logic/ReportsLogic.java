@@ -13,7 +13,4 @@ public class ReportsLogic {
 		System.out.println("Cancling Report");
 	}
 	
-	public void getPauseReport() {
-		System.out.println("Pause Report");
-	}
 }
