@@ -13,14 +13,15 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" stylesheets="@OrderStyles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.OrderController">
+<AnchorPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" stylesheets="@OrderStyles.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.OrderController">
    <children>
       <VBox fx:id="Main_box" alignment="CENTER" layoutX="10.0" layoutY="7.0" spacing="5.0" styleClass="Main_box" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
          <children>
-            <AnchorPane styleClass="Update_Container" VBox.vgrow="NEVER">
+            <AnchorPane prefHeight="255.0" prefWidth="780.0" styleClass="Update_Container" VBox.vgrow="NEVER">
                <children>
-                  <HBox alignment="CENTER" layoutX="107.0" maxHeight="400.0" maxWidth="800.0" pickOnBounds="false" prefHeight="244.0" prefWidth="552.0" spacing="50.0" styleClass="Update_box" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="105.0" AnchorPane.rightAnchor="121.0" AnchorPane.topAnchor="20.0">
+                  <HBox alignment="CENTER" layoutX="129.0" layoutY="79.0" maxHeight="400.0" maxWidth="800.0" pickOnBounds="false" prefHeight="157.0" prefWidth="526.0" spacing="50.0" style="-fx-background-color: #daf2e4;" styleClass="Update_box" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="129.0" AnchorPane.rightAnchor="129.66666666666674" AnchorPane.topAnchor="79.0">
                      <children>
                         <Button fx:id="UpdateButton" mnemonicParsing="false" onAction="#onUpdate" text="Update" />
                         <GridPane prefHeight="200.0" prefWidth="300.0">
@@ -32,16 +33,23 @@
                             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                           </rowConstraints>
                            <children>
                               <TextField fx:id="OrderNumber" maxWidth="200.0" minWidth="100.0" prefWidth="150.0" GridPane.columnIndex="1" />
                               <TextField fx:id="NumOfVisitors" maxWidth="200.0" minWidth="100.0" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                               <DatePicker fx:id="NewDate" maxWidth="200.0" minWidth="100.0" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                              <Label text="Order Number:" />
-                              <Label text="Number of visitor:" GridPane.rowIndex="1" />
-                              <Label text="Order date:" GridPane.rowIndex="2" />
-                              <Label fx:id="status" prefHeight="17.0" prefWidth="136.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                              <Label text="Order Number:">
+                                 <font>
+                                    <Font size="13.0" />
+                                 </font></Label>
+                              <Label text="Number of visitor:" GridPane.rowIndex="1">
+                                 <font>
+                                    <Font size="13.0" />
+                                 </font></Label>
+                              <Label text="Order date:" GridPane.rowIndex="2">
+                                 <font>
+                                    <Font size="13.0" />
+                                 </font></Label>
                            </children>
                         </GridPane>
                      </children>
@@ -51,6 +59,11 @@
                   </HBox>
                   <Button fx:id="disconnect" layoutX="708.0" layoutY="10.0" mnemonicParsing="false" onAction="#disconnect" text="Disconnect" AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="10.0" />
                   <Button layoutX="6.0" layoutY="10.0" mnemonicParsing="false" onAction="#openDashboard" text="Dashbaord" />
+                  <Label layoutX="271.0" layoutY="37.0" text="Update Order Details">
+                     <font>
+                        <Font name="System Bold" size="24.0" />
+                     </font>
+                  </Label>
                </children>
             </AnchorPane>
             <HBox alignment="CENTER" spacing="10.0" styleClass="Show_data_box" VBox.vgrow="ALWAYS">
