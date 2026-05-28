@@ -2,7 +2,7 @@ package client.gui;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-
+//
 public class DashboardController {
 	@FXML
 	void clickUpdateOrder(ActionEvent event) {
@@ -12,9 +12,9 @@ public class DashboardController {
 	@FXML
 	public void openOrderScreen(ActionEvent event) {
 		ScreenSwitch.switchScreen("/client/gui/NewOrderForm.fxml", "Book a Visit");
-		// ScreenSwitch.switchScreen("/client/gui/WaitListForm.fxml", "Waiting List");
-		// ScreenSwitch.switchScreen("/client/gui/AlternativeDatesForm.fxml",
-		// "Alternative Dates");
+		 //ScreenSwitch.switchScreen("/client/gui/WaitListForm.fxml", "Waiting List");
+		 //ScreenSwitch.switchScreen("/client/gui/AlternativeDatesForm.fxml",
+		 //"Alternative Dates");
 	}
 
 	@FXML
