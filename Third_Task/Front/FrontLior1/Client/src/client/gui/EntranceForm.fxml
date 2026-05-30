@@ -28,7 +28,7 @@
                      <children>
                         <VBox layoutX="14.0" layoutY="20.0" spacing="10.0">
                            <children>
-                              <Label text="Enter Order ID ">
+                              <Label text="Enter Order ID or Enter QR Code">
                                  <font><Font size="14.0" /></font>
                               </Label>
                               <TextField fx:id="orderIdInput" prefHeight="30.0" prefWidth="250.0" promptText="e.g., 12345" />

@@ -23,7 +23,8 @@
             <Button mnemonicParsing="false" onAction="#openReportsScreen" text="Reports" />
             <Button mnemonicParsing="false" onAction="#openOrderScreen" text="Orders" GridPane.columnIndex="1" />
             <Button mnemonicParsing="false" onAction="#openEntranceScreen" text="Park Entrance" GridPane.rowIndex="1" />
-            <Button mnemonicParsing="false" onAction="#openExitScreen" text="Park Exit" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Button mnemonicParsing="false" onAction="#openExitScreenEmployee" text="Park Exit For Employee" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Button mnemonicParsing="false" onAction="#openExitScreenVisitor" text="Park Exit For Visitor" GridPane.rowIndex="2" />
          </children>
          <opaqueInsets>
             <Insets />

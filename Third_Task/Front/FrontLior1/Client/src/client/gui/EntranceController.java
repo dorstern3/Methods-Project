@@ -10,9 +10,9 @@ import javafx.scene.layout.VBox;
 
 public class EntranceController {
 
-    // --- Pre-booked Order Elements ---
+    // --- Pre-booked Order Elements (Supports both Order ID and QR Code) ---
     @FXML
-    private TextField orderIdInput;
+    private TextField orderIdInput; // This field now accepts either Order ID or QR Code string
 
     // --- Casual Visitor Elements ---
     @FXML
@@ -43,7 +43,7 @@ public class EntranceController {
 
         // Initialize ComboBox for Casual Visitors
         if (visitorTypeCombo != null) {
-            visitorTypeCombo.getItems().addAll("Regular", "Subscriber", "Group");
+            visitorTypeCombo.getItems().addAll("Regular/Family", "Subscriber", "Group");
             
             // Disable the ID input field by default
             if (casualIdInput != null) {
@@ -67,25 +67,29 @@ public class EntranceController {
         }
     }
 
-    // --- Handler for Tab 1: Pre-booked Orders ---
+    // --- Handler for Tab 1: Pre-booked Orders (Supports Order ID / QR Code) ---
     @FXML
     public void onCheckOrderClicked(ActionEvent event) {
         String inputId = orderIdInput.getText().trim();
 
         if (inputId.isEmpty()) {
-            showMessage("Please enter an Order ID.", "red");
+            showMessage("Please enter an Order ID or scan/enter a QR Code.", "red");
             return;
         }
 
+        /* * FUTURE DB INTEGRATION: 
+         * The backend logic method 'validateOrder' will be enhanced to search the DB 
+         * by either the order_id column OR the qr_code_identifier column.
+         */
         boolean isValid = entranceLogic.validateOrder(inputId);
 
         if (isValid) {
-            showMessage("Order found! Valid for today.", "green");
+            showMessage("Order/QR verified successfully! Valid for today.", "green");
             
             /* * MOCK IMPLEMENTATION:
              * Currently, we are manually passing "Regular", 1 visitor, pre-booked=true.
              * FUTURE DB INTEGRATION: 
-             * You will pull the actual visitor type and amount from the Order object returned from the Database.
+             * You will pull the actual visitor type and amount from the Order object fetched via DB (by ID or QR).
              */
             double calculatedPrice = entranceLogic.calculatePrice("Regular", 1, true);
             
@@ -94,7 +98,7 @@ public class EntranceController {
             
         } else {
             hideInvoice();
-            showMessage("Error: Order not found or not for today.", "red");
+            showMessage("Error: Invalid Order ID or QR Code, or not scheduled for today.", "red");
         }
     }
 
@@ -109,7 +113,7 @@ public class EntranceController {
             return;
         }
 
-        // --- Added: ID Validation strictly for Subscribers ---
+        // --- ID Validation strictly for Subscribers ---
         if ("Subscriber".equals(type)) {
             String subId = casualIdInput.getText().trim();
             if (subId.isEmpty()) {
@@ -117,8 +121,7 @@ public class EntranceController {
                 return;
             }
             /* * FUTURE DB INTEGRATION: 
-             * Here you will verify if 'subId' actually exists in the Subscribers database table 
-             * before proceeding to calculate the price.
+             * Verify if 'subId' actually exists in the Subscribers database table.
              */
         }
 
@@ -144,7 +147,6 @@ public class EntranceController {
                 showMessage("Space available! Proceed to payment.", "green");
                 
                 // Calculate the real price using our logic class 
-                // Parameters: type (from ComboBox), amount (from input), isPreBooked = false
                 double calculatedPrice = entranceLogic.calculatePrice(type, amount, false);
                 
                 // Display the formatted price with 2 decimal points

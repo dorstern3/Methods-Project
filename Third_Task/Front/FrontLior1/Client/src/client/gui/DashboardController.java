@@ -21,7 +21,12 @@ public class DashboardController {
     }
 
     @FXML
-    public void openExitScreen(ActionEvent event) {
+    public void openExitScreenEmployee(ActionEvent event) {
     	ScreenSwitch.switchScreen("/client/gui/ExitForm.fxml", "Park Exit Registration");
+    }
+    @FXML
+    public void openExitScreenVisitor(ActionEvent event) {
+        // Navigation to the visitor-specific exit screen
+        ScreenSwitch.switchScreen("/client/gui/ExitParkVisitor.fxml", "Exit Park");
     }
 }
