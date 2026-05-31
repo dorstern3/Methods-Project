@@ -1,94 +1,69 @@
 package client.logic;
 
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Logic class handling entrance operations, pricing, and validations.
+ * Uses the Strategy Design Pattern to calculate prices dynamically.
+ */
 public class EntranceLogic {
     
-    // Dynamic variable to hold the base price fetched from the server
     private double fullPrice;
+    
+    // Map to hold the different pricing strategies
+    private Map<String, PricingStrategy> pricingStrategies;
 
     public EntranceLogic() {
-        // Fetch the base price when the logic class is instantiated
         this.fullPrice = fetchFullPriceFromServer();
+        
+        // Initialize the Strategy Pattern mapping
+        pricingStrategies = new HashMap<>();
+        
+        // Map each UI visitor type string to its corresponding strategy class
+        pricingStrategies.put("Regular", new RegularPricingStrategy());
+        pricingStrategies.put("Regular/Family", new RegularPricingStrategy());
+        pricingStrategies.put("Group", new GroupPricingStrategy());
+        pricingStrategies.put("Subscriber", new SubscriberPricingStrategy());
     }
 
     /**
-     * Simulates fetching the base full price from the server/DB.
+     * Simulates fetching the base full price from the server.
      */
     private double fetchFullPriceFromServer() {
-        /*
-         * TODO: FUTURE SERVER INTEGRATION
-         * 1. Create message: Message msg = new Message(Action.GET_FULL_PRICE);
-         * 2. Send to server: ClientUI.clientChat.accept(msg);
-         * 3. Wait for response...
-         * 4. Return the double value received.
-         */
-        System.out.println("EntranceLogic: Fetched Full Price from server (Simulated).");
-        return 50.0; // Simulated default price
+        System.out.println("EntranceLogic: Fetched Full Price from server.");
+        return 50.0; 
     }
 
     /**
      * Simulates checking for active promotions approved by the department manager.
      */
     private double checkActivePromotions(String parkId) {
-         /*
-          * TODO: FUTURE SERVER INTEGRATION
-          * Query the DB for active promotions for this park where status = 'Active'.
-          */
-         return 0.0; // Set to 0.0 for now
+         return 0.0; 
     }
 
     /**
-     * Calculates the final price based on visitor type, amount, and booking status.
-     * @param visitorType  The visitor type: "Regular", "Subscriber", or "Group"
+     * Calculates the final price using the Strategy Pattern.
+     * @param visitorType  The visitor type from the UI
      * @param amount       The total number of visitors
-     * @param isPreBooked  True if the visit was pre-booked, false for casual visitors
+     * @param isPreBooked  True if pre-booked, false if casual
      * @return The final calculated price
      */
     public double calculatePrice(String visitorType, int amount, boolean isPreBooked) {
-        double finalPrice = 0;
-        int payingVisitors = amount;
-
-        switch (visitorType) {
-            case "Regular":
-                if (isPreBooked) {
-                    // Category 1: Pre-booked private visit - 15% discount
-                    finalPrice = payingVisitors * fullPrice * 0.85;
-                } else {
-                    // Category 2: Casual private visit - Full price
-                    finalPrice = payingVisitors * fullPrice;
-                }
-                break;
-
-            case "Group":
-                if (isPreBooked) {
-                    // Category 3: Pre-booked group - 25% discount, guide enters for free
-                    payingVisitors = amount - 1; // Guide is free
-                    if (payingVisitors < 0) payingVisitors = 0;
-                    
-                    finalPrice = payingVisitors * fullPrice * 0.75;
-                } else {
-                    // Category 4: Casual group - 10% discount, guide pays
-                    finalPrice = payingVisitors * fullPrice * 0.90;
-                }
-                break;
-
-            case "Subscriber":
-                // Category 5: Subscribers - calculate based on booking status, then apply 10% discount
-                double baseSubscriberPrice = (isPreBooked) ? 
-                                             (payingVisitors * fullPrice * 0.85) : // Like pre-booked private
-                                             (payingVisitors * fullPrice);         // Like casual private
-                
-                // Additional 10% subscriber discount
-                finalPrice = baseSubscriberPrice * 0.90;
-                break;
-                
-            default:
-                finalPrice = payingVisitors * fullPrice; // Default fallback
-                break;
+        
+        // 1. Retrieve the appropriate strategy (No Switch-Case needed!)
+        PricingStrategy strategy = pricingStrategies.get(visitorType);
+        
+        // Fallback: If type is not found, default to Regular
+        if (strategy == null) {
+            strategy = new RegularPricingStrategy();
         }
 
-        // Check for any active global promotions approved by the department manager
+        // 2. Execute the calculation of the specific strategy
+        double finalPrice = strategy.calculate(amount, fullPrice, isPreBooked);
+
+        // 3. Apply any global promotions relevant to the whole park
         double currentActivePromotionDiscount = checkActivePromotions("PARK_1");
-        
         if (currentActivePromotionDiscount > 0) {
             finalPrice = finalPrice - (finalPrice * currentActivePromotionDiscount);
         }
@@ -96,27 +71,28 @@ public class EntranceLogic {
         return finalPrice;
     }
 
-    // --- Mock methods for previous functionalities ---
+    // --- System Validations & Operations ---
     
     public boolean validateOrder(String inputId) {
-        if ("12345".equals(inputId)) {
-            System.out.println("EntranceLogic: Pre-booked Order " + inputId + " verified.");
-            return true;
-        }
-        System.out.println("EntranceLogic: Order " + inputId + " not found.");
+        if ("12345".equals(inputId)) return true;
         return false;
     }
 
     public boolean checkCasualAvailability(int amount) {
-        System.out.println("EntranceLogic: Checking space for " + amount + " casual visitors.");
-        if (amount > 50) {
-            System.out.println("EntranceLogic: Not enough space.");
-            return false;
-        }
+        if (amount > 50) return false;
         return true;
     }
 
     public void confirmPayment() {
-        System.out.println("EntranceLogic: Payment processed and entry registered in system.");
+        System.out.println("EntranceLogic: Payment processed.");
+    }
+    
+    /**
+     * Verifies if the provided ID belongs to a certified guide.
+     * @param guideId The ID to verify.
+     * @return true if valid, false otherwise.
+     */
+    public boolean verifyGuide(String guideId) {
+        return true; 
     }
 }

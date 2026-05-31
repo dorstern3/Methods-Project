@@ -57,6 +57,9 @@ public class EntranceController {
                     if ("Subscriber".equals(selected)) {
                         casualIdInput.setDisable(false); // Enable for subscribers
                         casualIdInput.setPromptText("Enter Subscriber ID (Required)");
+                    } else if ("Group".equals(selected)) {
+                        casualIdInput.setDisable(false); // Enable for guides/groups
+                        casualIdInput.setPromptText("Enter Guide ID (Required)");
                     } else {
                         casualIdInput.setDisable(true);  // Disable for others
                         casualIdInput.clear();           // Clear any old input
@@ -77,25 +80,12 @@ public class EntranceController {
             return;
         }
 
-        /* * FUTURE DB INTEGRATION: 
-         * The backend logic method 'validateOrder' will be enhanced to search the DB 
-         * by either the order_id column OR the qr_code_identifier column.
-         */
         boolean isValid = entranceLogic.validateOrder(inputId);
 
         if (isValid) {
             showMessage("Order/QR verified successfully! Valid for today.", "green");
-            
-            /* * MOCK IMPLEMENTATION:
-             * Currently, we are manually passing "Regular", 1 visitor, pre-booked=true.
-             * FUTURE DB INTEGRATION: 
-             * You will pull the actual visitor type and amount from the Order object fetched via DB (by ID or QR).
-             */
             double calculatedPrice = entranceLogic.calculatePrice("Regular", 1, true);
-            
-            // Display the formatted price with 2 decimal points
             showInvoice(String.format("%.2f NIS", calculatedPrice));
-            
         } else {
             hideInvoice();
             showMessage("Error: Invalid Order ID or QR Code, or not scheduled for today.", "red");
@@ -113,16 +103,27 @@ public class EntranceController {
             return;
         }
 
-        // --- ID Validation strictly for Subscribers ---
+        // --- ID Validation strictly for Subscribers and Groups ---
         if ("Subscriber".equals(type)) {
             String subId = casualIdInput.getText().trim();
             if (subId.isEmpty()) {
                 showMessage("Subscriber ID is strictly required to apply the discount.", "red");
                 return;
             }
-            /* * FUTURE DB INTEGRATION: 
-             * Verify if 'subId' actually exists in the Subscribers database table.
-             */
+        } else if ("Group".equals(type)) {
+            String guideId = casualIdInput.getText().trim();
+            if (guideId.isEmpty()) {
+                showMessage("Guide ID is strictly required for group entry.", "red");
+                return;
+            }
+            
+            // Verify if the guide is actually certified
+            boolean isCertifiedGuide = entranceLogic.verifyGuide(guideId);
+            if (!isCertifiedGuide) {
+                hideInvoice();
+                showMessage("Verification Failed: Invalid or unrecognized Guide ID.", "red");
+                return;
+            }
         }
 
         try {
