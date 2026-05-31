@@ -6,7 +6,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
-public class ExitController {
+public class ExitParkEmployeeController {
 
     @FXML
     private TextField visitorIdInput; // Text field for entering Visitor ID or Order ID
@@ -33,18 +33,21 @@ public class ExitController {
             return;
         }
 
-        // 2. Input Validation: Ensure the ID contains only numeric characters
-        try {
-            // We use Long because IDs can sometimes exceed the maximum value of a standard Integer
-            Long.parseLong(inputId); 
-        } catch (NumberFormatException e) {
-            // If parsing fails, it means the input contains non-numeric characters
+        // 2. Input Validation: Ensure the ID contains only numeric characters using Regex
+        if (!inputId.matches("\\d+")) {
             statusLabel.setStyle("-fx-text-fill: red;");
             statusLabel.setText("Invalid ID! Please enter numbers only.");
             return;
         }
+        
+        // 3. Ensure the ID is not unreasonably long (Consistency with Visitor Controller)
+        if (inputId.length() > 10) {
+            statusLabel.setStyle("-fx-text-fill: red;");
+            statusLabel.setText("Invalid input! ID is too long.");
+            return;
+        }
 
-        // 3. Delegate the exit process to the logic layer if validation passes
+        // 4. Delegate the exit process to the logic layer if validation passes
         boolean isSuccess = exitLogic.registerExit(inputId);
 
         if (isSuccess) {
