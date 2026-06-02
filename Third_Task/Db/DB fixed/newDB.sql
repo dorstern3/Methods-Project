@@ -55,7 +55,6 @@ CREATE TABLE `order` (
   `order_number` int NOT NULL AUTO_INCREMENT,
   `order_date` date NOT NULL,
   `number_of_visitors` int NOT NULL,
-  `confirmation_code` int DEFAULT NULL,
   `QR_code` int DEFAULT NULL,
   `subscriber_id` int DEFAULT NULL,
   `date_of_placing_order` date DEFAULT NULL,
@@ -81,7 +80,7 @@ CREATE TABLE `order` (
 
 LOCK TABLES `order` WRITE;
 /*!40000 ALTER TABLE `order` DISABLE KEYS */;
-INSERT INTO `order` VALUES (3520,'2026-06-05',4,12345,9991,101,'2026-06-01','10:00:00','13:00:00','Confirmed',101,'Subscriber','Banias','yossi@gmail.com','050-1234567'),(3521,'2026-06-06',2,NULL,NULL,NULL,'2026-06-01','12:30:00',NULL,'Pending confirmation',NULL,'Regular','Caesarea','guest1@gmail.com','055-6667778'),(3522,'2026-06-07',1,54321,9992,102,'2026-05-30','09:00:00','11:00:00','Entered',102,'Subscriber','Masada','dana@gmail.com','052-7654321'),(3523,'2026-06-08',15,67890,9993,NULL,'2026-05-28','14:00:00','17:00:00','Confirmed',NULL,'Group','Ein Gedi','group_leader@gmail.com','054-8889990'),(3524,'2026-06-10',3,NULL,NULL,103,'2026-06-01','08:30:00',NULL,'On waiting list',103,'Subscriber','Achziv','ron@gmail.com','054-1112223');
+INSERT INTO `order` VALUES (3520,'2026-06-02',4,9991,101,'2026-06-01','18:24:34',NULL,'Confirmed',101,'Subscriber','Banias','yossi@gmail.com','050-1234567'),(3521,'2026-06-06',2,NULL,NULL,'2026-06-01','12:30:00',NULL,'Pending confirmation',NULL,'Regular','Caesarea','guest1@gmail.com','055-6667778'),(3522,'2026-06-07',1,9992,102,'2026-05-30','09:00:00','11:00:00','Entered',102,'Subscriber','Masada','dana@gmail.com','052-7654321'),(3523,'2026-06-08',15,9993,NULL,'2026-05-28','14:00:00','17:00:00','Confirmed',NULL,'Group','Ein Gedi','group_leader@gmail.com','054-8889990'),(3524,'2026-06-10',3,NULL,103,'2026-06-01','08:30:00',NULL,'On waiting list',103,'Subscriber','Achziv','ron@gmail.com','054-1112223');
 /*!40000 ALTER TABLE `order` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -109,7 +108,7 @@ CREATE TABLE `parks` (
 
 LOCK TABLES `parks` WRITE;
 /*!40000 ALTER TABLE `parks` DISABLE KEYS */;
-INSERT INTO `parks` VALUES ('Achziv',400,40,50,35,0),('Banias',500,50,120,39,0),('Caesarea',1000,100,450,45,0.1),('Ein Gedi',600,60,200,28,0.15),('Masada',800,80,300,50,0);
+INSERT INTO `parks` VALUES ('Achziv',400,40,50,35,0),('Banias',500,50,121,39,0),('Caesarea',1000,100,450,45,0.1),('Ein Gedi',600,60,200,28,0.15),('Masada',800,80,300,50,0);
 /*!40000 ALTER TABLE `parks` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -182,4 +181,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-06-01 16:59:53
+-- Dump completed on 2026-06-02 18:52:13
