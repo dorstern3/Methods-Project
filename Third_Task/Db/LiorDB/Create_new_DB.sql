@@ -56,21 +56,20 @@ CREATE TABLE `order` (
   `order_date` date NOT NULL,
   `number_of_visitors` int NOT NULL,
   `QR_code` int DEFAULT NULL,
-  `subscriber_id` int DEFAULT NULL,
+  `id` int DEFAULT NULL,
   `date_of_placing_order` date DEFAULT NULL,
   `entry_time` time NOT NULL,
   `exit_time` time DEFAULT NULL,
   `status` enum('Confirmed','Canceled','On waiting list','Pending confirmation','Entered') NOT NULL DEFAULT 'Pending confirmation',
-  `subscriber_number` int DEFAULT NULL,
   `type_of_visitor` enum('Regular','Group','Subscriber') NOT NULL,
   `park_name` varchar(50) NOT NULL,
   `email` varchar(50) DEFAULT NULL,
   `phone_number` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`order_number`),
-  KEY `fk_subscriber_id` (`subscriber_id`),
+  KEY `fk_id` (`id`),
   KEY `fk_park_name` (`park_name`),
-  CONSTRAINT `fk_park_name` FOREIGN KEY (`park_name`) REFERENCES `parks` (`park_name`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_subscriber_id` FOREIGN KEY (`subscriber_id`) REFERENCES `subscriber` (`subscriber_id`) ON UPDATE CASCADE
+  CONSTRAINT `fk_id` FOREIGN KEY (`id`) REFERENCES `subscriber` (`id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_park_name` FOREIGN KEY (`park_name`) REFERENCES `parks` (`park_name`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=3525 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -80,7 +79,7 @@ CREATE TABLE `order` (
 
 LOCK TABLES `order` WRITE;
 /*!40000 ALTER TABLE `order` DISABLE KEYS */;
-INSERT INTO `order` VALUES (3520,'2026-06-02',4,9991,101,'2026-06-01','18:24:34',NULL,'Confirmed',101,'Subscriber','Banias','yossi@gmail.com','050-1234567'),(3521,'2026-06-06',2,NULL,NULL,'2026-06-01','12:30:00',NULL,'Pending confirmation',NULL,'Regular','Caesarea','guest1@gmail.com','055-6667778'),(3522,'2026-06-07',1,9992,102,'2026-05-30','09:00:00','11:00:00','Entered',102,'Subscriber','Masada','dana@gmail.com','052-7654321'),(3523,'2026-06-08',15,9993,NULL,'2026-05-28','14:00:00','17:00:00','Confirmed',NULL,'Group','Ein Gedi','group_leader@gmail.com','054-8889990'),(3524,'2026-06-10',3,NULL,103,'2026-06-01','08:30:00',NULL,'On waiting list',103,'Subscriber','Achziv','ron@gmail.com','054-1112223');
+INSERT INTO `order` VALUES (3520,'2026-06-05',4,9991,101,'2026-06-01','10:00:00','13:00:00','Confirmed','Subscriber','Banias','yossi@gmail.com','050-1234567'),(3521,'2026-06-06',2,NULL,NULL,'2026-06-01','12:30:00',NULL,'Pending confirmation','Regular','Caesarea','guest1@gmail.com','055-6667778'),(3522,'2026-06-07',1,9992,102,'2026-05-30','09:00:00','11:00:00','Entered','Subscriber','Masada','dana@gmail.com','052-7654321'),(3523,'2026-06-08',15,9993,NULL,'2026-05-28','14:00:00','17:00:00','Confirmed','Group','Ein Gedi','group_leader@gmail.com','054-8889990'),(3524,'2026-06-10',3,NULL,103,'2026-06-01','08:30:00',NULL,'On waiting list','Subscriber','Achziv','ron@gmail.com','054-1112223');
 /*!40000 ALTER TABLE `order` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -108,7 +107,7 @@ CREATE TABLE `parks` (
 
 LOCK TABLES `parks` WRITE;
 /*!40000 ALTER TABLE `parks` DISABLE KEYS */;
-INSERT INTO `parks` VALUES ('Achziv',400,40,50,35,0),('Banias',500,50,121,39,0),('Caesarea',1000,100,450,45,0.1),('Ein Gedi',600,60,200,28,0.15),('Masada',800,80,300,50,0);
+INSERT INTO `parks` VALUES ('Achziv',400,40,50,35,0),('Banias',500,50,120,39,0),('Caesarea',1000,100,450,45,0.1),('Ein Gedi',600,60,200,28,0.15),('Masada',800,80,300,50,0);
 /*!40000 ALTER TABLE `parks` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -120,14 +119,15 @@ DROP TABLE IF EXISTS `subscriber`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `subscriber` (
-  `subscriber_id` int NOT NULL,
-  `fname` varchar(45) DEFAULT NULL,
-  `lname` varchar(45) DEFAULT NULL,
+  `id` int NOT NULL,
+  `fname` varchar(45) NOT NULL,
+  `lname` varchar(45) NOT NULL,
   `email` varchar(50) NOT NULL,
   `phone_number` varchar(50) NOT NULL,
   `credit_card_number` varchar(50) DEFAULT NULL,
   `family_members` int NOT NULL,
-  PRIMARY KEY (`subscriber_id`)
+  `sub_number` int NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -137,7 +137,7 @@ CREATE TABLE `subscriber` (
 
 LOCK TABLES `subscriber` WRITE;
 /*!40000 ALTER TABLE `subscriber` DISABLE KEYS */;
-INSERT INTO `subscriber` VALUES (101,'Yossi','Cohen','yossi@gmail.com','050-1234567','1234-5678-9012-3456',4),(102,'Dana','Levi','dana@gmail.com','052-7654321','9876-5432-1098-7654',1),(103,'Ron','Shani','ron@gmail.com','054-1112223',NULL,3),(104,'Michal','Avraham','michal@gmail.com','053-4445556','5555-6666-7777-8888',5),(105,'Amit','Perez','amit@gmail.com','058-9998887',NULL,2);
+INSERT INTO `subscriber` VALUES (101,'Yossi','Cohen','yossi@gmail.com','050-1234567','1234-5678-9012-3456',4,1001),(102,'Dana','Levi','dana@gmail.com','052-7654321','9876-5432-1098-7654',1,1002),(103,'Ron','Shani','ron@gmail.com','054-1112223',NULL,3,1003),(104,'Michal','Avraham','michal@gmail.com','053-4445556','5555-6666-7777-8888',5,1004),(105,'Amit','Perez','amit@gmail.com','058-9998887',NULL,2,1005);
 /*!40000 ALTER TABLE `subscriber` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -181,4 +181,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-06-02 18:52:13
+-- Dump completed on 2026-06-03 19:27:32
