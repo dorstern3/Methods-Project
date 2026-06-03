@@ -29,21 +29,21 @@ public class ExitParkEmployeeController {
         // 1. Check if the field is empty
         if (inputId.isEmpty()) {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Please enter a valid Visitor ID or Order ID.");
+            statusLabel.setText("Please enter a valid Visitor ID or QR code.");
             return;
         }
 
-        // 2. Input Validation: Ensure the ID contains only numeric characters using Regex
-        if (!inputId.matches("\\d+")) {
+        // 2. Input Validation
+        if (!inputId.matches("[a-zA-Z0-9\\-]+")) {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Invalid ID! Please enter numbers only.");
+            statusLabel.setText("Please enter a valid Order ID or QR code.");
             return;
         }
         
-        // 3. Ensure the ID is not unreasonably long (Consistency with Visitor Controller)
+        // 3. Ensure the ID is not unreasonably long 
         if (inputId.length() > 10) {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Invalid input! ID is too long.");
+            statusLabel.setText("Invalid input! too long.");
             return;
         }
 

@@ -10,11 +10,9 @@ import javafx.scene.layout.VBox;
 
 public class EntranceController {
 
-    // --- Pre-booked Order Elements (Supports both Order ID and QR Code) ---
     @FXML
-    private TextField orderIdInput; // This field now accepts either Order ID or QR Code string
+    private TextField orderIdInput; 
 
-    // --- Casual Visitor Elements ---
     @FXML
     private ComboBox<String> visitorTypeCombo;
     @FXML
@@ -22,7 +20,6 @@ public class EntranceController {
     @FXML
     private TextField casualIdInput;
 
-    // --- Shared Elements ---
     @FXML
     private Label messageLabel;
     @FXML
@@ -31,38 +28,39 @@ public class EntranceController {
     private Label finalPriceLabel;
 
     private EntranceLogic entranceLogic;
+    
+    // --- Memory variables for the current transaction ---
+    private int currentTransactionAmount = 0;
+    private String currentTransactionOrderId = null;
+    private String currentVisitorType = null; 
+    private String currentParkName = "Banias"; 
 
     @FXML
     public void initialize() {
         entranceLogic = new EntranceLogic();
         
-        // Hide invoice initially
         if (invoiceSection != null) {
             invoiceSection.setVisible(false);
         }
 
-        // Initialize ComboBox for Casual Visitors
         if (visitorTypeCombo != null) {
-            visitorTypeCombo.getItems().addAll("Regular/Family", "Subscriber", "Group");
+            visitorTypeCombo.getItems().addAll("Regular", "Subscriber", "Group");
             
-            // Disable the ID input field by default
             if (casualIdInput != null) {
                 casualIdInput.setDisable(true);
                 
-                // --- Simple Action Event: Toggle ID field based on visitor type ---
                 visitorTypeCombo.setOnAction(event -> {
-                    // Extract the currently selected value
                     String selected = visitorTypeCombo.getValue();
                     
                     if ("Subscriber".equals(selected)) {
-                        casualIdInput.setDisable(false); // Enable for subscribers
+                        casualIdInput.setDisable(false); 
                         casualIdInput.setPromptText("Enter Subscriber ID (Required)");
                     } else if ("Group".equals(selected)) {
-                        casualIdInput.setDisable(false); // Enable for guides/groups
+                        casualIdInput.setDisable(false); 
                         casualIdInput.setPromptText("Enter Guide ID (Required)");
                     } else {
-                        casualIdInput.setDisable(true);  // Disable for others
-                        casualIdInput.clear();           // Clear any old input
+                        casualIdInput.setDisable(true);  
+                        casualIdInput.clear();           
                         casualIdInput.setPromptText("ID not required");
                     }
                 });
@@ -70,7 +68,6 @@ public class EntranceController {
         }
     }
 
-    // --- Handler for Tab 1: Pre-booked Orders (Supports Order ID / QR Code) ---
     @FXML
     public void onCheckOrderClicked(ActionEvent event) {
         String inputId = orderIdInput.getText().trim();
@@ -80,19 +77,27 @@ public class EntranceController {
             return;
         }
 
-        boolean isValid = entranceLogic.validateOrder(inputId);
+        Object[] orderDetails = entranceLogic.validateOrder(inputId);
 
-        if (isValid) {
-            showMessage("Order/QR verified successfully! Valid for today.", "green");
-            double calculatedPrice = entranceLogic.calculatePrice("Regular", 1, true);
+        if (orderDetails != null) { 
+            int visitorsInOrder = (int) orderDetails[0];
+            String dynamicVisitorType = (String) orderDetails[1]; 
+            
+            currentTransactionOrderId = inputId;
+            currentTransactionAmount = visitorsInOrder; 
+            currentVisitorType = dynamicVisitorType; // Syncing memory
+            
+            showMessage("Order verified! Type identified as: " + dynamicVisitorType, "green");
+            
+            double calculatedPrice = entranceLogic.calculatePrice(dynamicVisitorType, currentTransactionAmount, true);
             showInvoice(String.format("%.2f NIS", calculatedPrice));
+            
         } else {
             hideInvoice();
             showMessage("Error: Invalid Order ID or QR Code, or not scheduled for today.", "red");
         }
     }
 
-    // --- Handler for Tab 2: Casual Visitors ---
     @FXML
     public void onCheckCasualClicked(ActionEvent event) {
         String type = visitorTypeCombo.getValue();
@@ -103,79 +108,76 @@ public class EntranceController {
             return;
         }
 
-        // --- ID Validation strictly for Subscribers and Groups ---
         if ("Subscriber".equals(type)) {
             String subId = casualIdInput.getText().trim();
             if (subId.isEmpty()) {
-                showMessage("Subscriber ID is strictly required to apply the discount.", "red");
+                showMessage("Subscriber ID is strictly required.", "red");
+                return;
+            }
+            if (!entranceLogic.verifySubscriber(subId)) {
+                hideInvoice();
+                showMessage("Verification Failed: Subscriber ID not found.", "red");
                 return;
             }
         } else if ("Group".equals(type)) {
             String guideId = casualIdInput.getText().trim();
             if (guideId.isEmpty()) {
-                showMessage("Guide ID is strictly required for group entry.", "red");
+                showMessage("Guide ID is strictly required.", "red");
                 return;
             }
-            
-            // Verify if the guide is actually certified
-            boolean isCertifiedGuide = entranceLogic.verifyGuide(guideId);
-            if (!isCertifiedGuide) {
+            if (!entranceLogic.verifyGuide(guideId)) {
                 hideInvoice();
-                showMessage("Verification Failed: Invalid or unrecognized Guide ID.", "red");
+                showMessage("Verification Failed: Invalid Guide ID.", "red");
                 return;
             }
         }
 
         try {
             int amount = Integer.parseInt(amountStr);
-            
-            if (amount <= 0) {
-                showMessage("Amount must be greater than 0.", "red");
-                return;
-            }
-            
-            // --- Business rule for group size limit ---
-            if (type.equals("Group") && amount > 15) {
+            if (amount <= 0 || amount > 15) {
                 hideInvoice();
-                showMessage("An organized group cannot exceed 15 participants.", "red");
+                showMessage("Error: Amount must be between 1 and 15.", "red");
                 return;
             }
             
-            // Checking available space in the park via the server (Mock)
-            boolean hasSpace = entranceLogic.checkCasualAvailability(amount);
-            
-            if (hasSpace) {
+            if (entranceLogic.checkCasualAvailability(amount, currentParkName)) {
+                currentTransactionAmount = amount;
+                currentTransactionOrderId = null; 
+                currentVisitorType = type; // Saving casual visitor type
+                
                 showMessage("Space available! Proceed to payment.", "green");
-                
-                // Calculate the real price using our logic class 
                 double calculatedPrice = entranceLogic.calculatePrice(type, amount, false);
-                
-                // Display the formatted price with 2 decimal points
                 showInvoice(String.format("%.2f NIS", calculatedPrice));
-                
             } else {
                 hideInvoice();
                 showMessage("Notice: The park is currently at maximum capacity.", "red");
             }
-            
         } catch (NumberFormatException e) {
             showMessage("Please enter a valid number of visitors.", "red");
         }
     }
 
-    // --- Handler for Payment Confirmation ---
     @FXML
     public void onConfirmPaymentClicked(ActionEvent event) {
-        entranceLogic.confirmPayment();
-        showMessage("Payment registered. Entry confirmed! Capacity updated.", "green");
-        hideInvoice();
+        boolean success = entranceLogic.confirmPayment(currentTransactionAmount, currentTransactionOrderId, currentParkName, currentVisitorType);
         
-        // Clear all inputs for the next customer
-        orderIdInput.clear();
-        casualAmountInput.clear();
-        casualIdInput.clear();
-        if (visitorTypeCombo != null) {
-            visitorTypeCombo.getSelectionModel().clearSelection();
+        if (success) {
+            showMessage("Payment registered. Entry confirmed!", "green");
+            hideInvoice();
+            
+            // Reset state
+            currentTransactionAmount = 0;
+            currentTransactionOrderId = null;
+            currentVisitorType = null; 
+            
+            orderIdInput.clear();
+            casualAmountInput.clear();
+            casualIdInput.clear();
+            if (visitorTypeCombo != null) {
+                visitorTypeCombo.getSelectionModel().clearSelection();
+            }
+        } else {
+            showMessage("System Error: Could not update the database.", "red");
         }
     }
     
@@ -184,7 +186,6 @@ public class EntranceController {
         ScreenSwitch.switchScreen("/client/gui/Dashboard.fxml", "Dashboard");
     }
 
-    // --- Helper Methods to keep code clean ---
     private void showMessage(String text, String color) {
         messageLabel.setStyle("-fx-text-fill: " + color + "; -fx-font-weight: bold;");
         messageLabel.setText(text);

@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="500.0" prefWidth="600.0" style="-fx-background-color: #f9f9f9; -fx-border-color: #2d5d2d; -fx-border-width: 2;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.ExitParkVisitorController">
+<AnchorPane prefHeight="500.0" prefWidth="600.0" style="-fx-background-color: #f9f9f9; -fx-border-color: #2d5d2d; -fx-border-width: 2;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.ExitParkVisitorController">
    <children>
       <VBox alignment="CENTER" layoutX="100.0" layoutY="40.0" spacing="20.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="80.0" AnchorPane.rightAnchor="80.0" AnchorPane.topAnchor="40.0">
          <children>
@@ -24,14 +24,14 @@
                </font>
             </Label>
             
-            <VBox spacing="5.0" alignment="CENTER">
+            <VBox alignment="CENTER" spacing="5.0">
                <children>
-                  <Label text="Order ID:" textFill="#333333">
+                  <Label text="Order ID or QR Code:" textFill="#333333">
                      <font>
                         <Font name="System Bold" size="14.0" />
                      </font>
                   </Label>
-                  <TextField fx:id="orderIdInput" prefHeight="40.0" prefWidth="250.0" promptText="Enter 10-digit Order ID" style="-fx-background-radius: 10;" />
+                  <TextField fx:id="orderIdInput" prefHeight="40.0" prefWidth="250.0" style="-fx-background-radius: 10;" />
                </children>
             </VBox>
             

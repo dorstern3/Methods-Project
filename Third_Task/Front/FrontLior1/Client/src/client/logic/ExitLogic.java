@@ -1,36 +1,37 @@
 package client.logic;
 
+import java.util.ArrayList;
+
+import client.ClientUI;
+import common.Message;
+import common.MessageType;
+
 public class ExitLogic {
     
-    // --- FUTURE IMPLEMENTATION VARIABLES ---
-    // private Object response;
-    // private boolean isDataReady = false;
-
     public ExitLogic() {}
 
     /**
-     * Simulates the registration of a visitor's exit to update park capacity.
-     * @param visitorId The ID of the visitor or order leaving the park.
-     * @return true if the exit was registered successfully.
+     * Registers an exit for a given order ID.
+     * @param orderId The ID of the order exiting the park.
+     * @return true if the exit was successful, false otherwise.
      */
-    public boolean registerExit(String visitorId) {
-        /*
-         * TODO: FUTURE SERVER INTEGRATION
-         * 1. Change this method signature to: public synchronized boolean registerExit(String visitorId)
-         * 2. Create a message: Message msg = new Message(Action.REGISTER_EXIT, visitorId);
-         * 3. Send to server: ClientUI.clientChat.accept(msg);
-         * 4. The server will execute an UPDATE query to decrement the current visitors count in the park.
-         * 5. Wait for server response: while(!isDataReady) { wait(); }
-         * 6. Return the success status received from the server.
-         */
-
-        // ---------- CURRENT MOCK Front-End Simulation ----------
-        if (visitorId != null && !visitorId.isEmpty()) {
-            System.out.println("ExitLogic: Visitor/Order " + visitorId + " has exited. Park capacity updated.");
-            return true;
+    public boolean registerExit(String orderId) {
+        System.out.println("Client Logic: Requesting exit for Order ID: " + orderId);
+        
+        try {
+            // Sending the EXIT_PARK message to the server
+            Message request = new Message(MessageType.EXIT_PARK, orderId);
+            Message response = (Message) ClientUI.clientChat.accept(request);
+            
+            // Checking for the correct response type (EXIT_PARK_RESPONSE)
+            if (response != null && response.getType() == MessageType.EXIT_PARK_RESPONSE) {
+                return (boolean) response.getData(); // Returns true or false from the server
+            }
+        } catch (Exception e) {
+            System.err.println("Error communicating with server during exit registration.");
+            e.printStackTrace();
         }
         
-        System.out.println("ExitLogic: Failed to register exit. Invalid ID.");
-        return false;
+        return false; // Returns false if something failed
     }
 }

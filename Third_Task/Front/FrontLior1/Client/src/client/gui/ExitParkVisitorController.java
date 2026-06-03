@@ -45,16 +45,16 @@ public class ExitParkVisitorController {
         }
 
         // 2. Input Validation: Ensure it contains only digits using Regex
-        if (!orderIdStr.matches("\\d+")) {
+        if (!orderIdStr.matches("[a-zA-Z0-9\\-]+")) {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Invalid input! Please enter numbers only.");
+            statusLabel.setText("Invalid input! Please enter a valid ID or scan your QR code.");
             return;
         }
         
         // Ensure the ID is not unreasonably long (prevents overflow logic issues)
         if (orderIdStr.length() > 10) {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Invalid input! Order ID is too long.");
+            statusLabel.setText("Invalid input! too long.");
             return;
         }
 
@@ -70,7 +70,7 @@ public class ExitParkVisitorController {
             orderIdInput.clear();
         } else {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Error: Could not register exit. Check your Order ID.");
+            statusLabel.setText("Error: Could not register exit. Check your Order ID or Qr code.");
         }
     }
     
