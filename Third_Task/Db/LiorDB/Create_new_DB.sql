@@ -55,7 +55,7 @@ CREATE TABLE `order` (
   `order_number` int NOT NULL AUTO_INCREMENT,
   `order_date` date NOT NULL,
   `number_of_visitors` int NOT NULL,
-  `QR_code` int DEFAULT NULL,
+  `QR_code` varchar(50) DEFAULT NULL,
   `id` int DEFAULT NULL,
   `date_of_placing_order` date DEFAULT NULL,
   `entry_time` time NOT NULL,
@@ -79,7 +79,7 @@ CREATE TABLE `order` (
 
 LOCK TABLES `order` WRITE;
 /*!40000 ALTER TABLE `order` DISABLE KEYS */;
-INSERT INTO `order` VALUES (3520,'2026-06-05',4,9991,101,'2026-06-01','10:00:00','13:00:00','Confirmed','Subscriber','Banias','yossi@gmail.com','050-1234567'),(3521,'2026-06-06',2,NULL,NULL,'2026-06-01','12:30:00',NULL,'Pending confirmation','Regular','Caesarea','guest1@gmail.com','055-6667778'),(3522,'2026-06-07',1,9992,102,'2026-05-30','09:00:00','11:00:00','Entered','Subscriber','Masada','dana@gmail.com','052-7654321'),(3523,'2026-06-08',15,9993,NULL,'2026-05-28','14:00:00','17:00:00','Confirmed','Group','Ein Gedi','group_leader@gmail.com','054-8889990'),(3524,'2026-06-10',3,NULL,103,'2026-06-01','08:30:00',NULL,'On waiting list','Subscriber','Achziv','ron@gmail.com','054-1112223');
+INSERT INTO `order` VALUES (3520,'2026-06-05',4,'QR-3520',101,'2026-06-01','10:00:00','13:00:00','Confirmed','Subscriber','Banias','yossi@gmail.com','050-1234567'),(3521,'2026-06-06',2,NULL,NULL,'2026-06-01','12:30:00',NULL,'Pending confirmation','Regular','Caesarea','guest1@gmail.com','055-6667778'),(3522,'2026-06-07',1,'QR-3522',102,'2026-05-30','09:00:00','11:00:00','Entered','Subscriber','Masada','dana@gmail.com','052-7654321'),(3523,'2026-06-08',15,'QR-3523',NULL,'2026-05-28','14:00:00','17:00:00','Confirmed','Group','Ein Gedi','group_leader@gmail.com','054-8889990'),(3524,'2026-06-10',3,NULL,103,'2026-06-01','08:30:00',NULL,'On waiting list','Subscriber','Achziv','ron@gmail.com','054-1112223');
 /*!40000 ALTER TABLE `order` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -181,4 +181,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-06-03 19:27:32
+-- Dump completed on 2026-06-03 19:50:55
