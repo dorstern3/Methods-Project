@@ -54,10 +54,10 @@ public class EntranceController {
                     
                     if ("Subscriber".equals(selected)) {
                         casualIdInput.setDisable(false); 
-                        casualIdInput.setPromptText("Enter Subscriber ID (Required)");
+                        casualIdInput.setPromptText("Enter Subscriber number (Required)");
                     } else if ("Group".equals(selected)) {
                         casualIdInput.setDisable(false); 
-                        casualIdInput.setPromptText("Enter Guide ID (Required)");
+                        casualIdInput.setPromptText("Enter Your ID (Required)");
                     } else {
                         casualIdInput.setDisable(true);  
                         casualIdInput.clear();           
@@ -137,6 +137,11 @@ public class EntranceController {
             if (amount <= 0 || amount > 15) {
                 hideInvoice();
                 showMessage("Error: Amount must be between 1 and 15.", "red");
+                return;
+            }
+            if (amount > 1 && "Regular".equals(type)) {
+                hideInvoice();
+                showMessage("Regular invite is limited to one person.", "red");
                 return;
             }
             
