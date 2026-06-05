@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
@@ -43,32 +44,28 @@
                <font>
                   <Font size="14.0" />
                </font></Label>
-            <Label text="Email:" GridPane.rowIndex="4">
-               <font>
-                  <Font size="14.0" />
-               </font></Label>
-            <Label prefHeight="30.0" prefWidth="213.0" text="ID / Subscriber Number:" GridPane.rowIndex="5">
+            <Label text="Email:" GridPane.rowIndex="5">
                <font>
                   <Font size="14.0" />
                </font></Label>
             <ComboBox fx:id="comboPark" prefHeight="25.0" prefWidth="218.0" GridPane.columnIndex="1" />
             <DatePicker fx:id="dateVisit" prefHeight="25.0" prefWidth="222.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             <ComboBox fx:id="comboTime" prefHeight="25.0" prefWidth="199.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <TextField fx:id="txtVisitors" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-            <TextField fx:id="txtEmail" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-            <TextField fx:id="txtId" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+            <TextField fx:id="txtVisitors" text="1" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <TextField fx:id="txtEmail" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+            <CheckBox fx:id="cbGroupOrder" mnemonicParsing="false" text="Organized Group (Guide)" GridPane.rowIndex="4" />
          </children>
       </GridPane>
       <Button fx:id="btnBook" layoutX="542.0" layoutY="402.0" mnemonicParsing="false" onAction="#clickBookVisit" text="Book Visit">
          <font>
             <Font size="14.0" />
          </font></Button>
-      <Button layoutX="24.0" layoutY="402.0" mnemonicParsing="false" onAction="#clickDashboard" text="Back to Dashboard">
+      <Button layoutX="24.0" layoutY="402.0" mnemonicParsing="false" onAction="#clickBack" text="Back to Menu">
          <font>
             <Font size="14.0" />
          </font>
       </Button>
-      <Label layoutX="233.0" layoutY="30.0" text="New Reservation.">
+      <Label layoutX="233.0" layoutY="30.0" text="New Reservation">
          <font>
             <Font name="System Bold" size="24.0" />
          </font>

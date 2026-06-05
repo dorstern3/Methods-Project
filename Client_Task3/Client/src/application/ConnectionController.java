@@ -23,8 +23,10 @@ public class ConnectionController {
 			ClientUI.clientChat.openConnection();
 			status.setText("Connected!");
 			
-			ScreenSwitch.switchScreen("/client/gui/Dashboard.fxml", "Dashboard");
-			
+			//שיניתי את השורה הבאה בבאה אחריה
+			//ScreenSwitch.switchScreen("/client/gui/Dashboard.fxml", "Dashboard");
+			ScreenSwitch.switchScreen("/client/gui/RoleSelection.fxml", "Role Selection");
+
 		} catch(Exception e) {
 			System.out.println("Error: Connection to server failed!");
 			status.setText("Failed to connect!"); 
