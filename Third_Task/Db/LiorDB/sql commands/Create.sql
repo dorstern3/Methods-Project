@@ -11,6 +11,7 @@ CREATE TABLE `Parks`(
     `current_occupancy` INT NOT NULL ,
     `full_price` FLOAT NOT NULL ,
     `additonal_discount` FLOAT not null default 0,    
+    `estimated_staying_time` INT NOT NULL,
     PRIMARY KEY (`park_name`)
 );
 
