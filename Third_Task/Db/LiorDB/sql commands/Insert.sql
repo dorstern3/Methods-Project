@@ -1,12 +1,12 @@
 USE `gonature_db_new`;
 
 -- 1. Insert Parks
-INSERT INTO `Parks` (`park_name`, `max_capacity`, `casual_gap`, `current_occupancy`, `full_price`, `additonal_discount`) VALUES 
-('Achziv', 400, 40, 50, 35, 0),
-('Banias', 500, 50, 120, 39, 0),
-('Caesarea', 1000, 100, 450, 45, 0.1),
-('Ein Gedi', 600, 60, 200, 28, 0.15),
-('Masada', 800, 80, 300, 50, 0);
+INSERT INTO `Parks` (`park_name`, `max_capacity`, `casual_gap`, `current_occupancy`, `full_price`, `additonal_discount`, `estimated_staying_time`) VALUES 
+('Achziv', 400, 40, 50, 35, 0,4),
+('Banias', 500, 50, 120, 39, 0,4),
+('Caesarea', 1000, 100, 450, 45, 0.1,4),
+('Ein Gedi', 600, 60, 200, 28, 0.15,4),
+('Masada', 800, 80, 300, 50, 0,4);
 
 -- 2. Insert Subscribers
 INSERT INTO `Subscriber` (`id`, `fname`, `lname`, `email`, `phone_number`, `credit_card_number`, `family_members`, `sub_number`) VALUES 
@@ -32,10 +32,21 @@ INSERT INTO `Workers` (`hash_password`, `fname`, `lname`, `email`, `park_name`, 
 ('passabc', 'Neta', 'Givon', 'neta@gonature.gov.il', 'Ein Gedi', 'Customer_service'),
 ('passxyz', 'Eran', 'Mor', 'eran@gonature.gov.il', 'Achziv', 'Entrance_emp');
 
--- 5. Insert Orders (With updated QR_code prefixes)
-INSERT INTO `Order` (`order_date`, `number_of_visitors`, `QR_code`, `id`, `date_of_placing_order`, `entry_time`, `exit_time`, `status`, `type_of_visitor`, `park_name`, `email`, `phone_number`) VALUES 
-('2026-06-05', 4, 'QR-3520', 101, '2026-06-01', '10:00:00', '13:00:00', 'Confirmed', 'Subscriber', 'Banias', 'yossi@gmail.com', '050-1234567'),
-('2026-06-06', 2, NULL, NULL, '2026-06-01', '12:30:00', NULL, 'Pending confirmation', 'Regular', 'Caesarea', 'guest1@gmail.com', '055-6667778'),
-('2026-06-07', 1, 'QR-3522', 102, '2026-05-30', '09:00:00', '11:00:00', 'Entered', 'Subscriber', 'Masada', 'dana@gmail.com', '052-7654321'),
-('2026-06-08', 15, 'QR-3523', NULL, '2026-05-28', '14:00:00', '17:00:00', 'Confirmed', 'Group', 'Ein Gedi', 'group_leader@gmail.com', '054-8889990'),
+-- Insert new orders with the updated business rule (Regular = exactly 1 visitor)
+INSERT INTO gonature_db_new.`Order` 
+(`order_date`, `number_of_visitors`, `QR_code`, `id`, `date_of_placing_order`, `entry_time`, `exit_time`, `status`, `type_of_visitor`, `park_name`, `email`, `phone_number`) 
+VALUES 
+-- 1. Regular -> Must be exactly 1 visitor
+('2026-06-05', 1, 'QR-3520', NULL, '2026-06-01', '10:00:00', NULL, 'Confirmed', 'Regular', 'Banias', 'guest1@gmail.com', '050-1111111'),
+
+-- 2. Subscriber -> Can be more than 1 (e.g., a family subscription of 4 people)
+('2026-06-06', 4, 'QR-3521', 101, '2026-06-01', '12:30:00', NULL, 'Pending confirmation', 'Subscriber', 'Caesarea', 'yossi@gmail.com', '050-1234567'),
+
+-- 3. Group -> Obviously more than 1 (e.g., a guided group of 15)
+('2026-06-07', 15, 'QR-3522', NULL, '2026-05-30', '09:00:00', '11:00:00', 'Entered', 'Group', 'Masada', 'group_leader@gmail.com', '052-7654321'),
+
+-- 4. Regular -> Must be exactly 1 (This time without a pre-generated QR code)
+('2026-06-08', 1, NULL, NULL, '2026-05-28', '14:00:00', NULL, 'Confirmed', 'Regular', 'Ein Gedi', 'guest2@gmail.com', '054-8889990'),
+
+-- 5. Subscriber -> Another subscription, 3 visitors, currently on the waiting list
 ('2026-06-10', 3, NULL, 103, '2026-06-01', '08:30:00', NULL, 'On waiting list', 'Subscriber', 'Achziv', 'ron@gmail.com', '054-1112223');
