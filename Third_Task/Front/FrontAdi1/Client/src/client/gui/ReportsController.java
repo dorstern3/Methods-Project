@@ -1,8 +1,12 @@
 package client.gui;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import client.logic.ReportsLogic;
+import common.CancellationReportRow;
+import common.OccupancyReportRow;
+import common.TotalVisitorsReportRow;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
@@ -12,8 +16,10 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 
 /**
@@ -50,7 +56,7 @@ public class ReportsController {
 		
 		// Needs to be dynamic
 		String userRole = "DepartmentManager";
-		// String userRole = "ParkManager";
+		//String userRole = "ParkManager";
 		
 		if("ParkManager".equals(userRole)) {
 			// Hide Department Manager buttons completely
@@ -62,12 +68,17 @@ public class ReportsController {
 			parkSelection.setManaged(false);
 		}
 		else if("DepartmentManager".equals(userRole)) {
+			
+			// Load available parks into selection drop down for the Department Manager
+			ArrayList<String> parks = reportsLogic.getParks();
+			parkSelection.getItems().addAll(parks);
+			parkSelection.getItems().add("All parks");
+			
 			// Hide Park Manager buttons completely
 			btnTotalVisitorsReport.setVisible(false);
 			btnTotalVisitorsReport.setManaged(false);
 			btnOccupancyReport.setVisible(false);
 			btnOccupancyReport.setManaged(false);
-			parkSelection.getItems().add("Park Carmel");
 		}
 		
 	}
@@ -80,10 +91,22 @@ public class ReportsController {
 	public void onClickVisitorsReport(){
 		
 		if(!validateDates()) {return;}
+		// Ensure a park is selected before generation
 		if (btnVisitorsReport.isVisible() && parkSelection.getValue() == null) {
 	        System.out.println("Error: Please select a park first!");
 	        return;
 	    }
+		// Global visitors report is not supported
+		if(parkSelection.getValue().equals("All parks")) {
+			System.out.println("Error: Can not make all parks visitor report");
+			return;
+		}
+		
+		String parkName = parkSelection.getValue(); 
+	    String start = startDate.getValue().toString();
+	    String end = endDate.getValue().toString();
+	    
+	    
 		reportContainer.getChildren().clear();
 		BarChart<String,Number> barChart = createChart("Visitor Report: Entry Times & Stay Duration Analysis" ,"Entry Time" , "Average Stay Duration (Hours)");
 		
@@ -92,7 +115,7 @@ public class ReportsController {
 		XYChart.Series<String, Number> groupsSeries = new XYChart.Series<>();
 		groupsSeries.setName("Organized Groups");
 
-		Map<String,Double[]> data = reportsLogic.getVisitorsReport();
+		Map<String,Double[]> data = reportsLogic.getVisitorsReport(parkName , start , end);
 		// Fetch processed data from logic layer and populate the chart
 		for (String time : data.keySet()) {
 			
@@ -112,8 +135,8 @@ public class ReportsController {
 	
 	/**
 	 * Event handler for the Cancellations Report button click.
-	 * Fetches weekly cancellation and no-show statistics from the logic layer
-	 * and renders them visually in a BarChart.
+	 * Dynamically alters the first column based on selection:
+	 * Lists data by weekday if a single park is selected, or maps data by park name for a global report.
 	 */
 	public void onClickCanclingReport(){
 		
@@ -122,26 +145,46 @@ public class ReportsController {
 	        System.out.println("Error: Please select a park first!");
 	        return;
 	    }
+		String parkName = parkSelection.getValue(); 
+	    String start = startDate.getValue().toString();
+	    String end = endDate.getValue().toString();
+	    
 		reportContainer.getChildren().clear();
-		BarChart<String,Number> barChart = createChart("Cancellations & No-Shows Weekly Distribution", "Days of the Week", "Number of Orders");
+		TableView<CancellationReportRow> table = createBaseTable();
 		
-		XYChart.Series<String, Number> cancelledSeries = new XYChart.Series<>();
-		cancelledSeries.setName("Cancelled by Client");
-		XYChart.Series<String, Number> noShowSeries = new XYChart.Series<>();
-		noShowSeries.setName("No-Show (Not Realized)");
+		TableColumn<CancellationReportRow, String> firstCol;
+		ArrayList<CancellationReportRow> data;
 		
-		Map<String, Double[]> cancellationData = reportsLogic.getCanclingReport();
-		for (String day : cancellationData.keySet()) {
-			Double[] counts = cancellationData.get(day);
-			cancelledSeries.getData().add(new XYChart.Data<>(day, counts[0]));
-			noShowSeries.getData().add(new XYChart.Data<>(day, counts[1]));
+		// Dynamically toggle column behavior and source based on Manager's scope selection
+		if("All parks".equals(parkName)) {
+			firstCol = new TableColumn<>("Park name");
+			firstCol.setCellValueFactory(new PropertyValueFactory<>("dayOfTheWeek")); // Maps park name to day property placeholder
+			data = reportsLogic.getParksCancellationReport(start, end);
+		}
+		else {
+			firstCol = new TableColumn<>("Day");
+			firstCol.setCellValueFactory(new PropertyValueFactory<>("dayOfTheWeek"));
+			data = reportsLogic.getCancellationReport(parkName , start, end);
 		}
 	
+		TableColumn<CancellationReportRow, Integer> canceledCol = new TableColumn<>("Canceled");
+		TableColumn<CancellationReportRow, Integer> noShowCol = new TableColumn<>("No Show");
+		TableColumn<CancellationReportRow, Float> avgPerDayCol = new TableColumn<>("Average cancellation");
 		
-		barChart.getData().add(cancelledSeries);
-		barChart.getData().add(noShowSeries);
-		reportContainer.getChildren().add(barChart);
+		firstCol.setPrefWidth(200);
+		canceledCol.setPrefWidth(200);
+		noShowCol.setPrefWidth(200);
+		avgPerDayCol.setPrefWidth(200);
 		
+
+		canceledCol.setCellValueFactory(new PropertyValueFactory<>("canceledCount"));
+		noShowCol.setCellValueFactory(new PropertyValueFactory<>("noShowCount"));
+		avgPerDayCol.setCellValueFactory(new PropertyValueFactory<>("avgCanceledPerDay"));
+		
+	    table.getColumns().addAll(firstCol, canceledCol, noShowCol ,avgPerDayCol);
+
+		if (data != null) {table.getItems().addAll(data);}
+		reportContainer.getChildren().addAll(table);
 	}
 	
 	/**
@@ -152,22 +195,65 @@ public class ReportsController {
 	public void onClickTotalVisitorsReport() {
 		
 		if(!validateDates()) {return;}
-		reportContainer.getChildren().clear();
-		TableView<String> table = createBaseTable();
 		
-		TableColumn<String, String> dateCol = new TableColumn<>("Date");
-		TableColumn<String, String> typeCol = new TableColumn<>("Visitor Type");
-		TableColumn<String, String> countCol = new TableColumn<>("Number of Visitors");
+		String parkName = "Banias"; 
+	    String start = startDate.getValue().toString();
+	    String end = endDate.getValue().toString();
+	    
+		reportContainer.getChildren().clear();
+		TableView<TotalVisitorsReportRow> table = createBaseTable();
+		AnchorPane.setBottomAnchor(table, 60.0); // Make space for the summary label at the bottom
+		
+		TableColumn<TotalVisitorsReportRow, String> dateCol = new TableColumn<>("Date");
+		TableColumn<TotalVisitorsReportRow, String> regularCol = new TableColumn<>("Regular");
+		TableColumn<TotalVisitorsReportRow, Integer> groupCol = new TableColumn<>("Group");
 		
 		dateCol.setPrefWidth(200);
-		typeCol.setPrefWidth(200);
-		countCol.setPrefWidth(200);
+		regularCol.setPrefWidth(200);
+		groupCol.setPrefWidth(200);
 		
-		table.getColumns().add(dateCol);
-		table.getColumns().add(typeCol);
-		table.getColumns().add(countCol);
-		
-		reportContainer.getChildren().add(table);
+		dateCol.setCellValueFactory(new PropertyValueFactory<>("date"));
+		regularCol.setCellValueFactory(new PropertyValueFactory<>("regularCount"));
+		groupCol.setCellValueFactory(new PropertyValueFactory<>("groupCount"));
+	    table.getColumns().addAll(dateCol, regularCol, groupCol);
+
+		ArrayList<TotalVisitorsReportRow> data = reportsLogic.getTotalVisitorsReportData(parkName, start, end);
+		int totalRegular = 0;
+	    int totalGroups = 0;
+		if (data != null && !data.isEmpty()) {
+			// Extract final calculated summary item injected by logic layer
+			TotalVisitorsReportRow summaryRow = data.get(data.size() - 1);
+			// Set summary values to label and delete is from the table
+	        if("SUMMARY".equals(summaryRow.getDate())) {
+	        	totalRegular = summaryRow.getRegularCount();
+	        	totalGroups = summaryRow.getGroupCount();	
+	        	data.remove(data.size() - 1); // Delete from data array to hide from table view
+	        }
+	        
+	        table.getItems().addAll(data);
+	    }
+	    int totalOverall = totalRegular + totalGroups;
+	    Label summaryLabel = new Label(
+	        String.format("Total for selected period: Regulars: %d | Groups: %d | Total Visitors: %d", 
+	        totalRegular, totalGroups, totalOverall)
+	    );
+	    
+	    summaryLabel.setStyle(
+	            "-fx-font-weight: bold; " +
+	            "-fx-font-size: 14px; " +
+	            "-fx-background-color: #f4f4f4; " + 
+	            "-fx-border-color: #cccccc; " +
+	            "-fx-border-radius: 5px; " +
+	            "-fx-background-radius: 5px; " +
+	            "-fx-padding: 10px;"
+	        );
+	    
+	    // Configure full width alignment at the bottom layout container anchor points
+	    AnchorPane.setBottomAnchor(summaryLabel, 0.0);
+	    AnchorPane.setLeftAnchor(summaryLabel, 0.0);
+	    AnchorPane.setRightAnchor(summaryLabel, 0.0);
+	    
+		reportContainer.getChildren().addAll(table, summaryLabel);
 		
 	}
 	
@@ -179,21 +265,36 @@ public class ReportsController {
 	public void onClickOccupancyReport() {
 		
 		if(!validateDates()) {return;}
+		
+		String parkName = "Banias"; 
+	    String start = startDate.getValue().toString();
+	    String end = endDate.getValue().toString();
+	    
 		reportContainer.getChildren().clear();
 		
-		TableView<String> table = createBaseTable();
+		TableView<OccupancyReportRow> table = createBaseTable();
 		
-		TableColumn<String, String> dateCol = new TableColumn<>("Date");
-		TableColumn<String, String> timeCol = new TableColumn<>("Time Slot");
-		TableColumn<String, String> percentageCol = new TableColumn<>("Occupancy %");
+		TableColumn<OccupancyReportRow, String> dateCol = new TableColumn<>("Date");
+		TableColumn<OccupancyReportRow, Integer> totalCol = new TableColumn<>("Total Daily Visitors");
+		TableColumn<OccupancyReportRow, Float> percentageCol = new TableColumn<>("Occupancy %");
 		
 		dateCol.setPrefWidth(200);
-		timeCol.setPrefWidth(200);
+		totalCol.setPrefWidth(200);
 		percentageCol.setPrefWidth(200);
 		
+		dateCol.setCellValueFactory(new PropertyValueFactory<>("visitDate"));
+		totalCol.setCellValueFactory(new PropertyValueFactory<>("totalDailyVisitors"));
+		percentageCol.setCellValueFactory(new PropertyValueFactory<>("capacityPercentage"));
+		
+		
 		table.getColumns().add(dateCol);
-		table.getColumns().add(timeCol);
+		table.getColumns().add(totalCol);
 		table.getColumns().add(percentageCol);
+		
+		ArrayList<OccupancyReportRow> data = reportsLogic.getOccupancyReport(parkName, start, end);
+		if (data != null) {
+	        table.getItems().addAll(data);
+	    }
 		
 		reportContainer.getChildren().add(table);
 	}
