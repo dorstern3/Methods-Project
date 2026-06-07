@@ -3,41 +3,48 @@ package common;
 import java.io.Serializable;
 
 /**
- * A generic message object used for communication between the client and the server.
+ * A generic message object used for communication between the client and the
+ * server.
  */
 public class Message implements Serializable {
-    
-    private static final long serialVersionUID = 1L;
-    
-    private MessageType messageType; // סוג הפקודה
-    private Object messageData;      // הנתונים המצורפים (ת.ז., אובייקט הזמנה, וכו')
 
-    /**
-     * Constructor for a message with data.
-     * 
-     * @param messageType the type of the message
-     * @param messageData the data to send
-     */
-    public Message(MessageType messageType, Object messageData) {
-        this.messageType = messageType;
-        this.messageData = messageData;
-    }
+	private static final long serialVersionUID = 1L;
 
-    /**
-     * Constructor for a message without data.
-     * 
-     * @param messageType the type of the message
-     */
-    public Message(MessageType messageType) {
-        this.messageType = messageType;
-        this.messageData = null;
-    }
+	private MessageType messageType;
+	private Object messageData;
 
-    public MessageType getMessageType() {
-        return messageType;
-    }
+	/**
+	 * Constructor for a message with data. * @param messageType The type of the
+	 * message.
+	 * 
+	 * @param messageData The data attached to the message.
+	 */
+	public Message(MessageType messageType, Object messageData) {
+		this.messageType = messageType;
+		this.messageData = messageData;
+	}
 
-    public Object getMessageData() {
-        return messageData;
-    }
+	/**
+	 * Constructor for a message without data. * @param messageType The type of the
+	 * message.
+	 */
+	public Message(MessageType messageType) {
+		this.messageType = messageType;
+		this.messageData = null;
+	}
+
+	/**
+	 * Gets the type of the message. * @return The message type.
+	 */
+	public MessageType getMessageType() {
+		return messageType;
+	}
+
+	/**
+	 * Gets the data attached to the message. * @return The message data, or null if
+	 * no data is attached.
+	 */
+	public Object getMessageData() {
+		return messageData;
+	}
 }

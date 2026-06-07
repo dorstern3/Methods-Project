@@ -8,7 +8,7 @@ import client.ClientUI;
 import common.Order;
 
 public class OrderLogic {
-	
+	public static ArrayList<Object> pendingOrderDetails;
 	public OrderLogic() {}
 	
 	

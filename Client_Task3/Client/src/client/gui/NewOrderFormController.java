@@ -1,7 +1,15 @@
 package client.gui;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import client.ClientUI;
+import client.logic.OrderLogic;
+import common.Message;
+import common.MessageType;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -9,8 +17,8 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 
 /**
- * Controller for the New Order Form screen. Handles the creation of a new
- * booking, including validation of input fields.
+ * Controller for the New Order Form screen. Handles booking creation and input
+ * validation.
  */
 public class NewOrderFormController {
 	public static String currentTravelerInfo = "";
@@ -18,111 +26,111 @@ public class NewOrderFormController {
 
 	@FXML
 	private Button btnBook;
-
 	@FXML
 	private ComboBox<String> comboPark;
-
 	@FXML
 	private ComboBox<String> comboTime;
-
 	@FXML
 	private DatePicker dateVisit;
-
 	@FXML
 	private TextField txtEmail;
-
+	@FXML
+	private TextField txtPhone;
 	@FXML
 	private TextField txtVisitors;
-
-	// הרכיב החדש שהוספנו לעיצוב עבור קבוצה מאורגנת
 	@FXML
 	private CheckBox cbGroupOrder;
 
+	/**
+	 * Initializes the controller, populates combo boxes, and configures UI
+	 * visibility based on traveler type.
+	 */
 	@FXML
 	public void initialize() {
-		// 1. אכלוס הרשימות מתוך הקוד המקורי שלך (הכנסתי את השמות האמיתיים מה-DB שלכם!)
 		comboPark.getItems().addAll("Achziv", "Banias", "Caesarea", "Ein Gedi", "Masada");
 		comboTime.getItems().addAll("08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00");
 
-		// 2. ברירת המחדל לכולם: מציגים 1 בשדה כמות המבקרים
 		txtVisitors.setText("1");
 
-		// 3. קוראים את "תא הדואר" כדי לדעת מי המטייל שנכנס
 		System.out.println("New Order Screen loaded for: " + currentTravelerInfo);
 
 		if (currentTravelerInfo.startsWith("Regular")) {
-			// --- מטייל רגיל ---
 			txtVisitors.setEditable(false);
 			txtVisitors.setDisable(true);
 			cbGroupOrder.setVisible(false);
 
 		} else if (currentTravelerInfo.startsWith("Guide")) {
-			// --- מדריך ---
 			txtVisitors.setEditable(true);
 			txtVisitors.setDisable(false);
 			cbGroupOrder.setVisible(true);
 
 		} else if (currentTravelerInfo.startsWith("Subscriber")) {
-			// --- מנוי ---
 			txtVisitors.setEditable(true);
 			txtVisitors.setDisable(false);
 			cbGroupOrder.setVisible(false);
 		}
 	}
 
+	/**
+	 * Handles the booking process, validates inputs, and interacts with the server.
+	 * 
+	 * @param event The action event.
+	 */
 	@FXML
 	void clickBookVisit(ActionEvent event) {
 		StringBuilder errorMessages = new StringBuilder();
 
-		// 1. בדיקת שדות חובה ריקים
-		if (comboPark.getValue() == null || dateVisit.getValue() == null || comboTime.getValue() == null
-				|| txtVisitors.getText().isEmpty() || txtEmail.getText().isEmpty()) {
+		String park = comboPark.getValue();
+		String dateStr = (dateVisit.getValue() != null) ? dateVisit.getValue().toString() : null;
+		String time = comboTime.getValue();
+		String visitorsStr = txtVisitors.getText();
+		String email = txtEmail.getText();
+		String phone = txtPhone.getText();
+
+		if (park == null || dateStr == null || time == null || visitorsStr.isEmpty() || email.isEmpty()
+				|| phone.isEmpty()) {
 			errorMessages.append("- Please fill in all the required fields.\n");
 		}
 
-		// 2. ולידציה לכמות מבקרים לפי סוג המטייל הספציפי (הקסם של Client-Server)
-		if (!txtVisitors.getText().isEmpty()) {
-			String visitorsText = txtVisitors.getText();
+		String visitorType = "Regular";
+		int finalVisitors = 0;
 
-			// --- הבדיקה החדשה: חוסמים מספרים שמתחילים באפס ---
-			if (visitorsText.startsWith("0")) {
+		if (!visitorsStr.isEmpty()) {
+			if (visitorsStr.startsWith("0")) {
 				errorMessages.append("- Number of visitors cannot start with a zero.\n");
 			} else {
 				try {
-					int visitors = Integer.parseInt(visitorsText);
-					if (visitors <= 0) {
+					finalVisitors = Integer.parseInt(visitorsStr);
+					if (finalVisitors <= 0) {
 						errorMessages.append("- Number of visitors must be a positive number.\n");
 					} else {
 
-						// --- א. הגבלת מנוי משפחתי לפי הנתון מהדאטה-בייס ---
 						if (currentTravelerInfo.startsWith("Subscriber")) {
-							// השרת החזיר לנו למשל "Subscriber: Yossi: 5". נחתוך את המשפט כדי לחלץ את הספרה
-							// 5
+							visitorType = "Subscriber";
 							String[] infoParts = currentTravelerInfo.split(":");
-							int maxFamilyMembers = Integer.parseInt(infoParts[2].trim());
-
-							if (visitors > maxFamilyMembers) {
-								errorMessages.append("- Your subscription is limited to ").append(maxFamilyMembers).append(" members.\n");
+							if (infoParts.length > 2) {
+								int maxFamilyMembers = Integer.parseInt(infoParts[2].trim());
+								if (finalVisitors > maxFamilyMembers) {
+									errorMessages.append("- Your subscription is limited to ").append(maxFamilyMembers)
+											.append(" members.\n");
+								}
 							}
 						}
 
-						// --- ב. הגבלת מדריך קבוצות ---
 						else if (currentTravelerInfo.startsWith("Guide")) {
-							if (cbGroupOrder.isSelected()) {
-								// אם הוא סימן V על קבוצה מאורגנת - מוגבל ל-15 משתתפים
-								if (visitors > 15) {
+							if (cbGroupOrder != null && cbGroupOrder.isSelected()) {
+								visitorType = "Group";
+								if (finalVisitors > 15) {
 									errorMessages.append("- A group order can have a maximum of 15 visitors.\n");
 								}
 							} else {
-								// אם הוא לא סימן V, זו אינה קבוצה ולכן הוא מוגבל ל-1 כמו הזמנה רגילה
-								if (visitors > 1) {
+								if (finalVisitors > 1) {
 									errorMessages.append("- A regular non-group order is limited to 1 person.\n");
 								}
 							}
 						}
 
-						// --- ג. הגבלת מטייל מזדמן ---
-						else if (currentTravelerInfo.startsWith("Regular") && visitors > 1) {
+						else if (currentTravelerInfo.startsWith("Regular") && finalVisitors > 1) {
 							errorMessages.append("- A regular traveler can only book for 1 person.\n");
 						}
 					}
@@ -132,53 +140,82 @@ public class NewOrderFormController {
 			}
 		}
 
-		// 3. בדיקת תקינות אימייל (נשאר כמו שעשית)
-		if (!txtEmail.getText().isEmpty() && !txtEmail.getText().contains("@")) {
+		if (!email.isEmpty() && !email.contains("@")) {
 			errorMessages.append("- Please enter a valid email address.\n");
 		}
 
-		// 4. בדיקת תאריך עתידי (נשאר כמו שעשית)
-		if (dateVisit.getValue() != null && comboTime.getValue() != null) {
-			java.time.LocalDate selectedDate = dateVisit.getValue();
-			java.time.LocalTime selectedTime = java.time.LocalTime.parse(comboTime.getValue());
-			java.time.LocalDate today = java.time.LocalDate.now();
-			java.time.LocalTime now = java.time.LocalTime.now();
+		if (dateVisit.getValue() != null && time != null) {
+			LocalDate selectedDate = dateVisit.getValue();
+			LocalTime selectedTime = LocalTime.parse(time);
+			LocalDate today = LocalDate.now();
+			LocalTime now = LocalTime.now();
 
 			if (selectedDate.isBefore(today) || (selectedDate.isEqual(today) && selectedTime.isBefore(now))) {
 				errorMessages.append("- Visit date and time must be in the future.\n");
 			}
 		}
 
-		// 5. עצירת הפעולה והצגת כל השגיאות למשתמש במרוכז
 		if (errorMessages.length() > 0) {
-			// אני מניח שיש לך פונקציית showAlert מוכנה במחלקה
 			showAlert("Validation Error", "Please correct the following errors:", errorMessages.toString());
 			return;
 		}
 
-		// 6. הכל תקין! מציגים נתונים (ובהמשך נשלח לשרת)
-		System.out.println("--- New Booking Attempt (Validated Successfully!) ---");
-		System.out.println("Traveler ID: " + currentTravelerId);
-		System.out.println("Traveler Type: " + currentTravelerInfo);
-		System.out.println("Park: " + comboPark.getValue());
-		System.out.println("Date: " + dateVisit.getValue());
-		System.out.println("Time: " + comboTime.getValue());
-		System.out.println("Visitors: " + txtVisitors.getText());
-		System.out.println("Email: " + txtEmail.getText());
-		System.out.println("Is Group Order: " + cbGroupOrder.isSelected());
+		ArrayList<Object> orderData = new ArrayList<>();
+		orderData.add(park);
+		orderData.add(dateStr);
+		orderData.add(time);
+		orderData.add(finalVisitors);
+		orderData.add(email);
+		orderData.add(phone);
+		orderData.add(currentTravelerId);
+		orderData.add(visitorType);
 
-		// --- השלב הבא שלנו: לארוז את הנתונים האלו למעטפת Message ולשגר לשרת! ---
+		System.out.println("Sending to server to check availability: " + orderData);
+		Message msg = new Message(MessageType.CHECK_AVAILABILITY, orderData);
+		Message reply = (Message) ClientUI.clientChat.accept(msg);
+
+		if (reply != null && reply.getMessageType() == MessageType.CHECK_AVAILABILITY_RESULT) {
+			boolean isAvailable = (boolean) reply.getMessageData();
+
+			if (isAvailable) {
+				System.out.println("THERE IS PLACE... Sending SAVE request");
+
+				Message saveMsg = new Message(MessageType.SAVE_NEW_ORDER, orderData);
+				Message saveReply = (Message) ClientUI.clientChat.accept(saveMsg);
+
+				if (saveReply != null && saveReply.getMessageType() == MessageType.SAVE_SUCCESS) {
+					String generatedQR = (String) saveReply.getMessageData();
+					String orderNumber = generatedQR.substring(3);
+
+					Alert simAlert = new Alert(Alert.AlertType.INFORMATION);
+					simAlert.setTitle("Simulation");
+					simAlert.setHeaderText("Simulation: SMS & Email Sent");
+					simAlert.setContentText("To Email: " + email + "\nTo Phone: " + phone
+							+ "\n\nYour order has been saved and is pending confirmation." + "\nOrder Number: "
+							+ orderNumber + "\nYour Entrance QR Code is: " + generatedQR);
+					simAlert.showAndWait();
+					ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
+
+				} else {
+					showAlert("Error", "Saving Failed", "There was an error saving your order to the database.");
+				}
+
+			} else {
+				OrderLogic.pendingOrderDetails = orderData;
+				ScreenSwitch.switchScreen("/client/gui/WaitListForm.fxml", "Waiting List");
+			}
+		}
 	}
 
 	/**
-	 * Shows an error alert dialog.
+	 * Displays an error alert dialog.
 	 * 
-	 * @param title   the title of the alert
-	 * @param header  the header text
-	 * @param content the content text
+	 * @param title   The title of the alert.
+	 * @param header  The header text.
+	 * @param content The content text.
 	 */
 	private void showAlert(String title, String header, String content) {
-		javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+		Alert alert = new Alert(Alert.AlertType.ERROR);
 		alert.setTitle(title);
 		alert.setHeaderText(header);
 		alert.setContentText(content);
@@ -186,13 +223,12 @@ public class NewOrderFormController {
 	}
 
 	/**
-	 * Handles the back button action. Navigates back to the Traveler Entry menu.
+	 * Handles the back button action.
 	 * 
-	 * @param event the action event triggered by clicking the back button
+	 * @param event The action event.
 	 */
 	@FXML
 	void clickBack(ActionEvent event) {
 		ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
 	}
-
 }

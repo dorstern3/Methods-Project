@@ -2,7 +2,7 @@ USE `gonature_db_new`;
 
 -- 1. Insert Parks
 INSERT INTO `Parks` (`park_name`, `max_capacity`, `casual_gap`, `current_occupancy`, `full_price`, `additonal_discount`, `estimated_staying_time`) VALUES 
-('Achziv', 400, 40, 50, 35, 0,4),
+('Achziv', 10, 2, 0, 35, 0,4),
 ('Banias', 500, 50, 120, 39, 0,4),
 ('Caesarea', 1000, 100, 450, 45, 0.1,4),
 ('Ein Gedi', 600, 60, 200, 28, 0.15,4),
@@ -17,12 +17,12 @@ INSERT INTO `Subscriber` (`id`, `fname`, `lname`, `email`, `phone_number`, `cred
 (105, 'Amit', 'Perez', 'amit@gmail.com', '058-9998887', NULL, 2, 1005);
 
 -- 3. Insert Guides
-INSERT INTO `Guide` (`fname`, `lname`, `email`, `phone_number`) VALUES 
-('Avi', 'Ronen', 'avi.guide@gmail.com', '050-1111111'),
-('Gal', 'Tal', 'gal.guide@gmail.com', '052-2222222'),
-('Tom', 'Nir', 'tom.guide@gmail.com', '054-3333333'),
-('Adi', 'Bar', 'adi.guide@gmail.com', '053-4444444'),
-('Omer', 'Golan', 'omer.guide@gmail.com', '058-5555555');
+INSERT INTO `Guide` (`guide_id`,`fname`, `lname`, `email`, `phone_number`) VALUES 
+(201, 'Avi', 'Ronen', 'avi.guide@gmail.com', '050-1111111'),
+(202, 'Gal', 'Tal', 'gal.guide@gmail.com', '052-2222222'),
+(203, 'Tom', 'Nir', 'tom.guide@gmail.com', '054-3333333'),
+(204, 'Adi', 'Bar', 'adi.guide@gmail.com', '053-4444444'),
+(205, 'Omer', 'Golan', 'omer.guide@gmail.com', '058-5555555');
 
 -- 4. Insert Workers
 INSERT INTO `Workers` (`hash_password`, `fname`, `lname`, `email`, `park_name`, `role`) VALUES 

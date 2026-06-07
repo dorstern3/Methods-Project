@@ -35,23 +35,17 @@ CREATE TABLE `Order` (
   `order_date` DATE NOT NULL,                  -- .2 order_date (Date)
   `number_of_visitors` INT NOT NULL,           -- .3 number_of_visitors (int)
   `QR_code` VARCHAR(50),                       -- CHANGED TO VARCHAR TO SUPPORT 'QR-1234'
-  `id` int,                                    -- .5  (FK to subscriber)
+  `id` int,                                   
   `date_of_placing_order` DATE ,               -- .6 date_of_placing_order (Date)
   `entry_time` TIME NOT NULL,                  -- e.g "15:00:00"
   `exit_time` TIME,
-  `status` ENUM('Confirmed' , 'Canceled' , 'On waiting list' , 'Pending confirmation' , 'Entered') DEFAULT 'Pending confirmation' NOT NULL,
+  `status` ENUM('Confirmed' , 'Canceled' , 'On waiting list' , 'Pending confirmation' , 'Entered','Waiting list unconfirmed') DEFAULT 'Pending confirmation' NOT NULL,
   `type_of_visitor` ENUM('Regular' , 'Group' , 'Subscriber') NOT NULL,
   `park_name` VARCHAR(50) NOT NULL,
   `email` VARCHAR(50),
   `phone_number` VARCHAR(50),
   
   PRIMARY KEY (`order_number`),
-  
-  -- foreign key to subscriber
-  CONSTRAINT `fk_id`
-    FOREIGN KEY (`id`)
-    REFERENCES `Subscriber` (`id`)
-    ON UPDATE CASCADE,
     
  -- foreign key to parks
   CONSTRAINT `fk_park_name`
@@ -63,13 +57,13 @@ CREATE TABLE `Order` (
 
 -- create table Guide
 CREATE TABLE `Guide`(
-    `guide_id` INT NOT NULL AUTO_INCREMENT,
+    `guide_id` INT NOT NULL,
     `fname` VARCHAR(50) NOT NULL,
     `lname` VARCHAR(50) NOT NULL,
     `email` VARCHAR(50) NOT NULL,
     `phone_number`VARCHAR(50) NOT NULL,
     PRIMARY KEY (`guide_id`)
-) AUTO_INCREMENT = 1000 ;
+);
 
 -- create table workers
 CREATE TABLE `Workers`(
