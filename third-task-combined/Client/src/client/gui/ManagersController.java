@@ -18,7 +18,7 @@ import client.logic.ScreenSwitch;
 import common.Message;
 import common.MessageType;
 import common.ParameterRequest;
-
+import client.logic.CurUser;
 public class ManagersController {
 
 
@@ -77,7 +77,20 @@ public class ManagersController {
         deptButtonsContainer.getChildren().addAll(btnManageRequests, btnDeptReports, btnDeptPromotions);
         deptManagerTab.setContent(deptButtonsContainer);
 
-        tabPane.getTabs().addAll(parkManagerTab, deptManagerTab);
+// tabPane.getTabs().addAll(parkManagerTab, deptManagerTab);
+     // Filtering the display of tabs according to the role of the employee connected from the static department
+        String userRole = client.logic.CurUser.getRole();
+        
+        if ("Park Manager".equals(userRole)) {
+            
+            tabPane.getTabs().add(parkManagerTab);
+        } else if ("Department Manager".equals(userRole)) {
+           
+            tabPane.getTabs().add(deptManagerTab);
+        } else {
+           
+            tabPane.getTabs().addAll(parkManagerTab, deptManagerTab);
+        }
         
         mainContainer.getChildren().addAll(mainTitle, tabPane);
 
