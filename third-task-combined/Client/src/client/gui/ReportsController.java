@@ -56,11 +56,11 @@ public class ReportsController {
 	public void initialize() {
 		reportsLogic = new ReportsLogic();
 		// Needs to be dynamic
-		//String userRole = CurUser.getRole();
-		String userRole = "DepartmentManager";
+		String userRole = CurUser.getRole();
+		//String userRole = "DepartmentManager";
 		//String userRole = "ParkManager";
 		
-		if("ParkManager".equals(userRole)) {
+		if("Park_manager".equals(userRole)) {
 			// Hide Department Manager buttons completely
 			btnVisitorsReport.setVisible(false);
 			btnVisitorsReport.setManaged(false);
@@ -69,7 +69,7 @@ public class ReportsController {
 			parkSelection.setVisible(false);
 			parkSelection.setManaged(false);
 		}
-		else if("DepartmentManager".equals(userRole)) {
+		else if("Dept_manager".equals(userRole)) {
 			
 			// Load available parks into selection drop down for the Department Manager
 			ArrayList<String> parks = reportsLogic.getParks();
@@ -200,8 +200,8 @@ public class ReportsController {
 	public void onClickTotalVisitorsReport() {
 		
 		if(!validateDates()) {return;}
-		//String parkName = CurUser.getParkName();
-		String parkName = "Banias"; 
+		String parkName = CurUser.getParkName();
+		//String parkName = "Banias"; 
 	    String start = startDate.getValue().toString();
 	    String end = endDate.getValue().toString();
 	    
@@ -271,8 +271,8 @@ public class ReportsController {
 	public void onClickOccupancyReport() {
 		
 		if(!validateDates()) {return;}
-		//String parkName = CurUser.getParkName();
-		String parkName = "Banias"; 
+		String parkName = CurUser.getParkName();
+		//String parkName = "Banias"; 
 	    String start = startDate.getValue().toString();
 	    String end = endDate.getValue().toString();
 	    
@@ -352,7 +352,7 @@ public class ReportsController {
 	 * * @param event The ActionEvent triggered by the back/dashboard button click.
 	 */
 	public void openDashboard(ActionEvent event) {
-		ScreenSwitch.switchScreen("/client/gui/Dashboard.fxml", "Dashboard");
+		ScreenSwitch.switchScreen("/client/gui/ManagersScreen.fxml","Manager");
 	}
 	
 	/**

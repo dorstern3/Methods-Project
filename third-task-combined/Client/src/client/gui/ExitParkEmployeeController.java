@@ -65,6 +65,6 @@ public class ExitParkEmployeeController {
     
     @FXML
     public void onBackButtonClicked(ActionEvent event) {
-        ScreenSwitch.switchScreen("/client/gui/Dashboard.fxml", "Dashboard");
+    	ScreenSwitch.switchScreen("/client/gui/EmployeeDashboard.fxml","Employee Dashboard");
     }
 }

@@ -189,7 +189,7 @@ public class EntranceController {
     
     @FXML
     public void onBackButtonClicked(ActionEvent event) {
-        ScreenSwitch.switchScreen("/client/gui/Dashboard.fxml", "Dashboard");
+    	ScreenSwitch.switchScreen("/client/gui/EmployeeDashboard.fxml","Employee Dashboard");
     }
 
     private void showMessage(String text, String color) {

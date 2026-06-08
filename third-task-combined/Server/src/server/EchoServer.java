@@ -3,6 +3,8 @@ package server;
 import java.io.*;
 import ocsf.server.*;
 import db.DBconnection;
+import db.DBselect;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -132,6 +134,111 @@ public class EchoServer extends AbstractServer {
 	                case ACTIVATE_PROMOTION:
 	                    handleActivatePromotion(message, client);
 	                    break;
+	                case IDENTIFY_TRAVELER:{
+						String travelerId = (String) message.getData();
+						System.out.println("Server is now looking for traveler ID: " + travelerId);
+
+						String result = db.DBselect.identifyTravelerInDB(travelerId);
+
+						Message responseMsg = new Message(MessageType.IDENTIFY_TRAVELER_RESPONSE, result);
+						try {
+							client.sendToClient(responseMsg);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						break;
+	                }
+					case CHECK_AVAILABILITY:{
+						ArrayList<Object> orderDetails = (ArrayList<Object>) message.getData();
+
+						boolean isAvailable = DBselect.checkAvailability(orderDetails);
+
+						Message replyMsg = new Message(MessageType.CHECK_AVAILABILITY_RESULT, isAvailable);
+						try {
+							client.sendToClient(replyMsg);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						break;
+					}
+					case ENTER_WAITING_LIST:{
+						ArrayList<Object> waitlistData = (ArrayList<Object>) ((Message) msg).getData();
+
+						boolean isWaitlistSaved = db.UpdateOrderTable.saveToWaitingList(waitlistData);
+
+						Message waitlistReply = new Message(MessageType.ENTER_WAITING_LIST_RESULT, isWaitlistSaved);
+						try {
+							client.sendToClient(waitlistReply);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						break;
+					}
+					case SAVE_NEW_ORDER:{
+						ArrayList<Object> orderDataToSave = (ArrayList<Object>) message.getData();
+
+						String generatedQR = db.UpdateOrderTable.saveNewOrder(orderDataToSave);
+
+						if (generatedQR != null) {
+							Message successMsg = new Message(MessageType.SAVE_SUCCESS, generatedQR);
+							try {
+								client.sendToClient(successMsg);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						} else {
+							try {
+								client.sendToClient(new Message(MessageType.ERROR, null));
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+						break;
+					}
+					case GET_ALTERNATIVE_DATES:{
+						try {
+							ArrayList<Object> originalOrder = (ArrayList<Object>) message.getData();
+
+							ArrayList<String> altDatesList = db.DBselect.getAlternativeDatesList(originalOrder);
+
+							Message altDatesReply = new Message(MessageType.GET_ALTERNATIVE_DATES_RESULT, altDatesList);
+							client.sendToClient(altDatesReply);
+
+						} catch (Exception e) {
+							System.out.println("Error processing alternative dates request");
+							e.printStackTrace();
+						}
+						break;
+					}
+					case FETCH_ORDER_DETAILS: {
+						ArrayList<Object> searchParams = (ArrayList<Object>) message.getData();
+						int orderNum = (int) searchParams.get(0);
+						String travelerIdStr = (String) searchParams.get(1);
+
+						ArrayList<Object> validatedOrderDetails = db.DBselect.fetchOrderWithValidation(orderNum,
+								travelerIdStr);
+
+						try {
+							client.sendToClient(new Message(MessageType.FETCH_ORDER_RESULT, validatedOrderDetails));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						break;
+					}
+					case UPDATE_ORDER_STATUS: {
+						ArrayList<Object> updateData = (ArrayList<Object>) message.getData();
+						int orderNumToUpdate = (int) updateData.get(0);
+						String newStatus = (String) updateData.get(1);
+
+						ArrayList<Object> updateResultList = db.UpdateOrderTable.updateOrderStatus(orderNumToUpdate,newStatus);
+
+						try {
+							client.sendToClient(new Message(MessageType.UPDATE_ORDER_RESULT, updateResultList));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						break;
+					}
 	                default:
 	                	System.out.println("Server: Unknown message type received.");
 	                    break;
@@ -1016,13 +1123,14 @@ public class EchoServer extends AbstractServer {
         Object[] workerData = null;
         boolean isSuccess = false;
 
-        String query = "SELECT employee_id, username, first_name, last_name, email, role, park_name " +
-                       "FROM gonature_db_new.Workers WHERE worker_id = ? AND hash_password = ?;";
+        String query = "SELECT worker_id, fname, lname, email, role, park_name " +
+                       "FROM gonature_db_new.Workers WHERE fname = ? AND hash_password = ?;";
 
         try (Connection conn = DBconnection.getConnection(); 
              PreparedStatement pstmt = conn.prepareStatement(query)) {
             
-        	pstmt.setInt(1, Integer.parseInt(workerId));
+        	//pstmt.setInt(1, Integer.parseInt(workerId));
+        	pstmt.setString(1,workerId);
             pstmt.setString(2, hashedPassword);
 
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -1030,8 +1138,8 @@ public class EchoServer extends AbstractServer {
                     isSuccess = true;
                     workerData = new Object[] {
                         rs.getInt("worker_id"),
-                        rs.getString("first_name"),
-                        rs.getString("last_name"),
+                        rs.getString("fname"),
+                        rs.getString("lname"),
                         rs.getString("email"),
                         rs.getString("role"),
                         rs.getString("park_name") 

@@ -17,8 +17,8 @@ public class LoginLogic {
      */
 	public MessageType authenticateUser(String username , String rawPassword) {
 		
-		String hashedPassword = PasswordHash.hashPassword(rawPassword);
-		Object[] requestUser = new Object[] {username , hashedPassword};
+		//String hashedPassword = PasswordHash.hashPassword(rawPassword);
+		Object[] requestUser = new Object[] {username , rawPassword};
 		Message msg = new Message(MessageType.LOGIN_REQUEST , requestUser);
 		Message response = (Message) ClientUI.clientChat.accept(msg);
 		if (response != null) {

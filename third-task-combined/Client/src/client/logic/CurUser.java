@@ -41,6 +41,7 @@ public class CurUser {
         parkName = null;
         isLoggedIn = false;
         System.out.println("successful logout");
+        ScreenSwitch.switchScreen("/client/gui/RoleSelection.fxml", "Role Selection");
     }
     
     // --- Static Getters ---
