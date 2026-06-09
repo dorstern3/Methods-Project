@@ -84,3 +84,18 @@ CREATE TABLE `Workers`(
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
+
+-- create table parameter_requests
+CREATE TABLE `parameter_requests`(
+    `request_id` INT NOT NULL AUTO_INCREMENT,
+    `park_name` VARCHAR(50) NOT NULL,
+    `worker_id` INT NOT NULL,
+    `parameter_name` VARCHAR(50) NOT NULL,
+    `current_value` INT NOT NULL,
+    `request_value` INT NOT NULL,    
+    `status` ENUM('Pending', 'Approved', 'Declined') NOT NULL DEFAULT 'Pending',
+    `request_date` DATE NOT NULL,
+    PRIMARY KEY (`request_id`),
+    CONSTRAINT `fk_param_park_name` FOREIGN KEY (`park_name`) REFERENCES `parks` (`park_name`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `fk_param_worker_id` FOREIGN KEY (`worker_id`) REFERENCES `workers` (`worker_id`) ON DELETE CASCADE ON UPDATE CASCADE
+);

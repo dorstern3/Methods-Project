@@ -14,7 +14,7 @@ import java.util.ArrayList;
  * system.
  */
 public class DBselect {
-
+//-------------------------לטפל בTRY CATCH----------------------
 	/**
 	 * Identifies the traveler type (Subscriber, Guide, or Regular) by ID.
 	 * 
@@ -57,6 +57,7 @@ public class DBselect {
 		} catch (Exception e) {
 			System.out.println("Error identifying traveler: " + e.getMessage());
 			e.printStackTrace();
+			return "Error"; 
 		}
 
 		return "Regular Traveler";
