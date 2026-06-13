@@ -8,7 +8,7 @@ import client.ClientUI;
 import common.Order;
 
 public class OrderLogic {
-	
+	public static ArrayList<Object> pendingOrderDetails;
 	public OrderLogic() {}
 	
 	
@@ -20,7 +20,7 @@ public class OrderLogic {
 	
 	// Call for all the orders from the server
 	public ArrayList<Order> getAllOrders(){
-		Object response = ClientUI.clientChat.accept("123");										// Ask the server for all the order of subscriber 123
+		Object response = ClientUI.clientChat.accept("101");										// Ask the server for all the order of subscriber 123
 		return (ArrayList<Order>) response;
 	}
 	

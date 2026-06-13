@@ -1,6 +1,7 @@
 package client.gui;
 
 import client.logic.ExitLogic;
+import client.logic.ScreenSwitch;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -12,7 +13,9 @@ import javafx.scene.control.TextField;
  */
 public class ExitParkVisitorController {
 
-    @FXML
+    public static String currentTravelerId;
+
+	@FXML
     private TextField orderIdInput; // Text field matching the FXML fx:id exactly
 
     @FXML
@@ -59,8 +62,7 @@ public class ExitParkVisitorController {
         }
 
         // 3. Delegate the exit process to the logic layer (ONE parameter)
-        boolean isSuccess = exitLogic.registerExit(orderIdStr);
-
+        boolean isSuccess = exitLogic.registerExit(orderIdStr, currentTravelerId); 
         // 4. Provide feedback to the visitor
         if (isSuccess) {
             statusLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
@@ -80,6 +82,6 @@ public class ExitParkVisitorController {
      */
     @FXML
     public void onBackClicked(ActionEvent event) {
-        ScreenSwitch.switchScreen("/client/gui/Dashboard.fxml", "Dashboard");
+    	ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
     }
 }

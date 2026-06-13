@@ -8,6 +8,7 @@
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
@@ -18,6 +19,13 @@
             <Font name="System Bold" size="28.0" />
          </font>
       </Label>
+      
+      <HBox alignment="CENTER_LEFT" layoutX="40.0" layoutY="62.0" prefHeight="26.0" prefWidth="720.0" spacing="10.0">
+         <children>
+            <Button mnemonicParsing="false" onAction="#onRefreshCapacityClicked" style="-fx-cursor: hand;" text="🔄 Refresh" />
+            <Label fx:id="lblLiveCapacity" text="Loading..." />
+         </children>
+      </HBox>
       
       <TabPane layoutX="40.0" layoutY="90.0" prefHeight="260.0" prefWidth="720.0" style="-fx-border-color: #bdc3c7; -fx-background-color: white;" tabClosingPolicy="UNAVAILABLE">
         <tabs>
@@ -56,14 +64,14 @@
                               <Font name="System Bold" size="14.0" />
                            </font>
                         </Label>
-                        <TextField fx:id="casualAmountInput" layoutX="260.0" layoutY="60.0" prefHeight="35.0" prefWidth="120.0" promptText="e.g., 2" />
+                        <TextField fx:id="casualAmountInput" layoutX="260.0" layoutY="60.0" prefHeight="35.0" prefWidth="120.0" />
                         
-                        <Label layoutX="410.0" layoutY="30.0" text="Subscriber number / ID of Guide:">
+                        <Label layoutX="410.0" layoutY="30.0" text="Subscriber number / ID:">
                            <font>
                               <Font name="System Bold" size="14.0" />
                            </font>
                         </Label>
-                        <TextField fx:id="casualIdInput" disable="true" layoutX="410.0" layoutY="60.0" prefHeight="35.0" prefWidth="250.0" promptText="Not required" />
+                        <TextField fx:id="casualIdInput" disable="true" layoutX="410.0" layoutY="60.0" prefHeight="35.0" prefWidth="250.0" />
                         
                         <Button layoutX="30.0" layoutY="130.0" mnemonicParsing="false" onAction="#onCheckCasualClicked" prefHeight="40.0" prefWidth="250.0" style="-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-cursor: hand;" text="Check Capacity &amp; Price">
                            <font>

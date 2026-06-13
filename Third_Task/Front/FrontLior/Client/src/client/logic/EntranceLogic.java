@@ -38,9 +38,7 @@ public class EntranceLogic {
     private double fetchFullPriceFromServer() {
         System.out.println("EntranceLogic: Requesting Full Price from server.");
         
-        // Assuming the employee is logged into 'Banias'. 
-        // In the future, this should be taken from the logged-in employee's details.
-        String parkName = "Banias"; 
+        String parkName = CurUser.getParkName(); 
         
         try {
             Message request = new Message(MessageType.GET_FULL_PRICE, parkName);
@@ -105,7 +103,7 @@ public class EntranceLogic {
         double finalPrice = strategy.calculate(amount, fullPrice, isPreBooked);
 
         // 3. Apply any global promotions relevant to the whole park
-        double currentActivePromotionDiscount = checkActivePromotions("Banias");
+        double currentActivePromotionDiscount = checkActivePromotions(CurUser.getParkName());
         if (currentActivePromotionDiscount > 0) {
             finalPrice = finalPrice - (finalPrice * currentActivePromotionDiscount);
         }
@@ -169,33 +167,40 @@ public class EntranceLogic {
         return false;
     }
     /**
-     * Confirms payment and updates occupancy and order status.
-     * @param visitorsAmount Number of visitors entering.
-     * @param orderId The Order ID (null if casual).
-     * @param parkName The park name.
-     * @param visitorType The specific type of the visitor.
-     * @return true if successful.
+     * Confirms the entry transaction payment parameters and communicates with the database server context.
+     * Packages structural validation parameters dynamically to coordinate cross-network operations.
+     *
+     * @param visitorsAmount The total headcount size of the arriving group.
+     * @param orderId        The unique tracking order key string (passed as null if casual visitor).
+     * @param parkName       The explicit park destination name context string.
+     * @param visitorType    The structural type category of the traveler (e.g., Regular, Subscriber, Guide).
+     * @param visitorId      The explicit personal Identification or Subscriber Number index of the leader.
+     * @return The active or database-allocated Order ID string mapping, or null if execution collapses.
      */
-    public boolean confirmPayment(int visitorsAmount, String orderId, String parkName, String visitorType) {
-        System.out.println("EntranceLogic: Confirming payment for " + visitorsAmount + " visitors of type " + visitorType);
+    public String confirmPayment(int visitorsAmount, String orderId, String parkName, String visitorType, String visitorId) {
+        System.out.println("EntranceLogic: Confirming payment for " + visitorsAmount + " visitors. ID: " + visitorId);
         
         try {
+            // Package all distinct transaction parameters sequentially inside a serialized structural collection
             java.util.ArrayList<Object> dataList = new java.util.ArrayList<>();
-            dataList.add(visitorsAmount); // Index 0
-            dataList.add(orderId);        // Index 1
-            dataList.add(parkName);       // Index 2
-            dataList.add(visitorType);    // Index 3
+            dataList.add(visitorsAmount); // Index 0: Occupancy volume mapping
+            dataList.add(orderId);        // Index 1: Booking reference tracking string
+            dataList.add(parkName);       // Index 2: Target park context string
+            dataList.add(visitorType);    // Index 3: Categorized visitor type string
+            dataList.add(visitorId);      // Index 4: Identification string (Newly added criteria)
             
             Message request = new Message(MessageType.CONFIRM_PAYMENT, dataList);
             Message response = (Message) ClientUI.clientChat.accept(request);
             
             if (response != null && response.getType() == MessageType.CONFIRM_PAYMENT_RESPONSE) {
-                return (boolean) response.getData();
+                // Extract and cast the response object token as a concrete database tracking reference index
+                return (String) response.getData();
             }
         } catch (Exception e) {
+            System.err.println("EntranceLogic: Critical exception intercepted during payment execution context communication.");
             e.printStackTrace();
         }
-        return false;
+        return null; // Return null to explicitly declare network pipeline execution drops
     }
     
     /**

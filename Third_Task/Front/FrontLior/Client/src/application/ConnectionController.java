@@ -1,8 +1,8 @@
 package application;
 
 import client.ClientUI;
-import client.gui.ScreenSwitch;
 import client.logic.ClientController;
+import client.logic.ScreenSwitch;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -23,7 +23,7 @@ public class ConnectionController {
 			ClientUI.clientChat.openConnection();
 			status.setText("Connected!");
 			
-			ScreenSwitch.switchScreen("/client/gui/Dashboard.fxml", "Dashboard");
+			ScreenSwitch.switchScreen("/client/gui/RoleSelection.fxml", "Role Selection");
 			
 		} catch(Exception e) {
 			System.out.println("Error: Connection to server failed!");
