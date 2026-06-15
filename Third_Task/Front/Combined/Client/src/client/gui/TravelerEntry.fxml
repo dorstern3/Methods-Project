@@ -7,14 +7,14 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.TravelerEntryController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.TravelerEntryController">
    <children>
       <Label layoutX="218.0" layoutY="55.0" text="Traveler Menu" textAlignment="CENTER">
          <font>
             <Font name="System Bold" size="24.0" />
          </font>
       </Label>
-      <Button fx:id="btnNewOrder" layoutX="325.0" layoutY="242.0" mnemonicParsing="false" onAction="#clickNewOrder" prefHeight="36.0" prefWidth="188.0" text="Book New Visit">
+      <Button fx:id="btnNewOrder" layoutX="323.0" layoutY="233.0" mnemonicParsing="false" onAction="#clickNewOrder" prefHeight="36.0" prefWidth="188.0" text="Book New Visit">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
@@ -22,7 +22,7 @@
             <Font name="System Bold" size="16.0" />
          </font>
       </Button>
-      <Button fx:id="btnManageOrder" layoutX="68.0" layoutY="242.0" mnemonicParsing="false" onAction="#clickManageOrder" prefHeight="36.0" prefWidth="201.0" text="Manage Existing Order">
+      <Button fx:id="btnManageOrder" layoutX="68.0" layoutY="233.0" mnemonicParsing="false" onAction="#clickManageOrder" prefHeight="36.0" prefWidth="201.0" text="Manage Existing Order">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
@@ -30,7 +30,7 @@
             <Font name="System Bold" size="16.0" />
          </font>
       </Button>
-      <Button fx:id="btnBack" layoutX="28.0" layoutY="350.0" mnemonicParsing="false" onAction="#clickBack" prefHeight="35.0" prefWidth="80.0" text="Back">
+      <Button fx:id="btnBack" layoutX="14.0" layoutY="350.0" mnemonicParsing="false" onAction="#clickBack" prefHeight="35.0" prefWidth="80.0" text="Back">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
@@ -44,6 +44,19 @@
          </font>
       </Label>
       <TextField fx:id="txtTravelerId" layoutX="206.0" layoutY="187.0" prefHeight="25.0" prefWidth="188.0" />
-      <Label fx:id="lblError" layoutX="286.0" layoutY="302.0" textFill="RED" />
+      <Label fx:id="lblError" layoutX="242.0" layoutY="94.0" textFill="RED" />
+      <Label layoutX="274.0" layoutY="287.0" text="OR:" textAlignment="CENTER">
+         <font>
+            <Font name="System Bold" size="14.0" />
+         </font>
+      </Label>
+      <Button fx:id="btnExit" layoutX="192.0" layoutY="319.0" mnemonicParsing="false" onAction="#onExitParkClicked" prefHeight="36.0" prefWidth="188.0" text="Exit Park">
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+         <font>
+            <Font name="System Bold" size="16.0" />
+         </font>
+      </Button>
    </children>
 </AnchorPane>

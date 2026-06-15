@@ -60,12 +60,16 @@ public enum MessageType {
     PROMOTION_ACTIVATED_FAILED,
     UPDATE_REQUEST_FAILED,
     REQUEST_SUBMIT_FAILED,
+    GET_PARK_OCCUPANCY,
+    GET_PARK_OCCUPANCY_RESPONSE,
     
     
     
     LOGIN_REQUEST,
     LOGIN_SUCCESS,
     LOGIN_FAILED,
+    LOGOUT_REQUEST,
+    LOGOUT_SUCCESS,
     
     
 	/** Request to identify a traveler by ID. */

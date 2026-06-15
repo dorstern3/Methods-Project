@@ -18,11 +18,13 @@ import client.logic.ScreenSwitch;
 import common.Message;
 import common.MessageType;
 import common.ParameterRequest;
-import client.logic.CurUser;
+
+
 public class ManagersController {
 
-
-
+    // --- Field for occupancy tracking ---
+    private Label lblLiveCapacity;
+    
     @FXML private VBox mainContainer;
     private ManagersLogic logic;
 
@@ -33,14 +35,29 @@ public class ManagersController {
 
     // Initializes the main window, establishes database connection, and builds the primary dashboard
     private void showMainDashboard(){
-    	mainContainer.getChildren().clear();
+        mainContainer.getChildren().clear();
     	
-    	mainContainer.setSpacing(20);
+        mainContainer.setSpacing(20);
         mainContainer.setPadding(new Insets(20));
         mainContainer.setAlignment(Pos.TOP_CENTER);
 
         Label mainTitle = new Label("Managers Screen");
         mainTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 18px;");
+        
+        // --- Create the capacity label and a manual refresh button ---
+        lblLiveCapacity = new Label("Current Park Occupancy: Loading...");
+        lblLiveCapacity.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2e7d32;");
+
+        Button btnRefreshCapacity = new Button("🔄 Refresh");
+        btnRefreshCapacity.setStyle("-fx-cursor: hand;");
+        btnRefreshCapacity.setOnAction(e -> updateLiveCapacity());
+
+        // Group them together in an HBox
+        HBox capacityContainer = new HBox(15);
+        capacityContainer.setAlignment(Pos.CENTER);
+        capacityContainer.getChildren().addAll(lblLiveCapacity, btnRefreshCapacity);
+        
+     
 
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
@@ -77,22 +94,29 @@ public class ManagersController {
         deptButtonsContainer.getChildren().addAll(btnManageRequests, btnDeptReports, btnDeptPromotions);
         deptManagerTab.setContent(deptButtonsContainer);
 
-// tabPane.getTabs().addAll(parkManagerTab, deptManagerTab);
-     // Filtering the display of tabs according to the role of the employee connected from the static department
+        // Filtering the display of tabs according to the role of the employee connected from the static department
         String userRole = client.logic.CurUser.getRole();
         
         if ("Park_manager".equals(userRole)) {
-            
             tabPane.getTabs().add(parkManagerTab);
         } else if ("Dept_manager".equals(userRole)) {
-           
             tabPane.getTabs().add(deptManagerTab);
         } else {
-           
             tabPane.getTabs().addAll(parkManagerTab, deptManagerTab);
         }
-        
-        mainContainer.getChildren().addAll(mainTitle, tabPane);
+          
+        Button btnBackToLogin = new Button("Logout");
+        btnBackToLogin.setStyle("-fx-cursor: hand; -fx-font-weight: bold;");
+        btnBackToLogin.setOnAction(e -> {
+            
+            ((javafx.scene.Node)e.getSource()).getScene().getWindow().hide();
+            
+            client.logic.CurUser.logout();
+           // ScreenSwitch.switchScreen("/client/gui/EmployeeLogin.fxml", "Employee Login");
+        });
+
+       
+        mainContainer.getChildren().addAll(mainTitle, capacityContainer, tabPane, btnBackToLogin);
 
         btnRequestParams.setOnAction(e -> switchToParkManagerRequestScreen());
         btnPromotions.setOnAction(e -> switchToSharedPromotionsScreen());
@@ -102,7 +126,10 @@ public class ManagersController {
         btnDeptPromotions.setOnAction(e -> switchToSharedPromotionsScreen());
         btnDeptReports.setOnAction(e -> ScreenSwitch.switchScreen("/client/gui/Reports.fxml", "Reports"));
         
+        // Fetch the initial capacity once when the screen loads
+        updateLiveCapacity(); 
     }
+    
 
     // Displays the interface for park managers to submit a parameter change request
     private void switchToParkManagerRequestScreen() {
@@ -213,6 +240,7 @@ public class ManagersController {
         Button backBtn = new Button("Back");
         backBtn.setOnAction(e -> showMainDashboard());
 
+      
         approveBtn.setOnAction(e -> {
         	ParameterRequest selectedItem = requestsList.getSelectionModel().getSelectedItem();
             if (selectedItem == null || !"Pending".equals(selectedItem.getStatus())) return;
@@ -237,7 +265,17 @@ public class ManagersController {
             }
         });
 
-        actionButtons.getChildren().addAll(approveBtn, rejectBtn, backBtn);
+        Button refreshRequestsBtn = new Button("🔄 Refresh List");
+        refreshRequestsBtn.setOnAction(e -> {
+            Message refreshResponse = logic.requestPendingRequests();
+            if (refreshResponse != null && refreshResponse.getType() == MessageType.GET_PENDING_REQUESTS_RESPONSE) {
+                ArrayList<ParameterRequest> serverList = (ArrayList<ParameterRequest>) refreshResponse.getData();
+                requestsList.getItems().clear();  
+                requestsList.getItems().addAll(serverList); 
+                System.out.println("🔄 Requests list refreshed manually!");
+            }
+        }); 
+        actionButtons.getChildren().addAll(approveBtn, rejectBtn, refreshRequestsBtn, backBtn);
         mainContainer.getChildren().addAll(title, new Label("Pending Parameter Requests (From DB):"), requestsList, actionButtons);
     }
 
@@ -333,6 +371,44 @@ public class ManagersController {
             this.parameterName = parameterName;
             this.requestedValue = requestedValue;
             this.displayText = displayText;
+        }
+    }
+    
+    /**
+     * Dispatches a manual request query to the server context to grab real-time occupancy fields.
+     * Updates the text and color properties dynamically without disrupting layout sequences.
+     */
+    private void updateLiveCapacity() {
+        if (lblLiveCapacity == null) {
+            return;
+        }
+        
+        try {
+            String parkName = client.logic.CurUser.getParkName();
+            if (parkName == null || parkName.isEmpty()) {
+                parkName = "Banias"; // Fallback default matching system parameters
+            }
+
+            Message request = new Message(MessageType.GET_PARK_OCCUPANCY, parkName);
+            Message response = (Message) client.ClientUI.clientChat.accept(request);
+
+            if (response != null && response.getType() == MessageType.GET_PARK_OCCUPANCY_RESPONSE) {
+                int[] capacityData = (int[]) response.getData();
+                int current = capacityData[0];
+                int max = capacityData[1];
+
+                lblLiveCapacity.setText(String.format("Current Park Occupancy (%s): %d / %d", parkName, current, max));
+                
+                // Color alert styling depending on total utilization volume
+                if (current >= max) {
+                    lblLiveCapacity.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: red;");
+                } else {
+                    lblLiveCapacity.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2e7d32;");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Client Controller: Failed to fetch capacity updates from server thread.");
+            e.printStackTrace();
         }
     }
 }

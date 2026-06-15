@@ -30,6 +30,9 @@ public class TravelerEntryController {
 
 	@FXML
 	private Label lblError;
+	
+	@FXML
+	private Button btnEbtnExit;
 
 	/**
 	 * Handles the Back button click, returning the user to the role selection
@@ -115,5 +118,23 @@ public class TravelerEntryController {
 				ScreenSwitch.switchScreen("/client/gui/NewOrderForm.fxml", "New Order");
 			}
 		}
+	}
+	@FXML
+	public void onExitParkClicked(ActionEvent event) {
+		lblError.setText("");
+		String travelerId = txtTravelerId.getText();
+
+		if (travelerId == null || travelerId.trim().isEmpty()) {
+			lblError.setText("Please enter ID or Subscriber Number first!");
+			return;
+		}
+
+		if (!travelerId.matches("\\d+")) {
+			lblError.setText("ID must contain only numbers!");
+			return;
+		}
+		client.gui.ExitParkVisitorController.currentTravelerId = travelerId;
+		
+	    ScreenSwitch.switchScreen("/client/gui/ExitParkVisitor.fxml", "Visitor Exit");
 	}
 }

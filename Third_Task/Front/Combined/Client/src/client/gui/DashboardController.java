@@ -23,5 +23,10 @@ public class DashboardController {
         String fullFxmlPath = BASE_URL + buttonId + ".fxml";
         ScreenSwitch.switchScreen(fullFxmlPath, title);
     }
+	
+	@FXML
+	public void logoutbtn() {
+		client.logic.CurUser.logout();
+	}
     
 }
