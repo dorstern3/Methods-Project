@@ -70,7 +70,8 @@ public enum MessageType {
     LOGIN_FAILED,
     LOGOUT_REQUEST,
     LOGOUT_SUCCESS,
-    
+    TRAVELER_LOGOUT,
+    TRAVELER_LOGIN,
     
 	/** Request to identify a traveler by ID. */
 	IDENTIFY_TRAVELER,

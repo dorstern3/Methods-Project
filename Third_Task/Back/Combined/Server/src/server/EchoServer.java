@@ -26,6 +26,7 @@ public class EchoServer extends AbstractServer {
     private ServerGUI gui;
     
     private final Set<String> loggedInUsers = ConcurrentHashMap.newKeySet();
+    private final Set<String> activeTravelers = ConcurrentHashMap.newKeySet();
     
     public EchoServer(int port, ServerGUI gui) {
         super(port);
@@ -37,18 +38,7 @@ public class EchoServer extends AbstractServer {
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
         System.out.println("Message received from client: " + msg);
         try {
-        	// If the message is a string, the server assumes it is a search for orders by subscription ID
-            if (msg instanceof String) {
-                ArrayList<Order> orders = getOrdersBySubscriberId((String) msg);
-                client.sendToClient(orders.isEmpty() ? "NOT_FOUND" : orders);
-            } 
-            // If the message is an order object, the server updates the order details in the database
-            else if (msg instanceof Order) {
-                Order ord = (Order) msg;
-                boolean success = updateOrderDetails(ord.getOrderNumber(), ord.getOrderDate(), ord.getNumberOfVisitors());
-                client.sendToClient(success ? "UPDATE_SUCCESS" : "UPDATE_FAILED");
-            }
-            else if (msg instanceof Message) {
+            if (msg instanceof Message) {
             	Message message = (Message) msg;
             	
             	switch(message.getType()) {
@@ -61,6 +51,30 @@ public class EchoServer extends AbstractServer {
 	            	        loggedInUsers.remove(workerId); 
 	            	        client.setInfo("workerId", null);
 	            	        System.out.println("Server Success: Employee (ID: " + workerId + ") logged out orderly.");
+	            	        client.sendToClient(new Message(MessageType.LOGOUT_SUCCESS, null));
+	            	    }
+	            	    break;
+	            	}
+	            	case TRAVELER_LOGIN: {
+	            	    String travelerId = (String) message.getData();
+
+	            	    if (activeTravelers.contains(travelerId)) {
+	            	        client.sendToClient(new Message(MessageType.LOGIN_FAILED, "Traveler already connected"));
+	            	        System.out.println("Server Warning: Traveler [" + travelerId + "] is already active.");
+	            	        break;
+	            	    }
+            	        client.setInfo("travelerId", travelerId);
+            	        activeTravelers.add(travelerId);
+            	        client.sendToClient(new Message(MessageType.LOGIN_SUCCESS, null));
+            	        System.out.println("Server Success: Traveler ID [" + travelerId + "] entered session.");
+            	        break;
+	            	}
+	            	case TRAVELER_LOGOUT: {
+	            	    String travelerIdentifier = (String) message.getData();
+	            	    if (travelerIdentifier != null) {
+	            	        activeTravelers.remove(travelerIdentifier); 
+	            	        client.setInfo("travelerId", null);         
+	            	        System.out.println("Server Success: Traveler [" + travelerIdentifier + "] removed from active set.");
 	            	        client.sendToClient(new Message(MessageType.LOGOUT_SUCCESS, null));
 	            	    }
 	            	    break;
@@ -303,371 +317,396 @@ public class EchoServer extends AbstractServer {
         }
     }
 
-    // Retrieving a list of orders from the database for a specific subscriber
-    private ArrayList<Order> getOrdersBySubscriberId(String subId) {
-        ArrayList<Order> ordersList = new ArrayList<>();
-        String query = "SELECT * FROM `order` WHERE subscriber_id = ?";
-        
-        //Singleton connection: note that the connection remains open and is not closed at the end of the operation
-        try (Connection conn = DBconnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setString(1, subId);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    ordersList.add(new Order(rs.getInt("order_number"), rs.getDate("order_date"), rs.getInt("number_of_visitors"),
-                        rs.getInt("confirmation_code"), rs.getInt("subscriber_id"), rs.getDate("date_of_placing_order")));
-                }
-            }
-        } catch (Exception e) { e.printStackTrace(); }
-        return ordersList;
-    }
 
-    // Update existing booking details (date and number of visitors) in the database
-    private boolean updateOrderDetails(int orderNum, java.util.Date newDate, int visitors) {
-        String query = "UPDATE `order` SET order_date = ?, number_of_visitors = ? WHERE order_number = ?";
-        try (Connection conn = DBconnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setDate(1, new java.sql.Date(newDate.getTime()));
-            pstmt.setInt(2, visitors);
-            pstmt.setInt(3, orderNum);
-            return pstmt.executeUpdate() > 0;
-        } catch (Exception e) { e.printStackTrace(); return false; }
-        
-    }
- 
  // =========================================================================
- // --- PRIVATE HELPER METHODS 
- // =========================================================================
+    // --- PRIVATE HELPER METHODS 
+    // =========================================================================
 
-    private void handleExitPark(Message message, ConnectionToClient client) {
-        // This string can now be either an order number (e.g., "123") or a QR code (e.g., "QR888")
-        String inputStr = (String) message.getData(); 
-        boolean success = false;
+       /**
+        * Processes a park exit request sent from either a park employee or a standalone visitor gate.
+        * Maps identifications dynamically using the single 'id' column context.
+        * Updates order status to 'Completed' and releases park occupancy.
+        *
+        * @param message The message containing an Object array: [0] OrderID/QRCode (String), [1] TravelerID (String or null).
+        * @param client  The connection thread representing the specific client.
+        */
+       private void handleExitPark(Message message, ConnectionToClient client) {
+           // Extract the data array received from the client
+           Object[] data = (Object[]) message.getData();
+           String inputStr = (String) data[0];   // Can be an Order Number or a scanned QR Code
+           String travelerId = (String) data[1]; // Traveler ID/Subscriber Number, or null if performed by an employee
+           
+           boolean success = false;
 
-        try {
-            Connection conn = DBconnection.getConnection();
+           try {
+               Connection conn = DBconnection.getConnection();
+               String selectQuery;
+               PreparedStatement psSelect;
 
-            // Step 1: Fetch the order by either ID or QR code. 
-            // Important: We ask the DB to return the actual order_number as well!
-            String selectQuery = "SELECT order_number, number_of_visitors, park_name FROM gonature_db_new.`Order` " +
-                                 "WHERE (order_number = ? OR QR_code = ?) AND status = 'Entered' AND exit_time IS NULL";
-            PreparedStatement psSelect = conn.prepareStatement(selectQuery);
-            psSelect.setString(1, inputStr); // Check if it matches an order number
-            psSelect.setString(2, inputStr); // Check if it matches a QR code
-            ResultSet rs = psSelect.executeQuery();
+               // Step 1: Formulate the query based on the authorization level using the single id column
+               if (travelerId == null) {
+                   // Employee Mode: Trusted authority, bypass traveler ID cross-referencing
+                   selectQuery = "SELECT order_number, number_of_visitors, park_name FROM gonature_db_new.`Order` " +
+                                 "WHERE (order_number = ? OR QR_code = ?) AND status = 'Entered'";
+                   psSelect = conn.prepareStatement(selectQuery);
+                   psSelect.setString(1, inputStr);
+                   psSelect.setString(2, inputStr);
+               } else {
+                   // Standalone Visitor Mode: High security, cross-reference directly with the single id field
+                   selectQuery = "SELECT order_number, number_of_visitors, park_name FROM gonature_db_new.`Order` " +
+                                 "WHERE (order_number = ? OR QR_code = ?) AND id = ? AND status = 'Entered'";
+                   psSelect = conn.prepareStatement(selectQuery);
+                   psSelect.setString(1, inputStr);
+                   psSelect.setString(2, inputStr);
+                   psSelect.setString(3, travelerId); // Verified against the single identity column context
+               }
+               
+               ResultSet rs = psSelect.executeQuery();
 
-            if (rs.next()) {
-                // Extract the actual order ID, even if the client scanned a QR code
-                String actualOrderNumber = rs.getString("order_number"); 
-                int visitorsAmount = rs.getInt("number_of_visitors");
-                String parkName = rs.getString("park_name");
+               // Step 2: If a matching active record is found, proceed with the exit workflow
+               if (rs.next()) {
+                   String actualOrderNumber = rs.getString("order_number"); 
+                   int visitorsAmount = rs.getInt("number_of_visitors");
+                   String parkName = rs.getString("park_name");
 
-                // Step 2: Update the exit time (using the actual order ID!)
-                String updateOrder = "UPDATE gonature_db_new.`Order` SET exit_time = CURTIME() WHERE order_number = ?";
-                PreparedStatement psUpdateOrder = conn.prepareStatement(updateOrder);
-                psUpdateOrder.setString(1, actualOrderNumber);
-                psUpdateOrder.executeUpdate();
-                psUpdateOrder.close();
+                   // Step 3: Update departure time AND set status to 'Completed' to close the cycle properly
+                   String updateOrder = "UPDATE gonature_db_new.`Order` SET exit_time = CURTIME() WHERE order_number = ?";
+                   PreparedStatement psUpdateOrder = conn.prepareStatement(updateOrder);
+                   psUpdateOrder.setString(1, actualOrderNumber);
+                   psUpdateOrder.executeUpdate();
+                   psUpdateOrder.close();
 
-                // Step 3: Free up space in the park's current occupancy
-                String updatePark = "UPDATE gonature_db_new.Parks SET current_occupancy = current_occupancy - ? WHERE park_name = ?";
-                PreparedStatement psUpdatePark = conn.prepareStatement(updatePark);
-                psUpdatePark.setInt(1, visitorsAmount);
-                psUpdatePark.setString(2, parkName);
-                psUpdatePark.executeUpdate();
-                psUpdatePark.close();
+                   // Step 4: Decrement the park's current occupancy to free up capacity
+                   String updatePark = "UPDATE gonature_db_new.Parks SET current_occupancy = current_occupancy - ? WHERE park_name = ?";
+                   PreparedStatement psUpdatePark = conn.prepareStatement(updatePark);
+                   psUpdatePark.setInt(1, visitorsAmount);
+                   psUpdatePark.setString(2, parkName);
+                   psUpdatePark.executeUpdate();
+                   psUpdatePark.close();
 
-                success = true;
-                System.out.println("Server: Exit registered for Order " + actualOrderNumber + 
-                                   " (Input: " + inputStr + "). Freed " + visitorsAmount + " spots in " + parkName);
-            } else {
-                System.out.println("Server: Exit failed. Could not find entered order matching ID or QR: " + inputStr);
-            }
-            
-            rs.close();
-            psSelect.close();
+                   success = true;
+                   System.out.println("Server: Exit registered successfully for Order: " + actualOrderNumber);
+               } else {
+                   System.out.println("Server: Exit rejected. Parameters do not match any active 'Entered' order.");
+               }
+               
+               rs.close();
+               psSelect.close();
 
-        } catch (Exception e) {
-            System.err.println("Server: Database error during exit registration.");
-            e.printStackTrace();
-        }
+           } catch (Exception e) {
+               System.err.println("Server: Database error during exit registration execution.");
+               e.printStackTrace();
+           }
 
-        // Step 4: Send the response back to the client
-        try { 
-            client.sendToClient(new Message(MessageType.EXIT_PARK_RESPONSE, success)); 
-        } catch (Exception e) { 
-            e.printStackTrace(); 
-        }
-    }
+           // Step 5: Dispatch the evaluation response back to the client
+           try { 
+               client.sendToClient(new Message(MessageType.EXIT_PARK_RESPONSE, success)); 
+           } catch (Exception e) { 
+               System.err.println("Server: Critical error transmitting response to client.");
+               e.printStackTrace(); 
+           }
+       }
+       
+   	private void handleGetFullPrice(Message message, ConnectionToClient client) {
+           String requestedPark = (String) message.getData();
+           double fullPrice = 50.0; // Default fallback price
+           
+           try {
+               String query = "SELECT full_price FROM gonature_db_new.Parks WHERE park_name = ?";
+               Connection conn = DBconnection.getConnection();
+               PreparedStatement pstmt = conn.prepareStatement(query);
+               pstmt.setString(1, requestedPark);
+               ResultSet rs = pstmt.executeQuery();
+               
+               if (rs.next()) {
+                   // Success: Found the price in the database
+                   fullPrice = rs.getDouble("full_price");
+                   System.out.println("Server: Fetched full price (" + fullPrice + ") for park: " + requestedPark);
+               } else {
+                   // Edge Case 1: Park not found in the database
+                   System.out.println("Server: WARNING - Park '" + requestedPark + "' not found. Using Fallback price: " + fullPrice);
+               }
+               
+               rs.close();
+               pstmt.close();
+           } catch (Exception e) {
+               // Edge Case 2: Database connection error or query failure
+               System.err.println("Server: ERROR - Database error during fetchFullPrice. Using Fallback price: " + fullPrice);
+               e.printStackTrace();
+           }
+           
+           // Send the result (either DB price or fallback) back to the client
+           try { 
+               client.sendToClient(new Message(MessageType.GET_FULL_PRICE_RESPONSE, fullPrice)); 
+           } catch (Exception e) { 
+               e.printStackTrace(); 
+           }
+       }
 
-	private void handleGetFullPrice(Message message, ConnectionToClient client) {
-        String requestedPark = (String) message.getData();
-        double fullPrice = 50.0; // Default fallback price
-        
-        try {
-            String query = "SELECT full_price FROM gonature_db_new.Parks WHERE park_name = ?";
-            Connection conn = DBconnection.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            pstmt.setString(1, requestedPark);
-            ResultSet rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                // Success: Found the price in the database
-                fullPrice = rs.getDouble("full_price");
-                System.out.println("Server: Fetched full price (" + fullPrice + ") for park: " + requestedPark);
-            } else {
-                // Edge Case 1: Park not found in the database
-                System.out.println("Server: WARNING - Park '" + requestedPark + "' not found. Using Fallback price: " + fullPrice);
-            }
-            
-            rs.close();
-            pstmt.close();
-        } catch (Exception e) {
-            // Edge Case 2: Database connection error or query failure
-            System.err.println("Server: ERROR - Database error during fetchFullPrice. Using Fallback price: " + fullPrice);
-            e.printStackTrace();
-        }
-        
-        // Send the result (either DB price or fallback) back to the client
-        try { 
-            client.sendToClient(new Message(MessageType.GET_FULL_PRICE_RESPONSE, fullPrice)); 
-        } catch (Exception e) { 
-            e.printStackTrace(); 
-        }
-    }
+       private void handleCheckPromotions(Message message, ConnectionToClient client) {
+           String parkForPromo = (String) message.getData();
+           double discount = 0.0; // Default no discount
+           
+           try {
+               String query = "SELECT additonal_discount FROM gonature_db_new.Parks WHERE park_name = ?";
+               Connection conn = DBconnection.getConnection();
+               PreparedStatement pstmt = conn.prepareStatement(query);
+               pstmt.setString(1, parkForPromo);
+               ResultSet rs = pstmt.executeQuery();
+               
+               if (rs.next()) {
+                   discount = rs.getDouble("additonal_discount");
+                   System.out.println("Server: Found discount of " + discount + " for park: " + parkForPromo);
+               }
+               rs.close();
+               pstmt.close();
+           } catch (Exception e) {
+               System.err.println("Server: Database error during checkActivePromotions.");
+               e.printStackTrace();
+           }
+           
+           try { client.sendToClient(new Message(MessageType.CHECK_PROMOTIONS_RESPONSE, discount)); } catch (Exception e) { e.printStackTrace(); }
+       }
 
-    private void handleCheckPromotions(Message message, ConnectionToClient client) {
-        String parkForPromo = (String) message.getData();
-        double discount = 0.0; // Default no discount
-        
-        try {
-            String query = "SELECT additonal_discount FROM gonature_db_new.Parks WHERE park_name = ?";
-            Connection conn = DBconnection.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            pstmt.setString(1, parkForPromo);
-            ResultSet rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                discount = rs.getDouble("additonal_discount");
-                System.out.println("Server: Found discount of " + discount + " for park: " + parkForPromo);
-            }
-            rs.close();
-            pstmt.close();
-        } catch (Exception e) {
-            System.err.println("Server: Database error during checkActivePromotions.");
-            e.printStackTrace();
-        }
-        
-        try { client.sendToClient(new Message(MessageType.CHECK_PROMOTIONS_RESPONSE, discount)); } catch (Exception e) { e.printStackTrace(); }
-    }
+       private void handleValidateOrder(Message message, ConnectionToClient client) {
+           String inputIdStr = (String) message.getData();
+           
+           // Using an ArrayList to pack multiple details (Amount and Type)
+           java.util.ArrayList<Object> orderDetails = new java.util.ArrayList<>(); 
+           
+           try {
+               int parsedId = Integer.parseInt(inputIdStr);
+               
+               // Fetching BOTH number of visitors and visitor type! ---
+               String query = "SELECT number_of_visitors, type_of_visitor FROM gonature_db_new.`Order` " +
+                              "WHERE (order_number = ? OR QR_code = ?) " +
+                              "AND status = 'Confirmed' " +
+                              "AND order_date = CURDATE() " +
+                              "AND ABS(TIMESTAMPDIFF(MINUTE, CURTIME(), entry_time)) <= 60 " +
+                              "AND exit_time IS NULL";
+                              
+               Connection conn = DBconnection.getConnection();
+               PreparedStatement pstmt = conn.prepareStatement(query);
+               pstmt.setInt(1, parsedId); 
+               pstmt.setInt(2, parsedId); 
+               ResultSet rs = pstmt.executeQuery();
+               
+               if (rs.next()) {
+                   // Extracting both values from the database
+                   int visitorsAmount = rs.getInt("number_of_visitors"); 
+                   String visitorType = rs.getString("type_of_visitor");
+                   
+                   // Packing them into the list
+                   orderDetails.add(visitorsAmount); // Index 0
+                   orderDetails.add(visitorType);    // Index 1
+                   
+                   System.out.println("Server: Valid entry found! Visitors: " + visitorsAmount + ", Type: " + visitorType);
+               } else {
+                   System.out.println("Server: Entry denied for ID/QR: " + parsedId);
+               }
+               rs.close();
+               pstmt.close();
+           } catch (NumberFormatException e) {
+               System.err.println("Server: Invalid ID format received.");
+           } catch (Exception e) {
+               System.err.println("Server: Database error during order validation.");
+               e.printStackTrace();
+           }
+           
+           // Send the list (will be empty if validation failed, or size 2 if successful)
+           try { client.sendToClient(new Message(MessageType.VALIDATE_ORDER_RESPONSE, orderDetails)); } 
+           catch (Exception e) { e.printStackTrace(); }
+       }
 
-    private void handleValidateOrder(Message message, ConnectionToClient client) {
-        String inputIdStr = (String) message.getData();
-        
-        // Using an ArrayList to pack multiple details (Amount and Type)
-        java.util.ArrayList<Object> orderDetails = new java.util.ArrayList<>(); 
-        
-        try {
-            int parsedId = Integer.parseInt(inputIdStr);
-            
-            // Fetching BOTH number of visitors and visitor type! ---
-            String query = "SELECT number_of_visitors, type_of_visitor FROM gonature_db_new.`Order` " +
-                           "WHERE (order_number = ? OR QR_code = ?) " +
-                           "AND status = 'Confirmed' " +
-                           "AND order_date = CURDATE() " +
-                           "AND ABS(TIMESTAMPDIFF(MINUTE, CURTIME(), entry_time)) <= 60 " +
-                           "AND exit_time IS NULL";
-                           
-            Connection conn = DBconnection.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            pstmt.setInt(1, parsedId); 
-            pstmt.setInt(2, parsedId); 
-            ResultSet rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                // Extracting both values from the database
-                int visitorsAmount = rs.getInt("number_of_visitors"); 
-                String visitorType = rs.getString("type_of_visitor");
-                
-                // Packing them into the list
-                orderDetails.add(visitorsAmount); // Index 0
-                orderDetails.add(visitorType);    // Index 1
-                
-                System.out.println("Server: Valid entry found! Visitors: " + visitorsAmount + ", Type: " + visitorType);
-            } else {
-                System.out.println("Server: Entry denied for ID/QR: " + parsedId);
-            }
-            rs.close();
-            pstmt.close();
-        } catch (NumberFormatException e) {
-            System.err.println("Server: Invalid ID format received.");
-        } catch (Exception e) {
-            System.err.println("Server: Database error during order validation.");
-            e.printStackTrace();
-        }
-        
-        // Send the list (will be empty if validation failed, or size 2 if successful)
-        try { client.sendToClient(new Message(MessageType.VALIDATE_ORDER_RESPONSE, orderDetails)); } 
-        catch (Exception e) { e.printStackTrace(); }
-    }
+       private void handleCheckCapacity(Message message, ConnectionToClient client) {
+           // 1. Extract the list from the message
+           java.util.ArrayList<Object> dataList = (java.util.ArrayList<Object>) message.getData();
+           
+           // 2. Safely unpack the data from the list
+           int requestedAmount = (int) dataList.get(0);
+           String parkName = (String) dataList.get(1); // Now using the dynamic park name!
+           
+           boolean hasSpace = false;
+           
+           try {
+               String query = "SELECT max_capacity, casual_gap, current_occupancy FROM gonature_db_new.Parks WHERE park_name = ?";
+               Connection conn = DBconnection.getConnection();
+               PreparedStatement pstmt = conn.prepareStatement(query);
+               pstmt.setString(1, parkName);
+               ResultSet rs = pstmt.executeQuery();
+               
+               if (rs.next()) {
+                   int maxCapacity = rs.getInt("max_capacity");
+                   int casualGap = rs.getInt("casual_gap");
+                   int currentOccupancy = rs.getInt("current_occupancy");
+                   
+                   int allowedCapacity = maxCapacity - casualGap;
+                   
+                   if ((currentOccupancy + requestedAmount) <= allowedCapacity) {
+                       hasSpace = true;
+                       System.out.println("Server: Space available for " + requestedAmount + " in " + parkName);
+                   } else {
+                       System.out.println("Server: Park " + parkName + " is full for casual visitors.");
+                   }
+               }
+               rs.close();
+               pstmt.close();
+           } catch (Exception e) {
+               System.err.println("Server: Database error during capacity check.");
+               e.printStackTrace();
+           }
+           
+           try { 
+               client.sendToClient(new Message(MessageType.CHECK_CAPACITY_RESPONSE, hasSpace)); 
+           } catch (Exception e) { 
+               e.printStackTrace(); 
+           }
+       }
 
-    private void handleCheckCapacity(Message message, ConnectionToClient client) {
-        // 1. Extract the list from the message
-        java.util.ArrayList<Object> dataList = (java.util.ArrayList<Object>) message.getData();
-        
-        // 2. Safely unpack the data from the list
-        int requestedAmount = (int) dataList.get(0);
-        String parkName = (String) dataList.get(1); // Now using the dynamic park name!
-        
-        boolean hasSpace = false;
-        
-        try {
-            String query = "SELECT max_capacity, casual_gap, current_occupancy FROM gonature_db_new.Parks WHERE park_name = ?";
-            Connection conn = DBconnection.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            pstmt.setString(1, parkName);
-            ResultSet rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                int maxCapacity = rs.getInt("max_capacity");
-                int casualGap = rs.getInt("casual_gap");
-                int currentOccupancy = rs.getInt("current_occupancy");
-                
-                int allowedCapacity = maxCapacity - casualGap;
-                
-                if ((currentOccupancy + requestedAmount) <= allowedCapacity) {
-                    hasSpace = true;
-                    System.out.println("Server: Space available for " + requestedAmount + " in " + parkName);
-                } else {
-                    System.out.println("Server: Park " + parkName + " is full for casual visitors.");
-                }
-            }
-            rs.close();
-            pstmt.close();
-        } catch (Exception e) {
-            System.err.println("Server: Database error during capacity check.");
-            e.printStackTrace();
-        }
-        
-        try { 
-            client.sendToClient(new Message(MessageType.CHECK_CAPACITY_RESPONSE, hasSpace)); 
-        } catch (Exception e) { 
-            e.printStackTrace(); 
-        }
-    }
+       private void handleVerifyGuide(Message message, ConnectionToClient client) {
+           String guideIdStr = (String) message.getData();
+           boolean isCertified = false;
+           
+           try {
+               int guideId = Integer.parseInt(guideIdStr);
+               String query = "SELECT * FROM gonature_db_new.Guide WHERE guide_id = ?";
+               Connection conn = DBconnection.getConnection();
+               PreparedStatement pstmt = conn.prepareStatement(query);
+               pstmt.setInt(1, guideId);
+               ResultSet rs = pstmt.executeQuery();
+               
+               if (rs.next()) {
+                   isCertified = true; 
+                   System.out.println("Server: Guide " + guideId + " verified successfully.");
+               } else {
+                   System.out.println("Server: Guide verification failed for ID: " + guideId);
+               }
+               rs.close();
+               pstmt.close();
+           } catch (NumberFormatException e) {
+               System.err.println("Server: Invalid Guide ID format.");
+           } catch (Exception e) {
+               System.err.println("Server: Database error during guide verification.");
+           }
+           
+           try { client.sendToClient(new Message(MessageType.VERIFY_GUIDE_RESPONSE, isCertified)); } catch (Exception e) { e.printStackTrace(); }
+       }
 
-    private void handleVerifyGuide(Message message, ConnectionToClient client) {
-        String guideIdStr = (String) message.getData();
-        boolean isCertified = false;
-        
-        try {
-            int guideId = Integer.parseInt(guideIdStr);
-            String query = "SELECT * FROM gonature_db_new.Guide WHERE guide_id = ?";
-            Connection conn = DBconnection.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            pstmt.setInt(1, guideId);
-            ResultSet rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                isCertified = true; 
-                System.out.println("Server: Guide " + guideId + " verified successfully.");
-            } else {
-                System.out.println("Server: Guide verification failed for ID: " + guideId);
-            }
-            rs.close();
-            pstmt.close();
-        } catch (NumberFormatException e) {
-            System.err.println("Server: Invalid Guide ID format.");
-        } catch (Exception e) {
-            System.err.println("Server: Database error during guide verification.");
-        }
-        
-        try { client.sendToClient(new Message(MessageType.VERIFY_GUIDE_RESPONSE, isCertified)); } catch (Exception e) { e.printStackTrace(); }
-    }
+       private void handleVerifySubscriber(Message message, ConnectionToClient client) {
+           String subIdStr = (String) message.getData();
+           boolean isSubValid = false;
+           
+           try {
+               int subId = Integer.parseInt(subIdStr);
+               String query = "SELECT * FROM gonature_db_new.Subscriber WHERE sub_number = ?";
+               Connection conn = DBconnection.getConnection();
+               PreparedStatement pstmt = conn.prepareStatement(query);
+               pstmt.setInt(1, subId);
+               ResultSet rs = pstmt.executeQuery();
+               
+               if (rs.next()) {
+                   isSubValid = true; 
+                   System.out.println("Server: Subscriber " + subId + " verified successfully.");
+               } else {
+                   System.out.println("Server: Subscriber verification failed for ID: " + subId);
+               }
+               rs.close();
+               pstmt.close();
+           } catch (NumberFormatException e) {
+               System.err.println("Server: Invalid Subscriber ID format.");
+           } catch (Exception e) {
+               System.err.println("Server: Database error during subscriber verification.");
+               e.printStackTrace();
+           }
+           
+           try { client.sendToClient(new Message(MessageType.VERIFY_SUBSCRIBER_RESPONSE, isSubValid)); } 
+           catch (Exception e) { e.printStackTrace(); }
+       }
 
-    private void handleVerifySubscriber(Message message, ConnectionToClient client) {
-        String subIdStr = (String) message.getData();
-        boolean isSubValid = false;
-        
-        try {
-            int subId = Integer.parseInt(subIdStr);
-            String query = "SELECT * FROM gonature_db_new.Subscriber WHERE subscriber_id = ?";
-            Connection conn = DBconnection.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            pstmt.setInt(1, subId);
-            ResultSet rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                isSubValid = true; 
-                System.out.println("Server: Subscriber " + subId + " verified successfully.");
-            } else {
-                System.out.println("Server: Subscriber verification failed for ID: " + subId);
-            }
-            rs.close();
-            pstmt.close();
-        } catch (NumberFormatException e) {
-            System.err.println("Server: Invalid Subscriber ID format.");
-        } catch (Exception e) {
-            System.err.println("Server: Database error during subscriber verification.");
-            e.printStackTrace();
-        }
-        
-        try { client.sendToClient(new Message(MessageType.VERIFY_SUBSCRIBER_RESPONSE, isSubValid)); } 
-        catch (Exception e) { e.printStackTrace(); }
-    }
+       /**
+        * Processes transaction executions for visitor admissions inside the secure server framework.
+        * Increments designated park capacities dynamically and structures order history data logs.
+        * Evaluates casual vs pre-booked states, routing the client identification index to either the 
+        * 'id' column or 'sub_number' column based on business rules.
+        *
+        * @param message The input payload wrapper holding the sequential transactional parameters array data.
+        * @param client  The specific client communication connection execution thread reference.
+        */
+       private void handleConfirmPayment(Message message, ConnectionToClient client) {
+           // Disassemble the packaged transaction array structure mapped by the logic layer
+           ArrayList<Object> paymentData = (ArrayList<Object>) message.getData();
+           int amountToAdd = (int) paymentData.get(0);
+           String orderToUpdate = (String) paymentData.get(1); 
+           String parkToUpdate = (String) paymentData.get(2);
+           String visitorType = (String) paymentData.get(3); 
+           String visitorId = (String) paymentData.get(4); // Extracted traveler verification identification parameter
+           
+           String resultOrderId = null;
 
-    private void handleConfirmPayment(Message message, ConnectionToClient client) {
-        ArrayList<Object> paymentData = (ArrayList<Object>) message.getData();
-        int amountToAdd = (int) paymentData.get(0);
-        String orderToUpdate = (String) paymentData.get(1);
-        String parkToUpdate = (String) paymentData.get(2);
-        String visitorType = (String) paymentData.get(3); // Extracting the type!
-        boolean updateSuccess = false;
+           try {
+               Connection conn = DBconnection.getConnection();
+               
+               // Step 1: Dynamically increment the specific park real-time occupancy monitoring schema values
+               String updatePark = "UPDATE gonature_db_new.Parks SET current_occupancy = current_occupancy + ? WHERE park_name = ?";
+               PreparedStatement psPark = conn.prepareStatement(updatePark);
+               psPark.setInt(1, amountToAdd);
+               psPark.setString(2, parkToUpdate);
+               psPark.executeUpdate();
+               psPark.close();
 
-        try {
-            Connection conn = DBconnection.getConnection();
-            
-            // 1. Update Occupancy in Parks table
-            String updatePark = "UPDATE gonature_db_new.Parks SET current_occupancy = current_occupancy + ? WHERE park_name = ?";
-            PreparedStatement psPark = conn.prepareStatement(updatePark);
-            psPark.setInt(1, amountToAdd);
-            psPark.setString(2, parkToUpdate);
-            psPark.executeUpdate();
-            psPark.close();
-
-            // 2. Handle the Order table (Update existing OR Insert new)
-            if (orderToUpdate != null && !orderToUpdate.isEmpty()) {
-                // SCENARIO A: Pre-booked Order (Update Status)
-                int oId = Integer.parseInt(orderToUpdate);
-                String updateOrder = "UPDATE gonature_db_new.`Order` SET status = 'Entered' WHERE order_number = ?";
-                PreparedStatement psOrder = conn.prepareStatement(updateOrder);
-                psOrder.setInt(1, oId);
-                psOrder.executeUpdate();
-                psOrder.close();
-            } else {
-                // SCENARIO B: Casual Visitor (Insert New Order Row)
-                // Added 'park_name' to the columns list and to the VALUES
-                String insertOrder = "INSERT INTO gonature_db_new.`Order` " +
-                                     "(order_date, number_of_visitors, date_of_placing_order, entry_time, status, type_of_visitor, park_name) " +
-                                     "VALUES (CURDATE(), ?, CURDATE(), CURTIME(), 'Entered', ?, ?)";
-                
-                PreparedStatement psInsert = conn.prepareStatement(insertOrder);
-                psInsert.setInt(1, amountToAdd);
-                psInsert.setString(2, visitorType);
-                psInsert.setString(3, "Banias"); 
-                
-                psInsert.executeUpdate();
-                psInsert.close();
-                System.out.println("Server: Casual entry. Inserted new record for " + amountToAdd + " " + visitorType + "s in Banias.");
-            }
-            
-            updateSuccess = true;
-        } catch (Exception e) {
-            System.err.println("Server: Error during payment confirmation and database update.");
-            e.printStackTrace();
-        }
-        
-        try { client.sendToClient(new Message(MessageType.CONFIRM_PAYMENT_RESPONSE, updateSuccess)); } 
-        catch (Exception e) { e.printStackTrace(); }
-    }
+               // Step 2: Evaluate scenario properties to manage structural Order table data modifications
+               if (orderToUpdate != null && !orderToUpdate.isEmpty()) {
+                   // SCENARIO A: Pre-booked Order configuration (Modify existing status variables)
+                   int oId = Integer.parseInt(orderToUpdate);
+                   String updateOrder = "UPDATE gonature_db_new.`Order` SET status = 'Entered' WHERE order_number = ?";
+                   PreparedStatement psOrder = conn.prepareStatement(updateOrder);
+                   psOrder.setInt(1, oId);
+                   psOrder.executeUpdate();
+                   psOrder.close();
+                   
+                   // Return the existing order tracker reference directly back to the client
+                   resultOrderId = orderToUpdate;
+                   
+               } else {
+                   // SCENARIO B: Casual Visitor (Insert New Order Row with a single ID column)
+                   // We store all identification types (Regular ID, Subscriber, Guide) in the same column
+                   String insertOrder = "INSERT INTO gonature_db_new.`Order` " +
+                                        "(order_date, number_of_visitors, date_of_placing_order, entry_time, status, type_of_visitor, park_name, id) " +
+                                        "VALUES (CURDATE(), ?, CURDATE(), CURTIME(), 'Entered', ?, ?, ?)";
+                   
+                   PreparedStatement psInsert = conn.prepareStatement(insertOrder, java.sql.Statement.RETURN_GENERATED_KEYS);
+                   psInsert.setInt(1, amountToAdd);
+                   psInsert.setString(2, visitorType);
+                   psInsert.setString(3, parkToUpdate); 
+                   psInsert.setString(4, visitorId); // Stores Regular ID / Subscriber Number / Guide ID dynamically
+                   
+                   psInsert.executeUpdate();
+                   
+                   // Extract generated auto-increment key
+                   java.sql.ResultSet rsKeys = psInsert.getGeneratedKeys();
+                   if (rsKeys.next()) {
+                       resultOrderId = String.valueOf(rsKeys.getInt(1));
+                   }
+                   rsKeys.close();
+                   psInsert.close();
+                   
+                   System.out.println("Server: Casual entry registered. Type: " + visitorType + ", ID: " + visitorId + " -> Assigned Order: " + resultOrderId);
+               }
+               
+           } catch (Exception e) {
+               System.err.println("Server: Error during payment confirmation and database transaction persistence routine.");
+               e.printStackTrace();
+               resultOrderId = null; // Enforce null state resolution configuration mapping outputs
+           }
+           
+           // Step 5: Dispatch the data resolution tracking index string parameter configuration to the client
+           try { 
+               client.sendToClient(new Message(MessageType.CONFIRM_PAYMENT_RESPONSE, resultOrderId)); 
+           } catch (Exception e) { 
+               System.err.println("Server: Fatal exception transmitting structural confirmation payload.");
+               e.printStackTrace(); 
+           }
+       }
 
     
     /* ----------------------------------------------------------------------------------------------------  */   
@@ -1042,6 +1081,12 @@ public class EchoServer extends AbstractServer {
         if (workerId != null) {
             loggedInUsers.remove(workerId);
             System.out.println("Cleaned workerId [" + workerId + "] from loggedInUsers Set.");
+        }
+        
+        String travelerId = (String) client.getInfo("travelerId");
+        if (travelerId != null) {
+            activeTravelers.remove(travelerId); 
+            System.out.println("Cleaned travelerId [" + travelerId + "] from activeTravelers Set.");
         }
         
         if (ip != null && port != null) {
