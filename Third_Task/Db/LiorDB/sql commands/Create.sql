@@ -35,17 +35,23 @@ CREATE TABLE `Order` (
   `order_date` DATE NOT NULL,                  -- .2 order_date (Date)
   `number_of_visitors` INT NOT NULL,           -- .3 number_of_visitors (int)
   `QR_code` VARCHAR(50),                       -- CHANGED TO VARCHAR TO SUPPORT 'QR-1234'
-  `id` int,                                   
+  `id` int,                                    -- .5  (FK to subscriber)
   `date_of_placing_order` DATE ,               -- .6 date_of_placing_order (Date)
   `entry_time` TIME NOT NULL,                  -- e.g "15:00:00"
   `exit_time` TIME,
-  `status` ENUM('Confirmed' , 'Canceled' , 'On waiting list' , 'Pending confirmation' , 'Entered','Waiting list unconfirmed') DEFAULT 'Pending confirmation' NOT NULL,
+  `status` ENUM('Confirmed' , 'Canceled' , 'On waiting list' , 'Pending confirmation' , 'Entered') DEFAULT 'Pending confirmation' NOT NULL,
   `type_of_visitor` ENUM('Regular' , 'Group' , 'Subscriber') NOT NULL,
   `park_name` VARCHAR(50) NOT NULL,
   `email` VARCHAR(50),
   `phone_number` VARCHAR(50),
   
   PRIMARY KEY (`order_number`),
+  
+  -- foreign key to subscriber
+  CONSTRAINT `fk_id`
+    FOREIGN KEY (`id`)
+    REFERENCES `Subscriber` (`id`)
+    ON UPDATE CASCADE,
     
  -- foreign key to parks
   CONSTRAINT `fk_park_name`
@@ -57,13 +63,13 @@ CREATE TABLE `Order` (
 
 -- create table Guide
 CREATE TABLE `Guide`(
-    `guide_id` INT NOT NULL,
+    `guide_id` INT NOT NULL AUTO_INCREMENT,
     `fname` VARCHAR(50) NOT NULL,
     `lname` VARCHAR(50) NOT NULL,
     `email` VARCHAR(50) NOT NULL,
     `phone_number`VARCHAR(50) NOT NULL,
     PRIMARY KEY (`guide_id`)
-);
+) AUTO_INCREMENT = 1000 ;
 
 -- create table workers
 CREATE TABLE `Workers`(
@@ -83,19 +89,4 @@ CREATE TABLE `Workers`(
     REFERENCES `Parks` (`park_name`)
     ON DELETE CASCADE
     ON UPDATE CASCADE
-);
-
--- create table parameter_requests
-CREATE TABLE `parameter_requests`(
-    `request_id` INT NOT NULL AUTO_INCREMENT,
-    `park_name` VARCHAR(50) NOT NULL,
-    `worker_id` INT NOT NULL,
-    `parameter_name` VARCHAR(50) NOT NULL,
-    `current_value` INT NOT NULL,
-    `request_value` INT NOT NULL,    
-    `status` ENUM('Pending', 'Approved', 'Declined') NOT NULL DEFAULT 'Pending',
-    `request_date` DATE NOT NULL,
-    PRIMARY KEY (`request_id`),
-    CONSTRAINT `fk_param_park_name` FOREIGN KEY (`park_name`) REFERENCES `parks` (`park_name`) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT `fk_param_worker_id` FOREIGN KEY (`worker_id`) REFERENCES `workers` (`worker_id`) ON DELETE CASCADE ON UPDATE CASCADE
 );

@@ -25,13 +25,13 @@ DROP TABLE IF EXISTS `guide`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `guide` (
-  `guide_id` int NOT NULL, 
+  `guide_id` int NOT NULL AUTO_INCREMENT,
   `fname` varchar(50) NOT NULL,
   `lname` varchar(50) NOT NULL,
   `email` varchar(50) NOT NULL,
   `phone_number` varchar(50) NOT NULL,
   PRIMARY KEY (`guide_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci; 
+) ENGINE=InnoDB AUTO_INCREMENT=1005 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -40,12 +40,7 @@ CREATE TABLE `guide` (
 
 LOCK TABLES `guide` WRITE;
 /*!40000 ALTER TABLE `guide` DISABLE KEYS */;
-INSERT INTO `guide` VALUES 
-(201,'Avi','Ronen','avi.guide@gmail.com','050-1111111'),
-(202,'Gal','Tal','gal.guide@gmail.com','052-2222222'),
-(203,'Tom','Nir','tom.guide@gmail.com','054-3333333'),
-(204,'Adi','Bar','adi.guide@gmail.com','053-4444444'),
-(205,'Omer','Golan','omer.guide@gmail.com','058-5555555');
+INSERT INTO `guide` VALUES (1000,'Avi','Ronen','avi.guide@gmail.com','050-1111111'),(1001,'Gal','Tal','gal.guide@gmail.com','052-2222222'),(1002,'Tom','Nir','tom.guide@gmail.com','054-3333333'),(1003,'Adi','Bar','adi.guide@gmail.com','053-4444444'),(1004,'Omer','Golan','omer.guide@gmail.com','058-5555555');
 /*!40000 ALTER TABLE `guide` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -65,13 +60,15 @@ CREATE TABLE `order` (
   `date_of_placing_order` date DEFAULT NULL,
   `entry_time` time NOT NULL,
   `exit_time` time DEFAULT NULL,
-  `status` enum('Confirmed','Canceled','On waiting list','Pending confirmation','Entered','Waiting list unconfirmed') NOT NULL DEFAULT 'Pending confirmation',
+  `status` enum('Confirmed','Canceled','On waiting list','Pending confirmation','Entered') NOT NULL DEFAULT 'Pending confirmation',
   `type_of_visitor` enum('Regular','Group','Subscriber') NOT NULL,
   `park_name` varchar(50) NOT NULL,
   `email` varchar(50) DEFAULT NULL,
   `phone_number` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`order_number`),
+  KEY `fk_id` (`id`),
   KEY `fk_park_name` (`park_name`),
+  CONSTRAINT `fk_id` FOREIGN KEY (`id`) REFERENCES `subscriber` (`id`) ON UPDATE CASCADE,
   CONSTRAINT `fk_park_name` FOREIGN KEY (`park_name`) REFERENCES `parks` (`park_name`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=3525 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -111,7 +108,7 @@ CREATE TABLE `parks` (
 
 LOCK TABLES `parks` WRITE;
 /*!40000 ALTER TABLE `parks` DISABLE KEYS */;
-INSERT INTO `parks` VALUES ('Achziv',10,2,0,35,0,4),('Banias',500,50,120,39,0,4),('Caesarea',1000,100,450,45,0.1,4),('Ein Gedi',600,60,200,28,0.15,4),('Masada',800,80,300,50,0,4);
+INSERT INTO `parks` VALUES ('Achziv',400,40,50,35,0,4),('Banias',500,50,120,39,0,4),('Caesarea',1000,100,450,45,0.1,4),('Ein Gedi',600,60,200,28,0.15,4),('Masada',800,80,300,50,0,4);
 /*!40000 ALTER TABLE `parks` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -186,18 +183,3 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2026-06-05 19:20:30
-
--- create table parameter_requests
-CREATE TABLE `parameter_requests`(
-    `request_id` INT NOT NULL AUTO_INCREMENT,
-    `park_name` VARCHAR(50) NOT NULL,
-    `worker_id` INT NOT NULL,
-    `parameter_name` VARCHAR(50) NOT NULL,
-    `current_value` INT NOT NULL,
-    `request_value` INT NOT NULL,    
-    `status` ENUM('Pending', 'Approved', 'Declined') NOT NULL DEFAULT 'Pending',
-    `request_date` DATE NOT NULL,
-    PRIMARY KEY (`request_id`),
-    CONSTRAINT `fk_param_park_name` FOREIGN KEY (`park_name`) REFERENCES `parks` (`park_name`) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT `fk_param_worker_id` FOREIGN KEY (`worker_id`) REFERENCES `workers` (`worker_id`) ON DELETE CASCADE ON UPDATE CASCADE
-);
