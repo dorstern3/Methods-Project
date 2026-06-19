@@ -113,7 +113,7 @@ public class EntranceLogic {
 
     // --- System Validations & Operations ---
     
-    public Object[] validateOrder(String orderId) {
+    public Object validateOrder(String orderId) {
         System.out.println("EntranceLogic: Requesting Order validation for ID: " + orderId);
         
         try {
@@ -121,13 +121,18 @@ public class EntranceLogic {
             Message response = (Message) ClientUI.clientChat.accept(request);
             
             if (response != null && response.getType() == MessageType.VALIDATE_ORDER_RESPONSE) {
+                Object data = response.getData();
                 
-                ArrayList<Object> data = (ArrayList<Object>) response.getData();
-                
-                // If the list is not empty, the order is valid!
-                if (!data.isEmpty()) {
-                    // Return an array containing: [0] Amount (int), [1] Type (String)
-                    return new Object[] { data.get(0), data.get(1) }; 
+                // If the server sent a String, it's an error code
+                if (data instanceof String) {
+                    return data;
+                } 
+                // If the server sent an ArrayList, validation was successful
+                else if (data instanceof ArrayList) {
+                    ArrayList<Object> listData = (ArrayList<Object>) data;
+                    if (!listData.isEmpty()) {
+                        return new Object[] { listData.get(0), listData.get(1) }; 
+                    }
                 }
             }
         } catch (Exception e) {
@@ -135,7 +140,7 @@ public class EntranceLogic {
             e.printStackTrace();
         }
         
-        return null; // Null indicates validation failed
+        return "SYSTEM_ERROR";
     }
     
     /**

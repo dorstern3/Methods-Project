@@ -18,7 +18,7 @@ import client.logic.ScreenSwitch;
 import common.Message;
 import common.MessageType;
 import common.ParameterRequest;
-import client.logic.CurUser;
+
 
 public class ManagersController {
 
@@ -56,6 +56,8 @@ public class ManagersController {
         HBox capacityContainer = new HBox(15);
         capacityContainer.setAlignment(Pos.CENTER);
         capacityContainer.getChildren().addAll(lblLiveCapacity, btnRefreshCapacity);
+        
+     
 
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
@@ -102,9 +104,19 @@ public class ManagersController {
         } else {
             tabPane.getTabs().addAll(parkManagerTab, deptManagerTab);
         }
-        
-        // Add the capacityContainer right under the title
-        mainContainer.getChildren().addAll(mainTitle, capacityContainer, tabPane);
+          
+        Button btnBackToLogin = new Button("Logout");
+        btnBackToLogin.setStyle("-fx-cursor: hand; -fx-font-weight: bold;");
+        btnBackToLogin.setOnAction(e -> {
+            
+            ((javafx.scene.Node)e.getSource()).getScene().getWindow().hide();
+            
+            client.logic.CurUser.logout();
+           // ScreenSwitch.switchScreen("/client/gui/EmployeeLogin.fxml", "Employee Login");
+        });
+
+       
+        mainContainer.getChildren().addAll(mainTitle, capacityContainer, tabPane, btnBackToLogin);
 
         btnRequestParams.setOnAction(e -> switchToParkManagerRequestScreen());
         btnPromotions.setOnAction(e -> switchToSharedPromotionsScreen());
@@ -117,6 +129,7 @@ public class ManagersController {
         // Fetch the initial capacity once when the screen loads
         updateLiveCapacity(); 
     }
+    
 
     // Displays the interface for park managers to submit a parameter change request
     private void switchToParkManagerRequestScreen() {
@@ -227,6 +240,7 @@ public class ManagersController {
         Button backBtn = new Button("Back");
         backBtn.setOnAction(e -> showMainDashboard());
 
+      
         approveBtn.setOnAction(e -> {
         	ParameterRequest selectedItem = requestsList.getSelectionModel().getSelectedItem();
             if (selectedItem == null || !"Pending".equals(selectedItem.getStatus())) return;
@@ -251,7 +265,17 @@ public class ManagersController {
             }
         });
 
-        actionButtons.getChildren().addAll(approveBtn, rejectBtn, backBtn);
+        Button refreshRequestsBtn = new Button("🔄 Refresh List");
+        refreshRequestsBtn.setOnAction(e -> {
+            Message refreshResponse = logic.requestPendingRequests();
+            if (refreshResponse != null && refreshResponse.getType() == MessageType.GET_PENDING_REQUESTS_RESPONSE) {
+                ArrayList<ParameterRequest> serverList = (ArrayList<ParameterRequest>) refreshResponse.getData();
+                requestsList.getItems().clear();  
+                requestsList.getItems().addAll(serverList); 
+                System.out.println("🔄 Requests list refreshed manually!");
+            }
+        }); 
+        actionButtons.getChildren().addAll(approveBtn, rejectBtn, refreshRequestsBtn, backBtn);
         mainContainer.getChildren().addAll(title, new Label("Pending Parameter Requests (From DB):"), requestsList, actionButtons);
     }
 
@@ -360,7 +384,7 @@ public class ManagersController {
         }
         
         try {
-            String parkName = CurUser.getParkName();
+            String parkName = client.logic.CurUser.getParkName();
             if (parkName == null || parkName.isEmpty()) {
                 parkName = "Banias"; // Fallback default matching system parameters
             }

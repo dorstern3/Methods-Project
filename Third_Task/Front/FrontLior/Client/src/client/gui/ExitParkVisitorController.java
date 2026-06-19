@@ -2,6 +2,8 @@ package client.gui;
 
 import client.logic.ExitLogic;
 import client.logic.ScreenSwitch;
+import common.Message;
+import common.MessageType;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -82,6 +84,10 @@ public class ExitParkVisitorController {
      */
     @FXML
     public void onBackClicked(ActionEvent event) {
-    	ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
+    	Message msg = new Message(MessageType.TRAVELER_LOGOUT,currentTravelerId);
+		Message response = (Message) client.ClientUI.clientChat.accept(msg);
+	    if (response != null && response.getType() == MessageType.LOGOUT_SUCCESS) {
+	        ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
+	    }
     }
 }
