@@ -469,54 +469,73 @@ public class EchoServer extends AbstractServer {
        }
 
        private void handleValidateOrder(Message message, ConnectionToClient client) {
-           String inputIdStr = (String) message.getData();
-           
-           // Using an ArrayList to pack multiple details (Amount and Type)
-           java.util.ArrayList<Object> orderDetails = new java.util.ArrayList<>(); 
-           
-           try {
-               int parsedId = Integer.parseInt(inputIdStr);
-               
-               // Fetching BOTH number of visitors and visitor type! ---
-               String query = "SELECT number_of_visitors, type_of_visitor FROM gonature_db_new.`Order` " +
-                              "WHERE (order_number = ? OR QR_code = ?) " +
-                              "AND status = 'Confirmed' " +
-                              "AND order_date = CURDATE() " +
-                              "AND ABS(TIMESTAMPDIFF(MINUTE, CURTIME(), entry_time)) <= 60 " +
-                              "AND exit_time IS NULL";
-                              
-               Connection conn = DBconnection.getConnection();
-               PreparedStatement pstmt = conn.prepareStatement(query);
-               pstmt.setInt(1, parsedId); 
-               pstmt.setInt(2, parsedId); 
-               ResultSet rs = pstmt.executeQuery();
-               
-               if (rs.next()) {
-                   // Extracting both values from the database
-                   int visitorsAmount = rs.getInt("number_of_visitors"); 
-                   String visitorType = rs.getString("type_of_visitor");
-                   
-                   // Packing them into the list
-                   orderDetails.add(visitorsAmount); // Index 0
-                   orderDetails.add(visitorType);    // Index 1
-                   
-                   System.out.println("Server: Valid entry found! Visitors: " + visitorsAmount + ", Type: " + visitorType);
-               } else {
-                   System.out.println("Server: Entry denied for ID/QR: " + parsedId);
-               }
-               rs.close();
-               pstmt.close();
-           } catch (NumberFormatException e) {
-               System.err.println("Server: Invalid ID format received.");
-           } catch (Exception e) {
-               System.err.println("Server: Database error during order validation.");
-               e.printStackTrace();
-           }
-           
-           // Send the list (will be empty if validation failed, or size 2 if successful)
-           try { client.sendToClient(new Message(MessageType.VALIDATE_ORDER_RESPONSE, orderDetails)); } 
-           catch (Exception e) { e.printStackTrace(); }
-       }
+    	    String inputIdStr = (String) message.getData();
+    	    
+    	    try {
+    	        int parsedId = Integer.parseInt(inputIdStr);
+    	        
+    	        // Fetch order by ID or QR to identify the specific error
+    	        String query = "SELECT number_of_visitors, type_of_visitor, order_date, entry_time, status " +
+    	                       "FROM gonature_db_new.`Order` " +
+    	                       "WHERE (order_number = ? OR QR_code = ?) AND exit_time IS NULL";
+    	                       
+    	        Connection conn = DBconnection.getConnection();
+    	        PreparedStatement pstmt = conn.prepareStatement(query);
+    	        pstmt.setInt(1, parsedId); 
+    	        pstmt.setInt(2, parsedId); 
+    	        ResultSet rs = pstmt.executeQuery();
+    	        
+    	        if (rs.next()) {
+    	            String status = rs.getString("status");
+    	            java.sql.Date orderDate = rs.getDate("order_date");
+    	            java.sql.Time entryTime = rs.getTime("entry_time");
+    	            
+    	            // Error Check 1: Check if the order is scheduled for today
+    	            java.time.LocalDate today = java.time.LocalDate.now();
+    	            if (!orderDate.toLocalDate().equals(today)) {
+    	                client.sendToClient(new Message(MessageType.VALIDATE_ORDER_RESPONSE, "WRONG_DATE"));
+    	                return;
+    	            }
+
+    	            // Error Check 2: Check time difference
+    	            java.time.LocalTime now = java.time.LocalTime.now();
+    	            java.time.LocalTime scheduledTime = entryTime.toLocalTime();
+    	            long minutesDifference = java.time.temporal.ChronoUnit.MINUTES.between(scheduledTime, now);
+    	            
+    	            if (minutesDifference > 60) {
+    	                client.sendToClient(new Message(MessageType.VALIDATE_ORDER_RESPONSE, "TIME_PASSED"));
+    	                return;
+    	            } else if (minutesDifference < -60) {
+    	                client.sendToClient(new Message(MessageType.VALIDATE_ORDER_RESPONSE, "TOO_EARLY"));
+    	                return;
+    	            }
+
+    	            // Error Check 3: Check if the order is Confirmed
+    	            if (!status.equals("Confirmed")) {
+    	                client.sendToClient(new Message(MessageType.VALIDATE_ORDER_RESPONSE, "NOT_CONFIRMED"));
+    	                return;
+    	            }
+    	            
+    	            // Success: All conditions met
+    	            java.util.ArrayList<Object> orderDetails = new java.util.ArrayList<>();
+    	            orderDetails.add(rs.getInt("number_of_visitors")); 
+    	            orderDetails.add(rs.getString("type_of_visitor"));   
+    	            
+    	            client.sendToClient(new Message(MessageType.VALIDATE_ORDER_RESPONSE, orderDetails));
+    	            
+    	        } else {
+    	            // Error Check 4: The order number or QR code does not exist
+    	            client.sendToClient(new Message(MessageType.VALIDATE_ORDER_RESPONSE, "NOT_FOUND"));
+    	        }
+    	        
+    	        rs.close();
+    	        pstmt.close();
+    	    } catch (NumberFormatException e) {
+    	        try { client.sendToClient(new Message(MessageType.VALIDATE_ORDER_RESPONSE, "INVALID_FORMAT")); } catch (Exception ex) {}
+    	    } catch (Exception e) {
+    	        e.printStackTrace();
+    	    }
+    	}
 
        private void handleCheckCapacity(Message message, ConnectionToClient client) {
            // 1. Extract the list from the message
