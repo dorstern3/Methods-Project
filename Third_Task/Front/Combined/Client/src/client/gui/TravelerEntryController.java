@@ -30,15 +30,13 @@ public class TravelerEntryController {
 
 	@FXML
 	private Label lblError;
-	
+
 	@FXML
 	private Button btnEbtnExit;
 
 	/**
 	 * Handles the Back button click, returning the user to the role selection
-	 * screen.
-	 * 
-	 * @param event The action event triggered by clicking the button.
+	 * screen. * @param event The action event triggered by clicking the button.
 	 */
 	@FXML
 	void clickBack(ActionEvent event) {
@@ -46,9 +44,9 @@ public class TravelerEntryController {
 	}
 
 	/**
-	 * Validates the traveler ID and navigates to the order management screen.
-	 * 
-	 * @param event The action event triggered by clicking the button.
+	 * Handles the Manage Order button click. Validates input and proceeds to the
+	 * manage order form if identification is successful. * @param event The action
+	 * event triggered by clicking the button.
 	 */
 	@FXML
 	void clickManageOrder(ActionEvent event) {
@@ -65,21 +63,23 @@ public class TravelerEntryController {
 			return;
 		}
 
-		client.gui.ManageOrderController.currentTravelerId = travelerId;
-		Message msg = new Message(MessageType.TRAVELER_LOGIN,travelerId);
-		Message response = (Message) client.ClientUI.clientChat.accept(msg);
-		if(response.getType() == MessageType.LOGIN_FAILED) {
-			System.out.println((String) response.getData());
+		client.logic.TravelerLogic logic = new client.logic.TravelerLogic();
+		String loginResult = logic.loginTraveler(travelerId);
+
+		if (!loginResult.equals("SUCCESS")) {
+			System.out.println(loginResult);
+			lblError.setText(loginResult); // מציג את השגיאה על המסך
 			return;
 		}
+
+		client.gui.ManageOrderController.currentTravelerId = travelerId;
 		ScreenSwitch.switchScreen("/client/gui/ManageOrderForm.fxml", "Manage Order");
 	}
 
 	/**
-	 * Validates the ID and queries the server to identify the traveler type, then
-	 * navigates to the new order screen.
-	 * 
-	 * @param event The action event triggered by clicking the button.
+	 * Handles the New Order button click. Validates input and proceeds to the new
+	 * order form based on traveler type. * @param event The action event triggered
+	 * by clicking the button.
 	 */
 	@FXML
 	void clickNewOrder(ActionEvent event) {
@@ -98,32 +98,34 @@ public class TravelerEntryController {
 
 		System.out.println("Frontend validation passed for ID: " + travelerId);
 
-		Message messageToServer = new Message(MessageType.IDENTIFY_TRAVELER, travelerId);
-		Object response = ClientUI.clientChat.accept(messageToServer);
+		client.logic.TravelerLogic logic = new client.logic.TravelerLogic();
+		String dbResult = logic.identifyTraveler(travelerId);
 
-		if (response instanceof Message) {
-			Message responseMsg = (Message) response;
+		if (dbResult != null) {
+			System.out.println("The server returned: " + dbResult);
 
-			if (responseMsg.getType() == MessageType.IDENTIFY_TRAVELER_RESPONSE) {
+			client.gui.NewOrderFormController.currentTravelerInfo = dbResult;
+			client.gui.NewOrderFormController.currentTravelerId = travelerId;
 
-				String dbResult = (String) responseMsg.getData();
-				System.out.println("The server returned: " + dbResult);
-
-				client.gui.NewOrderFormController.currentTravelerInfo = dbResult;
-				client.gui.NewOrderFormController.currentTravelerId = travelerId;
-
-				if (dbResult.startsWith("Subscriber:")) {
-					System.out.println("Moving to Order Screen as a Subscriber...");
-				} else if (dbResult.startsWith("Guide:")) {
-					System.out.println("Moving to Order Screen as a Guide...");
-				} else {
-					System.out.println("Moving to Order Screen as a Regular Traveler...");
-				}
-
-				ScreenSwitch.switchScreen("/client/gui/NewOrderForm.fxml", "New Order");
+			if (dbResult.startsWith("Subscriber:")) {
+				System.out.println("Moving to Order Screen as a Subscriber...");
+			} else if (dbResult.startsWith("Guide:")) {
+				System.out.println("Moving to Order Screen as a Guide...");
+			} else {
+				System.out.println("Moving to Order Screen as a Regular Traveler...");
 			}
+
+			ScreenSwitch.switchScreen("/client/gui/NewOrderForm.fxml", "New Order");
+		} else {
+			lblError.setText("Error identifying traveler. Try again.");
 		}
 	}
+
+	/**
+	 * Handles the Exit Park button click. Validates identification and proceeds to
+	 * the exit park screen. * @param event The action event triggered by clicking
+	 * the button.
+	 */
 	@FXML
 	public void onExitParkClicked(ActionEvent event) {
 		lblError.setText("");
@@ -138,15 +140,17 @@ public class TravelerEntryController {
 			lblError.setText("ID must contain only numbers!");
 			return;
 		}
-		Message msg = new Message(MessageType.TRAVELER_LOGIN,travelerId);
-		Message response = (Message) client.ClientUI.clientChat.accept(msg);
-		if(response.getType() == MessageType.LOGIN_FAILED) {
-			System.out.println((String) response.getData());
-			lblError.setText((String) response.getData());
+
+		client.logic.TravelerLogic logic = new client.logic.TravelerLogic();
+		String loginResult = logic.loginTraveler(travelerId);
+
+		if (!loginResult.equals("SUCCESS")) {
+			System.out.println(loginResult);
+			lblError.setText(loginResult);
 			return;
 		}
+
 		client.gui.ExitParkVisitorController.currentTravelerId = travelerId;
-		
-	    ScreenSwitch.switchScreen("/client/gui/ExitParkVisitor.fxml", "Visitor Exit");
+		ScreenSwitch.switchScreen("/client/gui/ExitParkVisitor.fxml", "Visitor Exit");
 	}
 }

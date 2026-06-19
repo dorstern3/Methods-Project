@@ -9,6 +9,8 @@ import java.sql.Time;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
+import common.Order;
+
 /**
  * Handles database selection and verification operations for the GoNature
  * system.
@@ -16,10 +18,10 @@ import java.util.ArrayList;
 public class DBselect {
 
 	/**
-	 * Identifies the traveler type (Subscriber, Guide, or Regular) by ID.
+	 * Identifies the traveler type (Subscriber, Guide, or Regular) by ID. * @param
+	 * travelerId The ID or subscriber number.
 	 * 
-	 * @param travelerId The ID or subscriber number.
-	 * @return The traveler type and relevant info.
+	 * @return A string representing the traveler type and relevant info.
 	 */
 	public static String identifyTravelerInDB(String travelerId) {
 		try {
@@ -63,17 +65,17 @@ public class DBselect {
 	}
 
 	/**
-	 * Checks if a park has enough available capacity for a new order.
+	 * Checks if a park has enough available capacity for a new order. * @param
+	 * orderDetails The order object containing park, date, time, and number of
+	 * visitors.
 	 * 
-	 * @param orderDetails List containing park name, date, time, and new visitors
-	 *                     count.
 	 * @return true if there is sufficient capacity, false otherwise.
 	 */
-	public static boolean checkAvailability(ArrayList<Object> orderDetails) {
-		String park = (String) orderDetails.get(0);
-		String date = (String) orderDetails.get(1);
-		String time = (String) orderDetails.get(2);
-		int newVisitors = (int) orderDetails.get(3);
+	public static boolean checkAvailability(Order orderDetails) {
+		String park = orderDetails.getParkName();
+		String date = orderDetails.getOrderDate();
+		String time = orderDetails.getEntryTime();
+		int newVisitors = orderDetails.getNumberOfVisitors();
 
 		int maxCapacity = 0;
 		int casualGap = 0;
@@ -131,34 +133,30 @@ public class DBselect {
 	}
 
 	/**
-	 * Generates a list of alternative available dates/times around the requested
-	 * date.
+	 * Generates a list of alternative available dates and times for an order.
+	 * * @param originalOrder The original order request.
 	 * 
-	 * @param originalOrder List containing the original order details.
-	 * @return A list of available alternative date and time slots.
+	 * @return An ArrayList of strings representing available slots.
 	 */
-	public static ArrayList<String> getAlternativeDatesList(ArrayList<Object> originalOrder) {
+	public static ArrayList<String> getAlternativeDatesList(Order originalOrder) {
 		ArrayList<String> availableSlots = new ArrayList<>();
 
 		try {
-			String dateStr = (String) originalOrder.get(1);
+			String dateStr = originalOrder.getOrderDate();
 			LocalDate originalDate = LocalDate.parse(dateStr);
 
 			LocalDate[] datesToCheck = { originalDate.minusDays(1), originalDate, originalDate.plusDays(1) };
-
 			String[] timesToCheck = { "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00" };
 
 			for (LocalDate checkDate : datesToCheck) {
-
 				if (checkDate.isBefore(LocalDate.now())) {
 					continue;
 				}
 
 				for (String checkTime : timesToCheck) {
-					ArrayList<Object> tempOrder = new ArrayList<>(originalOrder);
-
-					tempOrder.set(1, checkDate.toString());
-					tempOrder.set(2, checkTime);
+					Order tempOrder = new Order(originalOrder.getParkName(), checkDate.toString(), checkTime,
+							originalOrder.getNumberOfVisitors(), originalOrder.getId(), originalOrder.getEmail(),
+							originalOrder.getPhoneNumber(), originalOrder.getVisitorType(), originalOrder.getStatus());
 
 					if (checkAvailability(tempOrder)) {
 						availableSlots.add(checkDate.toString() + " " + checkTime);
@@ -173,40 +171,11 @@ public class DBselect {
 	}
 
 	/**
-	 * Retrieves specific order details from the database.
-	 * 
-	 * @param orderNumber The unique identifier of the order.
-	 * @return A list containing the order details, or null if not found.
-	 */
-	public static ArrayList<Object> fetchOrderDetails(int orderNumber) {
-		ArrayList<Object> orderData = new ArrayList<>();
-		try {
-			Connection conn = DBconnection.getConnection();
-			PreparedStatement ps = conn.prepareStatement("SELECT * FROM gonature_db_new.order WHERE order_number = ?");
-			ps.setInt(1, orderNumber);
-			ResultSet rs = ps.executeQuery();
-
-			if (rs.next()) {
-				orderData.add(rs.getInt("order_number"));
-				orderData.add(rs.getString("park_name"));
-				orderData.add(rs.getDate("order_date").toString());
-				orderData.add(rs.getTime("entry_time").toString().substring(0, 5));
-				orderData.add(rs.getInt("number_of_visitors"));
-				orderData.add(rs.getString("status"));
-				return orderData;
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	/**
 	 * Checks the waiting list for the next eligible order after a cancellation.
 	 * Updates the status of the eligible order to 'Pending confirmation' and
-	 * generates a notification.
+	 * generates a notification. * @param canceledOrderNum The order number of the
+	 * canceled order.
 	 * 
-	 * @param canceledOrderNum The order number of the canceled order.
 	 * @return A notification message for the next traveler, or null if none found.
 	 */
 	public static String checkWaitingList(int canceledOrderNum) {
@@ -236,11 +205,9 @@ public class DBselect {
 					String phone = rs2.getString("phone_number");
 					int waitingVisitors = rs2.getInt("number_of_visitors");
 
-					ArrayList<Object> orderDetailsForCheck = new ArrayList<>();
-					orderDetailsForCheck.add(park);
-					orderDetailsForCheck.add(date.toString());
-					orderDetailsForCheck.add(time.toString().substring(0, 5));
-					orderDetailsForCheck.add(waitingVisitors);
+					Order orderDetailsForCheck = new Order(park, date.toString(), time.toString().substring(0, 5),
+							waitingVisitors, null, null, null, null, "Booked" // שאר הנתונים לא משנים לבדיקת זמינות מקום
+					);
 
 					if (checkAvailability(orderDetailsForCheck)) {
 
@@ -265,41 +232,37 @@ public class DBselect {
 
 	/**
 	 * Retrieves an order and verifies that the provided traveler ID matches the
-	 * order's owner ID.
+	 * order's owner ID. * @param orderNumber The unique identifier of the order.
 	 * 
-	 * @param orderNumber The unique identifier of the order.
-	 * @param travelerId  The ID provided by the traveler attempting to access the
-	 *                    order.
-	 * @return A list of order details if validation passes, or null if it fails.
+	 * @param travelerId The ID provided by the traveler.
+	 * @return An Order object if validation passes, or null if it fails.
 	 */
-	public static ArrayList<Object> fetchOrderWithValidation(int orderNumber, String travelerId) {
-		ArrayList<Object> orderDetails = new ArrayList<>();
+	public static Order fetchOrderWithValidation(int orderNumber, String travelerId) {
 		try {
 			Connection conn = DBconnection.getConnection();
-			PreparedStatement ps = conn.prepareStatement("SELECT * FROM gonature_db_new.order WHERE order_number = ?");
+			PreparedStatement ps = conn
+					.prepareStatement("SELECT * FROM gonature_db_new.order WHERE order_number = ? AND id = ?");
 			ps.setInt(1, orderNumber);
+			ps.setInt(2, Integer.parseInt(travelerId));
+
 			ResultSet rs = ps.executeQuery();
 
 			if (rs.next()) {
-				int ownerId = rs.getInt("id");
-
-				if (ownerId != 0 && Integer.parseInt(travelerId) != ownerId) {
-					System.out.println("Security alert: Traveler ID " + travelerId
-							+ " tried to access order belonging to ID " + ownerId);
-					return null;
-				}
-
-				orderDetails.add(rs.getInt("order_number"));
-				orderDetails.add(rs.getString("park_name"));
-				orderDetails.add(rs.getDate("order_date").toString());
-				orderDetails.add(rs.getTime("entry_time").toString().substring(0, 5));
-				orderDetails.add(rs.getInt("number_of_visitors"));
-				orderDetails.add(rs.getString("status"));
-				return orderDetails;
+				Order fetchedOrder = new Order(rs.getInt("order_number"), rs.getString("park_name"),
+						rs.getDate("order_date").toString(), rs.getTime("entry_time").toString().substring(0, 5),
+						rs.getInt("number_of_visitors"), String.valueOf(rs.getInt("id")), rs.getString("email"),
+						rs.getString("phone_number"), rs.getString("type_of_visitor"), rs.getString("status"),
+						rs.getString("QR_code"),
+						rs.getDate("date_of_placing_order") != null ? rs.getDate("date_of_placing_order").toString()
+								: null,
+						rs.getTime("exit_time") != null ? rs.getTime("exit_time").toString() : null);
+				return fetchedOrder;
 			}
 		} catch (SQLException e) {
+			System.out.println("Error fetching validated order: " + e.getMessage());
 			e.printStackTrace();
 		}
+
 		return null;
 	}
 }

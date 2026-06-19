@@ -101,5 +101,10 @@ public enum MessageType {
 	/** Request to update the status of an order. */
 	UPDATE_ORDER_STATUS,
 	/** Result of an order status update. */
-	UPDATE_ORDER_RESULT
+	UPDATE_ORDER_RESULT,
+
+	SIMULATE_24H_REMINDER,
+
+	SIMULATE_24H_REMINDER_RESPONSE
+
 }

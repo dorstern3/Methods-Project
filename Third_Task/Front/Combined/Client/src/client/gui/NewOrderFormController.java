@@ -8,6 +8,7 @@ import client.logic.OrderLogic;
 import client.logic.ScreenSwitch;
 import common.Message;
 import common.MessageType;
+import common.Order;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -18,8 +19,8 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 
 /**
- * Controller for the New Order Form screen. Handles booking creation and input
- * validation.
+ * Controller for the New Order Form screen. Handles the creation of a new
+ * booking, including field validation and server interaction.
  */
 public class NewOrderFormController {
 	public static String currentTravelerInfo = "";
@@ -44,7 +45,7 @@ public class NewOrderFormController {
 
 	/**
 	 * Initializes the controller, populates combo boxes, and configures UI
-	 * visibility based on traveler type.
+	 * visibility based on the traveler type.
 	 */
 	@FXML
 	public void initialize() {
@@ -73,9 +74,8 @@ public class NewOrderFormController {
 	}
 
 	/**
-	 * Handles the booking process, validates inputs, and interacts with the server.
-	 * 
-	 * @param event The action event.
+	 * Handles the booking submission process, validates inputs, and interacts with
+	 * the server. * @param event The action event triggered by the booking button.
 	 */
 	@FXML
 	void clickBookVisit(ActionEvent event) {
@@ -161,57 +161,40 @@ public class NewOrderFormController {
 			return;
 		}
 
-		ArrayList<Object> orderData = new ArrayList<>();
-		orderData.add(park);
-		orderData.add(dateStr);
-		orderData.add(time);
-		orderData.add(finalVisitors);
-		orderData.add(email);
-		orderData.add(phone);
-		orderData.add(currentTravelerId);
-		orderData.add(visitorType);
+		Order newOrder = new Order(park, dateStr, time, finalVisitors, currentTravelerId, email, phone, visitorType,
+				"Booked");
+		OrderLogic logic = new OrderLogic();
 
-		System.out.println("Sending to server to check availability: " + orderData);
-		Message msg = new Message(MessageType.CHECK_AVAILABILITY, orderData);
-		Message reply = (Message) ClientUI.clientChat.accept(msg);
+		boolean isAvailable = logic.checkAvailability(newOrder);
 
-		if (reply != null && reply.getType() == MessageType.CHECK_AVAILABILITY_RESULT) {
-			boolean isAvailable = (boolean) reply.getData();
+		if (isAvailable) {
+			String generatedQR = logic.saveNewOrder(newOrder);
 
-			if (isAvailable) {
-				System.out.println("THERE IS PLACE... Sending SAVE request");
+			if (generatedQR != null) {
+				String orderNumber = generatedQR.substring(3);
 
-				Message saveMsg = new Message(MessageType.SAVE_NEW_ORDER, orderData);
-				Message saveReply = (Message) ClientUI.clientChat.accept(saveMsg);
-
-				if (saveReply != null && saveReply.getType() == MessageType.SAVE_SUCCESS) {
-					String generatedQR = (String) saveReply.getData();
-					String orderNumber = generatedQR.substring(3);
-
-					Alert simAlert = new Alert(Alert.AlertType.INFORMATION);
-					simAlert.setTitle("Simulation");
-					simAlert.setHeaderText("Simulation: SMS & Email Sent");
-					simAlert.setContentText("To Email: " + email + "\nTo Phone: " + phone
-							+ "\n\nYour order has been saved and is pending confirmation." + "\nOrder Number: "
-							+ orderNumber + "\nYour Entrance QR Code is: " + generatedQR);
-					simAlert.showAndWait();
-					ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
-
-				} else {
-					showAlert("Error", "Saving Failed", "There was an error saving your order to the database.");
-				}
+				Alert simAlert = new Alert(Alert.AlertType.INFORMATION);
+				simAlert.setTitle("Simulation");
+				simAlert.setHeaderText("Simulation: SMS & Email Sent");
+				simAlert.setContentText("To Email: " + email + "\nTo Phone: " + phone
+						+ "\n\nYour order has been saved and is pending confirmation." + "\nOrder Number: "
+						+ orderNumber + "\nYour Entrance QR Code is: " + generatedQR);
+				simAlert.showAndWait();
+				ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
 
 			} else {
-				OrderLogic.pendingOrderDetails = orderData;
-				ScreenSwitch.switchScreen("/client/gui/WaitListForm.fxml", "Waiting List");
+				showAlert("Error", "Saving Failed", "There was an error saving your order to the database.");
 			}
+
+		} else {
+			OrderLogic.pendingOrderDetails = newOrder;
+			ScreenSwitch.switchScreen("/client/gui/WaitListForm.fxml", "Waiting List");
 		}
 	}
 
 	/**
-	 * Displays an error alert dialog.
+	 * Displays an error alert dialog. * @param title The title of the alert.
 	 * 
-	 * @param title   The title of the alert.
 	 * @param header  The header text.
 	 * @param content The content text.
 	 */
@@ -224,9 +207,8 @@ public class NewOrderFormController {
 	}
 
 	/**
-	 * Handles the back button action.
-	 * 
-	 * @param event The action event.
+	 * Handles the back button action, returning the user to the Traveler Entry
+	 * screen. * @param event The action event.
 	 */
 	@FXML
 	void clickBack(ActionEvent event) {

@@ -7,8 +7,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 
 /**
- * Controller for the Role Selection screen. Allows the user to choose between
- * Traveler or Park Employee roles.
+ * Controller for the Role Selection screen. Allows the user to select their
+ * role as either a Traveler or a Park Employee.
  */
 public class RoleSelectionController {
 
@@ -19,8 +19,8 @@ public class RoleSelectionController {
 	private Button btnEmployee;
 
 	/**
-	 * Initializes the controller. Removes the default focus from the buttons when
-	 * the screen loads.
+	 * Initializes the controller. Removes the default focus from the buttons upon
+	 * screen load.
 	 */
 	@FXML
 	public void initialize() {
@@ -28,8 +28,8 @@ public class RoleSelectionController {
 	}
 
 	/**
-	 * Handles the Traveler button click. Navigates to the Traveler Entry menu.
-	 * * @param event The action event triggered by clicking the button.
+	 * Handles the Traveler button click action. Navigates the user to the Traveler
+	 * Entry menu. * @param event The action event triggered by clicking the button.
 	 */
 	@FXML
 	void clickTraveler(ActionEvent event) {
@@ -37,8 +37,9 @@ public class RoleSelectionController {
 	}
 
 	/**
-	 * Handles the Employee button click. Navigates to the Employee Login screen.
-	 * * @param event The action event triggered by clicking the button.
+	 * Handles the Employee button click action. Navigates the user to the Employee
+	 * Login screen. * @param event The action event triggered by clicking the
+	 * button.
 	 */
 	@FXML
 	void clickEmployee(ActionEvent event) {

@@ -2,9 +2,9 @@ package client.gui;
 
 import java.util.ArrayList;
 
+import client.logic.OrderLogic;
 import client.logic.ScreenSwitch;
-import common.Message;
-import common.MessageType;
+import common.Order;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -39,24 +39,26 @@ public class ManageOrderController {
 	@FXML
 	private Button btnBack;
 
-	private ArrayList<Object> currentOrder;
+	private Order currentOrder;
+	private OrderLogic orderLogic;
 
 	public static String currentTravelerId = "";
 
 	/**
-	 * Initializes the view by disabling action buttons until an order is found.
+	 * Initializes the controller. Sets the initial state of action buttons to
+	 * disabled.
 	 */
 	@FXML
 	public void initialize() {
 		btnConfirm.setDisable(true);
 		btnCancel.setDisable(true);
+		orderLogic = new OrderLogic();
 	}
 
 	/**
-	 * Searches for an order based on the provided order number and current traveler
-	 * ID.
-	 * 
-	 * @param event The action event.
+	 * Handles the search action for an order number. Fetches order details and
+	 * updates the UI accordingly. * @param event The action event triggered by the
+	 * search button.
 	 */
 	@FXML
 	void clickSearchOrder(ActionEvent event) {
@@ -69,47 +71,37 @@ public class ManageOrderController {
 
 		int orderNumber = Integer.parseInt(orderNumStr);
 
-		ArrayList<Object> searchParams = new ArrayList<>();
-		searchParams.add(orderNumber);
-		searchParams.add(currentTravelerId);
+		currentOrder = orderLogic.fetchOrderDetails(orderNumber, currentTravelerId);
 
-		Message msg = new Message(MessageType.FETCH_ORDER_DETAILS, searchParams);
-		Message reply = (Message) client.ClientUI.clientChat.accept(msg);
+		if (currentOrder != null) {
+			lblParkName.setText(currentOrder.getParkName());
+			lblDate.setText(currentOrder.getOrderDate());
+			lblTime.setText(currentOrder.getEntryTime());
+			lblVisitors.setText(String.valueOf(currentOrder.getNumberOfVisitors()));
+			lblStatus.setText(currentOrder.getStatus());
 
-		if (reply != null && reply.getType() == MessageType.FETCH_ORDER_RESULT) {
-			currentOrder = (ArrayList<Object>) reply.getData();
+			String status = currentOrder.getStatus();
 
-			if (currentOrder != null) {
-				lblParkName.setText(currentOrder.get(1).toString());
-				lblDate.setText(currentOrder.get(2).toString());
-				lblTime.setText(currentOrder.get(3).toString());
-				lblVisitors.setText(currentOrder.get(4).toString());
-				lblStatus.setText(currentOrder.get(5).toString());
-
-				String status = (String) currentOrder.get(5);
-
-				if (status.equals("Pending confirmation") || status.equals("Waiting list unconfirmed")) {
-					btnConfirm.setDisable(false);
-					btnCancel.setDisable(false);
-				} else if (status.equals("Confirmed")) {
-					btnConfirm.setDisable(true);
-					btnCancel.setDisable(false);
-				} else {
-					btnConfirm.setDisable(true);
-					btnCancel.setDisable(true);
-				}
+			if (status.equals("Pending confirmation") || status.equals("Waiting list unconfirmed")) {
+				btnConfirm.setDisable(false);
+				btnCancel.setDisable(false);
+			} else if (status.equals("Confirmed")) {
+				btnConfirm.setDisable(true);
+				btnCancel.setDisable(false);
 			} else {
-				showAlert("Not Found / Unauthorized", "Order Not Found or Access Denied",
-						"No order matches this number and your ID.");
-				clearLabels();
+				btnConfirm.setDisable(true);
+				btnCancel.setDisable(true);
 			}
+		} else {
+			showAlert("Not Found / Unauthorized", "Order Not Found or Access Denied",
+					"No order matches this number and your ID.");
+			clearLabels();
 		}
 	}
 
 	/**
-	 * Confirms the selected order and updates its status in the database.
-	 * 
-	 * @param event The action event.
+	 * Handles the order confirmation process. * @param event The action event
+	 * triggered by the confirm button.
 	 */
 	@FXML
 	void clickConfirmOrder(ActionEvent event) {
@@ -123,94 +115,70 @@ public class ManageOrderController {
 			statusToSend = "Pending confirmation";
 		}
 
-		ArrayList<Object> updateData = new ArrayList<>();
-		updateData.add(orderNumber);
-		updateData.add(statusToSend);
+		Object[] result = orderLogic.updateOrderStatus(orderNumber, statusToSend);
+		boolean isUpdated = (boolean) result[0];
 
-		Message msg = new Message(MessageType.UPDATE_ORDER_STATUS, updateData);
-		Message reply = (Message) client.ClientUI.clientChat.accept(msg);
-
-		if (reply != null && reply.getType() == MessageType.UPDATE_ORDER_RESULT) {
-			ArrayList<Object> result = (ArrayList<Object>) reply.getData();
-			boolean isUpdated = (boolean) result.get(0);
-
-			if (isUpdated) {
-				showAlert("Success", "Order Updated", "Your order has been successfully updated!");
-				lblStatus.setText(statusToSend);
-				btnConfirm.setDisable(true);
-			} else {
-				showAlert("Error", "Update Failed", "Could not update the order. Please try again.");
-			}
+		if (isUpdated) {
+			showAlert("Success", "Order Updated", "Your order has been successfully updated!");
+			lblStatus.setText(statusToSend);
+			btnConfirm.setDisable(true);
+		} else {
+			showAlert("Error", "Update Failed", "Could not update the order. Please try again.");
 		}
 	}
 
 	/**
-	 * Cancels the selected order and checks for the next eligible traveler in the
-	 * waiting list.
-	 * 
-	 * @param event The action event.
+	 * Handles the order cancellation process. Notifies the traveler and checks the
+	 * waiting list for subsequent updates. * @param event The action event
+	 * triggered by the cancel button.
 	 */
 	@FXML
 	void clickCancelOrder(ActionEvent event) {
 		int orderNumber = Integer.parseInt(txtOrderNumber.getText());
 
-		ArrayList<Object> updateData = new ArrayList<>();
-		updateData.add(orderNumber);
-		updateData.add("Canceled");
+		Object[] result = orderLogic.updateOrderStatus(orderNumber, "Canceled");
+		boolean isUpdated = (boolean) result[0];
+		String waitingListMsg = (String) result[1];
 
-		Message msg = new Message(MessageType.UPDATE_ORDER_STATUS, updateData);
-		Message reply = (Message) client.ClientUI.clientChat.accept(msg);
+		if (isUpdated) {
+			Alert simAlert = new Alert(Alert.AlertType.INFORMATION);
+			simAlert.setTitle("Simulation");
+			simAlert.setHeaderText("SMS/Email sent to traveler");
+			simAlert.setContentText("Your order #" + orderNumber + " has been successfully canceled.");
+			simAlert.showAndWait();
 
-		if (reply != null && reply.getType() == MessageType.UPDATE_ORDER_RESULT) {
-			ArrayList<Object> result = (ArrayList<Object>) reply.getData();
-			boolean isUpdated = (boolean) result.get(0);
-			String waitingListMsg = (String) result.get(1);
+			lblStatus.setText("Canceled");
+			btnConfirm.setDisable(true);
+			btnCancel.setDisable(true);
 
-			if (isUpdated) {
-				Alert simAlert = new Alert(Alert.AlertType.INFORMATION);
-				simAlert.setTitle("Simulation");
-				simAlert.setHeaderText("SMS/Email sent to traveler");
-				simAlert.setContentText("Your order #" + orderNumber + " has been successfully canceled.");
-				simAlert.showAndWait();
-
-				lblStatus.setText("Canceled");
-				btnConfirm.setDisable(true);
-				btnCancel.setDisable(true);
-
-				if (waitingListMsg != null) {
-					Alert waitlistAlert = new Alert(Alert.AlertType.INFORMATION);
-					waitlistAlert.setTitle("Waiting List Simulation");
-					waitlistAlert.setHeaderText("SMS/Email sent to the NEXT traveler");
-					waitlistAlert.setContentText(waitingListMsg);
-					waitlistAlert.showAndWait();
-				}
-			} else {
-				showAlert("Error", "Update Failed", "Could not cancel the order. Please try again.");
+			if (waitingListMsg != null) {
+				Alert waitlistAlert = new Alert(Alert.AlertType.INFORMATION);
+				waitlistAlert.setTitle("Waiting List Simulation");
+				waitlistAlert.setHeaderText("SMS/Email sent to the NEXT traveler");
+				waitlistAlert.setContentText(waitingListMsg);
+				waitlistAlert.showAndWait();
 			}
+		} else {
+			showAlert("Error", "Update Failed", "Could not cancel the order. Please try again.");
 		}
 	}
 
 	/**
-	 * Returns to the main Traveler Entry menu.
-	 * 
-	 * @param event The action event.
+	 * Handles the back navigation action. Logs out the current traveler before
+	 * returning to the main menu. * @param event The action event triggered by the
+	 * back button.
 	 */
 	@FXML
 	void clickBack(ActionEvent event) {
-		Message msg = new Message(MessageType.TRAVELER_LOGOUT,currentTravelerId);
-		Message response = (Message) client.ClientUI.clientChat.accept(msg);
-	    if (response != null && response.getType() == MessageType.LOGOUT_SUCCESS) {
-	        ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
-	    }
+		boolean success = orderLogic.logoutTraveler(currentTravelerId);
+
+		if (success) {
+			ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
+		} else {
+			System.out.println("Error: Could not logout traveler safely.");
+		}
 	}
 
-	/**
-	 * Displays an error alert dialog.
-	 * 
-	 * @param title   The alert title.
-	 * @param header  The alert header.
-	 * @param content The alert message content.
-	 */
 	private void showAlert(String title, String header, String content) {
 		Alert alert = new Alert(Alert.AlertType.ERROR);
 		alert.setTitle(title);
@@ -219,9 +187,6 @@ public class ManageOrderController {
 		alert.showAndWait();
 	}
 
-	/**
-	 * Clears the displayed order labels.
-	 */
 	private void clearLabels() {
 		lblParkName.setText("");
 		lblDate.setText("");

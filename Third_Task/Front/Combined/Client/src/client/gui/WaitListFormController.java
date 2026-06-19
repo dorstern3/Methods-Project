@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import client.logic.ScreenSwitch;
 import common.Message;
 import common.MessageType;
+import common.Order;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -27,8 +28,7 @@ public class WaitListFormController {
 
 	/**
 	 * Navigates to the Alternative Dates screen to offer the user other options.
-	 * 
-	 * @param event The action event.
+	 * * @param event The action event triggered by the button click.
 	 */
 	@FXML
 	void clickAltDate(ActionEvent event) {
@@ -38,9 +38,8 @@ public class WaitListFormController {
 	}
 
 	/**
-	 * Cancels the current process and returns to the New Order form.
-	 * 
-	 * @param event The action event.
+	 * Cancels the current process and returns to the New Order form. * @param event
+	 * The action event triggered by the button click.
 	 */
 	@FXML
 	void clickCancel(ActionEvent event) {
@@ -48,34 +47,29 @@ public class WaitListFormController {
 	}
 
 	/**
-	 * Registers the pending order into the waiting list via the server.
-	 * 
-	 * @param event The action event.
+	 * Registers the pending order into the waiting list via the server. * @param
+	 * event The action event triggered by the button click.
 	 */
 	@FXML
 	void clickWaitList(ActionEvent event) {
-		ArrayList<Object> orderData = client.logic.OrderLogic.pendingOrderDetails;
+		Order pendingOrder = client.logic.OrderLogic.pendingOrderDetails;
 
-		if (orderData != null) {
-			Message msg = new Message(MessageType.ENTER_WAITING_LIST, orderData);
-			Message reply = (Message) client.ClientUI.clientChat.accept(msg);
+		if (pendingOrder != null) {
+			client.logic.OrderLogic logic = new client.logic.OrderLogic();
+			boolean isSaved = logic.enterWaitingList(pendingOrder);
 
-			if (reply.getType() == MessageType.ENTER_WAITING_LIST_RESULT) {
-				boolean isSaved = (boolean) reply.getData();
+			if (isSaved) {
+				Alert alert = new Alert(Alert.AlertType.INFORMATION);
+				alert.setTitle("Registration Successful");
+				alert.setHeaderText(null);
+				alert.setContentText(
+						"You have been successfully added to the waiting list.\n We will notify you if a spot becomes available.");
+				alert.showAndWait();
 
-				if (isSaved) {
-					Alert alert = new Alert(Alert.AlertType.INFORMATION);
-					alert.setTitle("Registration Successful");
-					alert.setHeaderText(null);
-					alert.setContentText(
-							"You have been successfully added to the waiting list.\n We will notify you if a spot becomes available.");
-					alert.showAndWait();
-
-					client.logic.OrderLogic.pendingOrderDetails = null;
-					ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
-				} else {
-					System.out.println("Error saving to waiting list in the database.");
-				}
+				client.logic.OrderLogic.pendingOrderDetails = null;
+				ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
+			} else {
+				System.out.println("Error saving to waiting list in the database.");
 			}
 		} else {
 			System.out.println("No order details found to add to waiting list.");

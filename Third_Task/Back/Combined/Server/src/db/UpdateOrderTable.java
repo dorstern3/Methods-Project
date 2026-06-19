@@ -8,6 +8,8 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 
+import common.Order;
+
 /**
  * Handles database updates and insertions related to orders in the GoNature
  * system, including updating existing orders, saving new orders, and managing
@@ -15,33 +17,29 @@ import java.util.ArrayList;
  */
 public class UpdateOrderTable {
 	/**
-	 * Saves a new order to the database with the status 'On waiting list'.
-	 * Validates and stores the correct ID if the visitor is a subscriber.
+	 * Saves a new order request to the waiting list when no capacity is available.
+	 * * @param orderData The order object to be saved.
 	 * 
-	 * @param orderData A list containing the order details (park, date, time,
-	 *                  visitors, email, phone, id, type).
-	 * @return true if the order was successfully added to the waiting list, false
-	 *         otherwise.
+	 * @return true if the order was successfully added, false otherwise.
 	 */
-	public static boolean saveToWaitingList(ArrayList<Object> orderData) {
+	public static boolean saveToWaitingList(Order orderData) {
 		try {
 			PreparedStatement stmt = DBconnection.getConnection().prepareStatement(
 					"INSERT INTO `order` (park_name, order_date, entry_time, number_of_visitors, email, phone_number, id, type_of_visitor, status, date_of_placing_order) "
 							+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'On waiting list', CURDATE())");
 
-			stmt.setString(1, (String) orderData.get(0));
-			stmt.setString(2, (String) orderData.get(1));
-			stmt.setString(3, (String) orderData.get(2));
-			stmt.setInt(4, (Integer) orderData.get(3));
-			stmt.setString(5, (String) orderData.get(4));
-			stmt.setString(6, (String) orderData.get(5));
+			stmt.setString(1, orderData.getParkName());
+			stmt.setString(2, orderData.getOrderDate());
+			stmt.setString(3, orderData.getEntryTime());
+			stmt.setInt(4, orderData.getNumberOfVisitors());
+			stmt.setString(5, orderData.getEmail());
+			stmt.setString(6, orderData.getPhoneNumber());
 
-			String visitorType = (String) orderData.get(7);
+			String visitorType = orderData.getVisitorType();
 			stmt.setString(8, visitorType);
 
-			if (visitorType.equals("Subscriber") && orderData.get(6) != null
-					&& !orderData.get(6).toString().isEmpty()) {
-				String inputId = orderData.get(6).toString();
+			if (visitorType.equals("Subscriber") && orderData.getId() != null && !orderData.getId().isEmpty()) {
+				String inputId = orderData.getId();
 				int realId = Integer.parseInt(inputId);
 
 				try {
@@ -79,32 +77,31 @@ public class UpdateOrderTable {
 
 	/**
 	 * Saves a new, confirmed order to the database and generates a unique QR code
-	 * for it.
+	 * for it. * @param orderData The order object.
 	 * 
-	 * @param orderData A list containing the order details.
 	 * @return The generated QR code string if successful, or null if the operation
 	 *         failed.
 	 */
-	public static String saveNewOrder(ArrayList<Object> orderData) {
+	public static String saveNewOrder(Order orderData) {
 		try {
 			PreparedStatement stmt = DBconnection.getConnection().prepareStatement(
 					"INSERT INTO `order` (park_name, order_date, entry_time, number_of_visitors, email, phone_number, id, type_of_visitor, status, date_of_placing_order) "
 							+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending confirmation', CURDATE())",
 					Statement.RETURN_GENERATED_KEYS);
 
-			stmt.setString(1, (String) orderData.get(0));
-			stmt.setString(2, (String) orderData.get(1));
-			stmt.setString(3, (String) orderData.get(2));
-			stmt.setInt(4, (Integer) orderData.get(3));
-			stmt.setString(5, (String) orderData.get(4));
-			stmt.setString(6, (String) orderData.get(5));
+			stmt.setString(1, orderData.getParkName());
+			stmt.setString(2, orderData.getOrderDate());
+			stmt.setString(3, orderData.getEntryTime());
+			stmt.setInt(4, orderData.getNumberOfVisitors());
+			stmt.setString(5, orderData.getEmail());
+			stmt.setString(6, orderData.getPhoneNumber());
 
-			String visitorType = (String) orderData.get(7);
+			String visitorType = orderData.getVisitorType();
 			stmt.setString(8, visitorType);
 
 			int realId = 0;
-			if (orderData.get(6) != null && !orderData.get(6).toString().isEmpty()) {
-				String inputId = orderData.get(6).toString();
+			if (orderData.getId() != null && !orderData.getId().isEmpty()) {
+				String inputId = orderData.getId();
 				realId = Integer.parseInt(inputId);
 
 				if (visitorType.equals("Subscriber")) {
@@ -164,12 +161,12 @@ public class UpdateOrderTable {
 
 	/**
 	 * Updates the status of a specific order in the database. If the order is
-	 * canceled, checks the waiting list for the next eligible traveler.
+	 * canceled, checks the waiting list for the next eligible traveler. * @param
+	 * orderNumber The ID of the order to update.
 	 * 
-	 * @param orderNumber The ID of the order to update.
-	 * @param status      The new status to set (e.g., 'Confirmed', 'Canceled').
-	 * @return An ArrayList containing a boolean (success) and a String (waiting
-	 *         list notification, or null).
+	 * @param status The new status to set (e.g., 'Confirmed', 'Canceled').
+	 * @return An ArrayList containing a boolean (success status) and a String
+	 *         (waiting list notification, or null).
 	 */
 	public static ArrayList<Object> updateOrderStatus(int orderNumber, String status) {
 		ArrayList<Object> result = new ArrayList<>();

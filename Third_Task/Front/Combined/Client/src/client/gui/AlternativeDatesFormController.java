@@ -14,15 +14,15 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import common.Order;
 
 /**
  * Controller for the Alternative Dates selection form. Displays available time
- * slots and manages order updates.
+ * slots and manages order updates for travelers.
  */
 public class AlternativeDatesFormController {
 
-	public static ArrayList<Object> originalOrderDetails;
-
+	public static Order originalOrderDetails;
 	@FXML
 	private Button btnBook;
 	@FXML
@@ -62,9 +62,9 @@ public class AlternativeDatesFormController {
 	}
 
 	/**
-	 * Handles the booking action for the selected slot.
-	 * 
-	 * @param event The action event.
+	 * Handles the book action for a selected alternative slot. Updates the original
+	 * order details and saves it to the database. * @param event The action event
+	 * triggered by the book button.
 	 */
 	@FXML
 	void clickBook(ActionEvent event) {
@@ -79,17 +79,16 @@ public class AlternativeDatesFormController {
 			return;
 		}
 
-		originalOrderDetails.set(1, selectedSlot.getDate());
-		originalOrderDetails.set(2, selectedSlot.getTime());
+		originalOrderDetails.setOrderDate(selectedSlot.getDate());
+		originalOrderDetails.setEntryTime(selectedSlot.getTime());
 
-		Message saveMsg = new Message(MessageType.SAVE_NEW_ORDER, originalOrderDetails);
-		Message saveReply = (Message) client.ClientUI.clientChat.accept(saveMsg);
+		client.logic.OrderLogic logic = new client.logic.OrderLogic();
+		String generatedQR = logic.saveNewOrder(originalOrderDetails);
 
-		if (saveReply != null && saveReply.getType() == MessageType.SAVE_SUCCESS) {
-			String generatedQR = (String) saveReply.getData();
+		if (generatedQR != null) {
 			String orderNumber = generatedQR.substring(3);
-			String email = (String) originalOrderDetails.get(4);
-			String phone = (String) originalOrderDetails.get(5);
+			String email = originalOrderDetails.getEmail();
+			String phone = originalOrderDetails.getPhoneNumber();
 
 			Alert simAlert = new Alert(Alert.AlertType.INFORMATION);
 			simAlert.setTitle("Simulation");
@@ -111,9 +110,8 @@ public class AlternativeDatesFormController {
 	}
 
 	/**
-	 * Cancels the current selection and returns to the booking form.
-	 * 
-	 * @param event The action event.
+	 * Cancels the current selection and returns to the booking form. * @param event
+	 * The action event triggered by the cancel button.
 	 */
 	@FXML
 	void clickCancel(ActionEvent event) {
