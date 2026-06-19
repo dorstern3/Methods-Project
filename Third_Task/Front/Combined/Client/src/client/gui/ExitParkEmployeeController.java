@@ -68,7 +68,7 @@ public class ExitParkEmployeeController {
             updateLiveCapacity();
         } else {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("System Error: Could not register exit.");
+            statusLabel.setText("Exit rejected. Parameters do not match any active 'Entered' order.");
         }
     }
 

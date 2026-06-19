@@ -98,24 +98,52 @@ public class EntranceController {
             return;
         }
 
-        Object[] orderDetails = entranceLogic.validateOrder(inputId);
+        Object result = entranceLogic.validateOrder(inputId);
 
-        if (orderDetails != null) { 
+        // Check if the result is a successful array
+        if (result instanceof Object[]) { 
+            Object[] orderDetails = (Object[]) result;
             int visitorsInOrder = (int) orderDetails[0];
             String dynamicVisitorType = (String) orderDetails[1]; 
             
             currentTransactionOrderId = inputId;
             currentTransactionAmount = visitorsInOrder; 
-            currentVisitorType = dynamicVisitorType; // Syncing memory
+            currentVisitorType = dynamicVisitorType; 
             
             showMessage("Order verified! Type identified as: " + dynamicVisitorType, "green");
             
             double calculatedPrice = entranceLogic.calculatePrice(dynamicVisitorType, currentTransactionAmount, true);
             showInvoice(String.format("%.2f NIS", calculatedPrice));
             
-        } else {
+        } 
+        // Check if the result is an error string from the server
+        else if (result instanceof String) {
             hideInvoice();
-            showMessage("Error: Invalid Order ID or QR Code, or not scheduled for today.", "red");
+            String errorType = (String) result;
+            
+            switch (errorType) {
+                case "NOT_FOUND":
+                    showMessage("Error: Invalid Order ID or QR Code.", "red");
+                    break;
+                case "WRONG_DATE":
+                    showMessage("Error: This order is not scheduled for today.", "red");
+                    break;
+                case "TIME_PASSED":
+                    showMessage("Error: More than an hour has passed since the scheduled entry time.", "red");
+                    break;
+                case "TOO_EARLY":
+                    showMessage("Error: Early entrance is only permitted 1 hour before the booked time .", "red");
+                    break;
+                case "NOT_CONFIRMED":
+                    showMessage("Error: This order has not been confirmed yet.", "red");
+                    break;
+                case "INVALID_FORMAT":
+                    showMessage("Error: Please enter a valid numeric Order ID.", "red");
+                    break;
+                default:
+                    showMessage("System Error: Could not validate the order.", "red");
+                    break;
+            }
         }
     }
 
