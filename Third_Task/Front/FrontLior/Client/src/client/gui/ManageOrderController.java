@@ -197,7 +197,11 @@ public class ManageOrderController {
 	 */
 	@FXML
 	void clickBack(ActionEvent event) {
-		ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
+		Message msg = new Message(MessageType.TRAVELER_LOGOUT,currentTravelerId);
+		Message response = (Message) client.ClientUI.clientChat.accept(msg);
+	    if (response != null && response.getType() == MessageType.LOGOUT_SUCCESS) {
+	        ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
+	    }
 	}
 
 	/**

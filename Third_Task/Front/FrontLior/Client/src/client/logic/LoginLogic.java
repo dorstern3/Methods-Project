@@ -15,7 +15,7 @@ public class LoginLogic {
      * Authenticates credentials and initializes the local CurUser session if successful.
      * @return The MessageType indicating the result of the login.
      */
-	public MessageType authenticateUser(String username , String rawPassword) {
+	public Message authenticateUser(String username , String rawPassword) {
 		
 		//String hashedPassword = PasswordHash.hashPassword(rawPassword);
 		Object[] requestUser = new Object[] {username , rawPassword};
@@ -34,8 +34,7 @@ public class LoginLogic {
                     (String) serverUser[5]    // parkName
                 );
             }
-            return type;
 		}
-		return MessageType.LOGIN_FAILED;
+		return response;
 	}
 }

@@ -144,7 +144,10 @@ public class ServiceRepController{
         groupTab.setContent(groupVBox);
 
         tabPane.getTabs().addAll(familyTab, singleTab, groupTab);
-        mainContainer.getChildren().addAll(title, tabPane);
+        Button logoutBtn = new Button("Logout");
+        logoutBtn.setOnAction(e -> client.logic.CurUser.logout());
+        
+        mainContainer.getChildren().addAll(title, tabPane, logoutBtn);
 
     }
 

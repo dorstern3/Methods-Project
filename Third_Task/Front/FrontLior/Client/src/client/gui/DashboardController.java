@@ -1,32 +1,32 @@
 package client.gui;
 
+import client.logic.ScreenSwitch;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 
 public class DashboardController {
+	
+	private static final String BASE_URL = "/client/gui/";
+	
+	@FXML
+    public void handleNavigation(ActionEvent event) {
+        Button clickedButton = (Button) event.getSource();
+        String title = clickedButton.getText();
+        
+        String buttonId = clickedButton.getId(); 
 
-    @FXML
-    public void openOrderScreen(ActionEvent event) {
-        ScreenSwitch.switchScreen("/client/gui/Order.fxml", "Order Screen");
+        if (buttonId == null || buttonId.isEmpty()) {
+            System.out.println("Error - button id most be defined");
+            return;
+        }
+        String fullFxmlPath = BASE_URL + buttonId + ".fxml";
+        ScreenSwitch.switchScreen(fullFxmlPath, title);
     }
-
-    @FXML
-    public void openReportsScreen(ActionEvent event) {
-        ScreenSwitch.switchScreen("/client/gui/Reports.fxml", "Reports Screen");
-    }
-
-    @FXML
-    public void openEntranceScreen(ActionEvent event) {
-        ScreenSwitch.switchScreen("/client/gui/EntranceForm.fxml", "Entrance Control");
-    }
-
-    @FXML
-    public void openExitScreenEmployee(ActionEvent event) {
-    	ScreenSwitch.switchScreen("/client/gui/ExitForm.fxml", "Park Exit Registration");
-    }
-    @FXML
-    public void openExitScreenVisitor(ActionEvent event) {
-        // Navigation to the visitor-specific exit screen
-        ScreenSwitch.switchScreen("/client/gui/ExitParkVisitor.fxml", "Exit Park");
-    }
+	
+	@FXML
+	public void logoutbtn() {
+		client.logic.CurUser.logout();
+	}
+    
 }
