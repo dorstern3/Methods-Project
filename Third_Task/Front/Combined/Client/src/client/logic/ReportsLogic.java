@@ -42,10 +42,18 @@ public class ReportsLogic {
 		
 		String[] params = new String[] { parkName, startDate, endDate};
 		Message msg = new Message(MessageType.GET_VISITOR_REPORT , params);
-		
-		Object response = ClientUI.clientChat.accept(msg);
-		Message responseMsg = (Message) response;
-		return (Map<String ,Double[]>) responseMsg.getData();
+		try {
+			Object response = ClientUI.clientChat.accept(msg);
+			Message responseMsg = (Message) response;
+			if(responseMsg !=null && responseMsg.getType() == MessageType.GET_VISITOR_REPORT_RESPONSE) {
+				return (Map<String ,Double[]>) responseMsg.getData();
+			}
+		}catch (Exception e) {
+            System.err.println("Error fetching report from server.");
+            e.printStackTrace();
+            
+        }
+		return null;
 	}
 	
 	/**
@@ -60,11 +68,18 @@ public class ReportsLogic {
 		
 		String[] params = new String[] {parkName, startDate, endDate};
 		Message msg = new Message(MessageType.GET_CANCELLATION_REPORT , params);
-		
-		Object response = ClientUI.clientChat.accept(msg);
-		Message responseMsg = (Message) response;
-		return (ArrayList<CancellationReportRow>) responseMsg.getData();
-		
+		try {
+			Object response = ClientUI.clientChat.accept(msg);
+			Message responseMsg = (Message) response;
+			if(responseMsg !=null && responseMsg.getType() == MessageType.GET_CANCELLATION_REPORT_RESPONSE) {
+				return (ArrayList<CancellationReportRow>) responseMsg.getData();
+			}
+		}catch (Exception e) {
+            System.err.println("Error fetching report from server.");
+            e.printStackTrace();
+            
+        }
+		return null;
 	}
 	
 	/**
@@ -77,10 +92,18 @@ public class ReportsLogic {
 	public ArrayList<CancellationReportRow> getParksCancellationReport(String startDate , String endDate){
 		String[] params = new String[] {startDate, endDate};
 		Message msg = new Message(MessageType.GET_PARKS_CANCELLATION_REPORT , params);
-		
-		Object response = ClientUI.clientChat.accept(msg);
-		Message responseMsg = (Message) response;
-		return (ArrayList<CancellationReportRow>) responseMsg.getData();
+		try {
+			Object response = ClientUI.clientChat.accept(msg);
+			Message responseMsg = (Message) response;
+			if(responseMsg !=null && responseMsg.getType() == MessageType.GET_PARKS_CANCELLATION_REPORT_RESPONSE) {
+				return (ArrayList<CancellationReportRow>) responseMsg.getData();
+			}
+		}catch (Exception e) {
+            System.err.println("Error fetching report from server.");
+            e.printStackTrace();
+            
+        }
+		return null;
 	}
 	
 	/**
@@ -95,22 +118,31 @@ public class ReportsLogic {
 	public ArrayList<TotalVisitorsReportRow> getTotalVisitorsReportData(String parkName , String startDate , String endDate){
 		
 		String[] params = new String[] { parkName, startDate, endDate};
-		Message msg = new Message(MessageType.GET_TOTAL_VISITOR_REPORT , params);
-		Message responseMsg = (Message) ClientUI.clientChat.accept(msg);
 		
-		ArrayList<TotalVisitorsReportRow> serverData = (ArrayList<TotalVisitorsReportRow>) responseMsg.getData();
-		// Calculate overall sums for the UI dashboard summary 
-	    if (serverData != null && !serverData.isEmpty()) {
-	        int totalReg = 0;
-	        int totalGrp = 0;
-	        for (TotalVisitorsReportRow row : serverData) {
-	            totalReg += row.getRegularCount();
-	            totalGrp += row.getGroupCount();
-	        }
-	        // Append a virtual summary row to be intercepted and pulled by the controller
-	        serverData.add(new TotalVisitorsReportRow("SUMMARY", totalReg, totalGrp));
-	    }
-	    return serverData;
+		Message msg = new Message(MessageType.GET_TOTAL_VISITOR_REPORT , params);
+		try {
+			Message responseMsg = (Message) ClientUI.clientChat.accept(msg);
+			if(responseMsg !=null && responseMsg.getType() == MessageType.GET_TOTAL_VISITOR_REPORT_RESPONSE) {
+				ArrayList<TotalVisitorsReportRow> serverData = (ArrayList<TotalVisitorsReportRow>) responseMsg.getData();
+				// Calculate overall sums for the UI dashboard summary 
+			    if (serverData != null && !serverData.isEmpty()) {
+			        int totalReg = 0;
+			        int totalGrp = 0;
+			        for (TotalVisitorsReportRow row : serverData) {
+			            totalReg += row.getRegularCount();
+			            totalGrp += row.getGroupCount();
+			        }
+			        // Append a virtual summary row to be intercepted and pulled by the controller
+			        serverData.add(new TotalVisitorsReportRow("SUMMARY", totalReg, totalGrp));
+			    }
+			    return serverData;
+			}
+		}catch (Exception e) {
+            System.err.println("Error fetching report from server.");
+            e.printStackTrace();
+            
+        }
+		return null;
 	}
 	
 	
@@ -126,10 +158,17 @@ public class ReportsLogic {
 
 		String[] params = new String[] { parkName, startDate, endDate};
 		Message msg = new Message(MessageType.GET_OCCUPANCY_REPORT , params);
-		
-		Object response = ClientUI.clientChat.accept(msg);
-		Message responseMsg = (Message) response;
-		return (ArrayList<OccupancyReportRow>) responseMsg.getData();
+		try {
+			Object response = ClientUI.clientChat.accept(msg);
+			Message responseMsg = (Message) response;
+			if(responseMsg !=null && responseMsg.getType() == MessageType.GET_OCCUPANCY_REPORT_RESPONSE) {
+				return (ArrayList<OccupancyReportRow>) responseMsg.getData();
+			}
+		}catch (Exception e) {
+            System.err.println("Error fetching report from server.");
+            e.printStackTrace();
+        }
+		return null;
 	}
 	
 	/**
@@ -139,9 +178,17 @@ public class ReportsLogic {
 	 */
 	public ArrayList<String> getParks(){
 		Message msg = new Message(MessageType.GET_PARKS, null);
-		Object response = ClientUI.clientChat.accept(msg);
-		Message responseMsg = (Message) response;
-		return (ArrayList<String>) responseMsg.getData();
+		try {
+			Object response = ClientUI.clientChat.accept(msg);
+			Message responseMsg = (Message) response;
+			if(responseMsg !=null && responseMsg.getType() == MessageType.GET_PARKS_RESPONSE) {
+				return (ArrayList<String>) responseMsg.getData();
+			}
+		}catch (Exception e) {
+            System.err.println("Error fetching Parks from server.");
+            e.printStackTrace();
+        }
+		return null;
 	}
 	
 }

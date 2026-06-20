@@ -3,7 +3,9 @@ package client.gui;
 import java.util.ArrayList;
 import java.util.Map;
 
+import client.logic.CurUser;
 import client.logic.ReportsLogic;
+import client.logic.ScreenSwitch;
 import common.CancellationReportRow;
 import common.OccupancyReportRow;
 import common.TotalVisitorsReportRow;
@@ -39,11 +41,11 @@ public class ReportsController {
 	@FXML private Button btnOccupancyReport;      // Park Manager
 	@FXML private DatePicker startDate;
 	@FXML private DatePicker endDate;
+	@FXML private Label message;
 	@FXML private ComboBox<String> parkSelection;
 	
 	/** The logic layer instance for processing and retrieving report data. */
 	private ReportsLogic reportsLogic;
-	
 	
 	/**
 	 * Initializes the controller. This method is automatically called after the FXML file has been loaded.
@@ -53,12 +55,9 @@ public class ReportsController {
 	@FXML
 	public void initialize() {
 		reportsLogic = new ReportsLogic();
-		
-		// Needs to be dynamic
-		String userRole = "DepartmentManager";
-		//String userRole = "ParkManager";
-		
-		if("ParkManager".equals(userRole)) {
+		String userRole = CurUser.getRole();
+
+		if("Park_manager".equals(userRole)) {
 			// Hide Department Manager buttons completely
 			btnVisitorsReport.setVisible(false);
 			btnVisitorsReport.setManaged(false);
@@ -67,8 +66,7 @@ public class ReportsController {
 			parkSelection.setVisible(false);
 			parkSelection.setManaged(false);
 		}
-		else if("DepartmentManager".equals(userRole)) {
-			
+		else if("Dept_manager".equals(userRole)) {
 			// Load available parks into selection drop down for the Department Manager
 			ArrayList<String> parks = reportsLogic.getParks();
 			parkSelection.getItems().addAll(parks);
@@ -94,11 +92,15 @@ public class ReportsController {
 		// Ensure a park is selected before generation
 		if (btnVisitorsReport.isVisible() && parkSelection.getValue() == null) {
 	        System.out.println("Error: Please select a park first!");
+	        message.setText("Please select a park first!");
 	        return;
 	    }
 		// Global visitors report is not supported
 		if(parkSelection.getValue().equals("All parks")) {
+			reportContainer.getChildren().clear();
 			System.out.println("Error: Can not make all parks visitor report");
+			message.setText("Can not make all parks visitor report");
+			reportContainer.getChildren().add(message);
 			return;
 		}
 		
@@ -143,6 +145,7 @@ public class ReportsController {
 		if(!validateDates()) {return;}
 		if (btnCancellationsReport.isVisible() && parkSelection.getValue() == null) {
 	        System.out.println("Error: Please select a park first!");
+	        message.setText("Please select a park first!");
 	        return;
 	    }
 		String parkName = parkSelection.getValue(); 
@@ -195,12 +198,12 @@ public class ReportsController {
 	public void onClickTotalVisitorsReport() {
 		
 		if(!validateDates()) {return;}
-		
-		String parkName = "Banias"; 
+		String parkName = CurUser.getParkName();
 	    String start = startDate.getValue().toString();
 	    String end = endDate.getValue().toString();
 	    
 		reportContainer.getChildren().clear();
+		
 		TableView<TotalVisitorsReportRow> table = createBaseTable();
 		AnchorPane.setBottomAnchor(table, 60.0); // Make space for the summary label at the bottom
 		
@@ -265,13 +268,12 @@ public class ReportsController {
 	public void onClickOccupancyReport() {
 		
 		if(!validateDates()) {return;}
-		
-		String parkName = "Banias"; 
+		String parkName = CurUser.getParkName();
 	    String start = startDate.getValue().toString();
 	    String end = endDate.getValue().toString();
 	    
 		reportContainer.getChildren().clear();
-		
+	
 		TableView<OccupancyReportRow> table = createBaseTable();
 		
 		TableColumn<OccupancyReportRow, String> dateCol = new TableColumn<>("Date");
@@ -346,7 +348,7 @@ public class ReportsController {
 	 * * @param event The ActionEvent triggered by the back/dashboard button click.
 	 */
 	public void openDashboard(ActionEvent event) {
-		ScreenSwitch.switchScreen("/client/gui/Dashboard.fxml", "Dashboard");
+		ScreenSwitch.switchScreen("/client/gui/ManagersScreen.fxml","Manager");
 	}
 	
 	/**
@@ -354,14 +356,25 @@ public class ReportsController {
 	 * @return true if both dates are selected, false otherwise.
 	 */
 	private boolean validateDates() {
+		message.setText("");
+		message.setStyle("-fx-text-fill: black;");
 		if(startDate.getValue() == null || endDate.getValue() == null) {
+			reportContainer.getChildren().clear();
 			System.out.println("Error: Please select both Start Date and End Date!");
+			message.setText("Please select both Start Date and End Date!");
+			message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+			reportContainer.getChildren().add(message);
 			return false;
 		}
 		if(startDate.getValue().isAfter(endDate.getValue())) {
+			reportContainer.getChildren().clear();
 			System.out.println("Error: Start date cannot be after end date!");
+			message.setText("Start date cannot be after end date!");
+			message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+			reportContainer.getChildren().add(message);
 			return false;
 		}
+		
 		return true;
 	}
 }
