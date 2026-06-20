@@ -66,7 +66,12 @@ public class TravelerEntryController {
 		}
 
 		client.gui.ManageOrderController.currentTravelerId = travelerId;
-
+		Message msg = new Message(MessageType.TRAVELER_LOGIN,travelerId);
+		Message response = (Message) client.ClientUI.clientChat.accept(msg);
+		if(response.getType() == MessageType.LOGIN_FAILED) {
+			System.out.println((String) response.getData());
+			return;
+		}
 		ScreenSwitch.switchScreen("/client/gui/ManageOrderForm.fxml", "Manage Order");
 	}
 
@@ -131,6 +136,13 @@ public class TravelerEntryController {
 
 		if (!travelerId.matches("\\d+")) {
 			lblError.setText("ID must contain only numbers!");
+			return;
+		}
+		Message msg = new Message(MessageType.TRAVELER_LOGIN,travelerId);
+		Message response = (Message) client.ClientUI.clientChat.accept(msg);
+		if(response.getType() == MessageType.LOGIN_FAILED) {
+			System.out.println((String) response.getData());
+			lblError.setText((String) response.getData());
 			return;
 		}
 		client.gui.ExitParkVisitorController.currentTravelerId = travelerId;
