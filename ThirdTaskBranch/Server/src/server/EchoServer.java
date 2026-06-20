@@ -7,6 +7,8 @@ import db.DBreports;
 import db.DBselect;
 
 import java.sql.*;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -501,8 +503,8 @@ public class EchoServer extends AbstractServer {
  	        
  	        if (rs.next()) {
  	            String status = rs.getString("status");
- 	            java.sql.Date orderDate = rs.getDate("order_date");
- 	            java.sql.Time entryTime = rs.getTime("entry_time");
+ 	            Date orderDate = rs.getDate("order_date");
+ 	            Time entryTime = rs.getTime("entry_time");
  	            
  	            // Error Check 1: Check if the order is scheduled for today
  	            java.time.LocalDate today = java.time.LocalDate.now();
@@ -512,9 +514,9 @@ public class EchoServer extends AbstractServer {
  	            }
 
  	            // Error Check 2: Check time difference
- 	            java.time.LocalTime now = java.time.LocalTime.now();
- 	            java.time.LocalTime scheduledTime = entryTime.toLocalTime();
- 	            long minutesDifference = java.time.temporal.ChronoUnit.MINUTES.between(scheduledTime, now);
+ 	            LocalTime now = LocalTime.now();
+ 	            LocalTime scheduledTime = entryTime.toLocalTime();
+ 	            long minutesDifference = ChronoUnit.MINUTES.between(scheduledTime, now);
  	            
  	            if (minutesDifference > 60) {
  	                client.sendToClient(new Message(MessageType.VALIDATE_ORDER_RESPONSE, "TIME_PASSED"));
@@ -531,7 +533,7 @@ public class EchoServer extends AbstractServer {
  	            }
  	            
  	            // Success: All conditions met
- 	            java.util.ArrayList<Object> orderDetails = new java.util.ArrayList<>();
+ 	            ArrayList<Object> orderDetails = new ArrayList<>();
  	            orderDetails.add(rs.getInt("number_of_visitors")); 
  	            orderDetails.add(rs.getString("type_of_visitor"));   
  	            
@@ -559,7 +561,7 @@ public class EchoServer extends AbstractServer {
      */
     private void handleCheckCapacity(Message message, ConnectionToClient client) {
         // 1. Extract the list from the message
-        java.util.ArrayList<Object> dataList = (java.util.ArrayList<Object>) message.getData();
+        ArrayList<Object> dataList = (ArrayList<Object>) message.getData();
         
         // 2. Safely unpack the data from the list
         int requestedAmount = (int) dataList.get(0);
@@ -673,10 +675,9 @@ public class EchoServer extends AbstractServer {
     }
 
     /**
-     * Processes transaction executions for visitor admissions inside the secure server framework.
-     * Increments designated park capacities dynamically and structures order history data logs.
-     * Evaluates casual vs pre-booked states, routing the client identification index to either the 
-     * 'id' column or 'sub_number' column based on business rules.
+     * Processes transaction for visitor admissions.
+     * Increments designated park capacities dynamically.
+     * Evaluates casual vs pre-booked states.
      *
      * @param message The message containing the transaction details.
      * @param client  The specific client communication connection execution thread reference.
@@ -689,6 +690,26 @@ public class EchoServer extends AbstractServer {
         String parkToUpdate = (String) paymentData.get(2);
         String visitorType = (String) paymentData.get(3); 
         String visitorId = (String) paymentData.get(4); // Extracted traveler verification identification parameter
+
+        // Resolve Subscriber Number to the actual personal ID for consistent database logging
+        if ("Subscriber".equals(visitorType) && (orderToUpdate == null || orderToUpdate.isEmpty())) {
+            try {
+                Connection conn = DBconnection.getConnection();
+                String findIdQuery = "SELECT id FROM gonature_db_new.Subscriber WHERE sub_number = ?";
+                PreparedStatement psFind = conn.prepareStatement(findIdQuery);
+                psFind.setInt(1, Integer.parseInt(visitorId));
+                ResultSet rsFind = psFind.executeQuery();
+                
+                if (rsFind.next()) {
+                    visitorId = rsFind.getString("id"); // Translate subscriber number to real personal ID
+                }
+                rsFind.close();
+                psFind.close();
+            } catch (Exception e) {
+                System.err.println("Server: Error translating subscriber number to ID.");
+                e.printStackTrace();
+            }
+        }
         
         String resultOrderId = null;
 
@@ -723,16 +744,16 @@ public class EchoServer extends AbstractServer {
                                      "(order_date, number_of_visitors, date_of_placing_order, entry_time, status, type_of_visitor, park_name, id) " +
                                      "VALUES (CURDATE(), ?, CURDATE(), CURTIME(), 'Entered', ?, ?, ?)";
                 
-                PreparedStatement psInsert = conn.prepareStatement(insertOrder, java.sql.Statement.RETURN_GENERATED_KEYS);
+                PreparedStatement psInsert = conn.prepareStatement(insertOrder, Statement.RETURN_GENERATED_KEYS);
                 psInsert.setInt(1, amountToAdd);
                 psInsert.setString(2, visitorType);
                 psInsert.setString(3, parkToUpdate); 
-                psInsert.setString(4, visitorId); // Stores Regular ID / Subscriber Number / Guide ID dynamically
+                psInsert.setString(4, visitorId); // Stores Regular ID / Translated Subscriber ID / Guide ID dynamically
                 
                 psInsert.executeUpdate();
                 
                 // Extract generated auto-increment key
-                java.sql.ResultSet rsKeys = psInsert.getGeneratedKeys();
+                ResultSet rsKeys = psInsert.getGeneratedKeys();
                 if (rsKeys.next()) {
                     resultOrderId = String.valueOf(rsKeys.getInt(1));
                 }
