@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Accordion?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.SimulationController">
+   <children>
+      <Label layoutX="130.0" layoutY="40.0" text="System Simulation Dashboard">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+      </Label>
+      <Button fx:id="btnSendReminders" layoutX="200.0" layoutY="142.0" mnemonicParsing="false" onAction="#handleSendReminders" prefHeight="30.0" prefWidth="200.0" text="Send Next Day Reminders" textAlignment="CENTER">
+         <font>
+            <Font name="System Bold" size="13.0" />
+         </font>
+      </Button>
+      <Button fx:id="btnCheckWaitlist" layoutX="200.0" layoutY="200.0" mnemonicParsing="false" onAction="#handleWaitlistTimeout" prefHeight="30.0" prefWidth="200.0" text="Check Waitlist Timeout" textAlignment="CENTER">
+         <font>
+            <Font name="System Bold" size="13.0" />
+         </font>
+      </Button>
+      <Button fx:id="btnCheckConfirmation" layoutX="200.0" layoutY="257.0" mnemonicParsing="false" onAction="#handleConfirmationTimeout" prefHeight="30.0" prefWidth="200.0" text="Check Confirmation Timeout" textAlignment="CENTER">
+         <font>
+            <Font name="System Bold" size="13.0" />
+         </font>
+      </Button>
+      <Button fx:id="btnBack" layoutX="27.0" layoutY="352.0" mnemonicParsing="false" onAction="#clickBack" text="Back">
+         <font>
+            <Font name="System Bold" size="13.0" />
+         </font>
+      </Button>
+      <Accordion />
+   </children>
+</AnchorPane>

@@ -5,8 +5,10 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import client.ClientUI;
 import client.logic.OrderLogic;
+import client.logic.ScreenSwitch;
 import common.Message;
 import common.MessageType;
+import common.Order;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -17,33 +19,44 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 
 /**
- * Controller for the New Order Form screen. Handles booking creation and input
- * validation.
+ * Controller for the New Order Form screen. Handles the creation of a new
+ * booking, including user input validation, communicating with the server to
+ * check availability, and processing the order.
  */
 public class NewOrderFormController {
+
 	public static String currentTravelerInfo = "";
 	public static String currentTravelerId = "";
 
 	@FXML
 	private Button btnBook;
+
 	@FXML
 	private ComboBox<String> comboPark;
+
 	@FXML
 	private ComboBox<String> comboTime;
+
 	@FXML
 	private DatePicker dateVisit;
+
 	@FXML
 	private TextField txtEmail;
+
 	@FXML
 	private TextField txtPhone;
+
 	@FXML
 	private TextField txtVisitors;
+
 	@FXML
 	private CheckBox cbGroupOrder;
 
 	/**
-	 * Initializes the controller, populates combo boxes, and configures UI
-	 * visibility based on traveler type.
+	 * Initializes the controller after its root element has been completely
+	 * processed. Populates the park and time combo boxes, sets the default number
+	 * of visitors, and configures the UI visibility and editability based on the
+	 * traveler's type (e.g., Regular, Guide, Subscriber).
 	 */
 	@FXML
 	public void initialize() {
@@ -72,9 +85,11 @@ public class NewOrderFormController {
 	}
 
 	/**
-	 * Handles the booking process, validates inputs, and interacts with the server.
-	 * 
-	 * @param event The action event.
+	 * Handles the booking submission process. Validates all user inputs (empty
+	 * fields, valid numbers, email format, future dates). If validation passes, it
+	 * interacts with the server to check park availability. If available, the order
+	 * is saved; otherwise, the user is redirected to the waiting list screen.
+	 * * @param event The action event triggered by clicking the "Book" button.
 	 */
 	@FXML
 	void clickBookVisit(ActionEvent event) {
@@ -143,6 +158,10 @@ public class NewOrderFormController {
 		if (!email.isEmpty() && !email.contains("@")) {
 			errorMessages.append("- Please enter a valid email address.\n");
 		}
+		
+		if (!phone.isEmpty() && !phone.matches("\\d+")) {
+			errorMessages.append("- Phone number must contain only numbers.\n");
+		}
 
 		if (dateVisit.getValue() != null && time != null) {
 			LocalDate selectedDate = dateVisit.getValue();
@@ -160,59 +179,43 @@ public class NewOrderFormController {
 			return;
 		}
 
-		ArrayList<Object> orderData = new ArrayList<>();
-		orderData.add(park);
-		orderData.add(dateStr);
-		orderData.add(time);
-		orderData.add(finalVisitors);
-		orderData.add(email);
-		orderData.add(phone);
-		orderData.add(currentTravelerId);
-		orderData.add(visitorType);
+		Order newOrder = new Order(park, dateStr, time, finalVisitors, currentTravelerId, email, phone, visitorType,
+				"Booked");
+		OrderLogic logic = new OrderLogic();
 
-		System.out.println("Sending to server to check availability: " + orderData);
-		Message msg = new Message(MessageType.CHECK_AVAILABILITY, orderData);
-		Message reply = (Message) ClientUI.clientChat.accept(msg);
+		boolean isAvailable = logic.checkAvailability(newOrder);
 
-		if (reply != null && reply.getMessageType() == MessageType.CHECK_AVAILABILITY_RESULT) {
-			boolean isAvailable = (boolean) reply.getMessageData();
+		if (isAvailable) {
+			String generatedQR = logic.saveNewOrder(newOrder);
 
-			if (isAvailable) {
-				System.out.println("THERE IS PLACE... Sending SAVE request");
+			if (generatedQR != null) {
+				String orderNumber = generatedQR.substring(3);
 
-				Message saveMsg = new Message(MessageType.SAVE_NEW_ORDER, orderData);
-				Message saveReply = (Message) ClientUI.clientChat.accept(saveMsg);
-
-				if (saveReply != null && saveReply.getMessageType() == MessageType.SAVE_SUCCESS) {
-					String generatedQR = (String) saveReply.getMessageData();
-					String orderNumber = generatedQR.substring(3);
-
-					Alert simAlert = new Alert(Alert.AlertType.INFORMATION);
-					simAlert.setTitle("Simulation");
-					simAlert.setHeaderText("Simulation: SMS & Email Sent");
-					simAlert.setContentText("To Email: " + email + "\nTo Phone: " + phone
-							+ "\n\nYour order has been saved and is pending confirmation." + "\nOrder Number: "
-							+ orderNumber + "\nYour Entrance QR Code is: " + generatedQR);
-					simAlert.showAndWait();
-					ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
-
-				} else {
-					showAlert("Error", "Saving Failed", "There was an error saving your order to the database.");
-				}
+				Alert simAlert = new Alert(Alert.AlertType.INFORMATION);
+				simAlert.setTitle("Simulation");
+				simAlert.setHeaderText("Simulation: SMS & Email Sent");
+				simAlert.setContentText(
+						"To Email: " + email + "\nTo Phone: " + phone + "\n\nYour order has been successfully Booked"
+								+ "\nOrder Number: " + orderNumber + "\nYour Entrance QR Code is: " + generatedQR);
+				simAlert.showAndWait();
+				ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
 
 			} else {
-				OrderLogic.pendingOrderDetails = orderData;
-				ScreenSwitch.switchScreen("/client/gui/WaitListForm.fxml", "Waiting List");
+				showAlert("Error", "Saving Failed", "There was an error saving your order to the database.");
 			}
+
+		} else {
+			OrderLogic.pendingOrderDetails = newOrder;
+			ScreenSwitch.switchScreen("/client/gui/WaitListForm.fxml", "Waiting List");
 		}
 	}
 
 	/**
-	 * Displays an error alert dialog.
+	 * Displays an error alert dialog with the specified title, header, and content.
+	 * * @param title The title of the alert window.
 	 * 
-	 * @param title   The title of the alert.
-	 * @param header  The header text.
-	 * @param content The content text.
+	 * @param header  The header text of the alert.
+	 * @param content The main message content to display.
 	 */
 	private void showAlert(String title, String header, String content) {
 		Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -223,9 +226,9 @@ public class NewOrderFormController {
 	}
 
 	/**
-	 * Handles the back button action.
-	 * 
-	 * @param event The action event.
+	 * Handles the back button action, returning the user to the Traveler Entry
+	 * screen. * @param event The action event triggered by clicking the "Back"
+	 * button.
 	 */
 	@FXML
 	void clickBack(ActionEvent event) {

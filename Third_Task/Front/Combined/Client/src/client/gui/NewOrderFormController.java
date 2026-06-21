@@ -20,32 +20,43 @@ import javafx.scene.control.TextField;
 
 /**
  * Controller for the New Order Form screen. Handles the creation of a new
- * booking, including field validation and server interaction.
+ * booking, including user input validation, communicating with the server to
+ * check availability, and processing the order.
  */
 public class NewOrderFormController {
+
 	public static String currentTravelerInfo = "";
 	public static String currentTravelerId = "";
 
 	@FXML
 	private Button btnBook;
+
 	@FXML
 	private ComboBox<String> comboPark;
+
 	@FXML
 	private ComboBox<String> comboTime;
+
 	@FXML
 	private DatePicker dateVisit;
+
 	@FXML
 	private TextField txtEmail;
+
 	@FXML
 	private TextField txtPhone;
+
 	@FXML
 	private TextField txtVisitors;
+
 	@FXML
 	private CheckBox cbGroupOrder;
 
 	/**
-	 * Initializes the controller, populates combo boxes, and configures UI
-	 * visibility based on the traveler type.
+	 * Initializes the controller after its root element has been completely
+	 * processed. Populates the park and time combo boxes, sets the default number
+	 * of visitors, and configures the UI visibility and editability based on the
+	 * traveler's type (e.g., Regular, Guide, Subscriber).
 	 */
 	@FXML
 	public void initialize() {
@@ -74,8 +85,11 @@ public class NewOrderFormController {
 	}
 
 	/**
-	 * Handles the booking submission process, validates inputs, and interacts with
-	 * the server. * @param event The action event triggered by the booking button.
+	 * Handles the booking submission process. Validates all user inputs (empty
+	 * fields, valid numbers, email format, future dates). If validation passes, it
+	 * interacts with the server to check park availability. If available, the order
+	 * is saved; otherwise, the user is redirected to the waiting list screen.
+	 * * @param event The action event triggered by clicking the "Book" button.
 	 */
 	@FXML
 	void clickBookVisit(ActionEvent event) {
@@ -144,6 +158,10 @@ public class NewOrderFormController {
 		if (!email.isEmpty() && !email.contains("@")) {
 			errorMessages.append("- Please enter a valid email address.\n");
 		}
+		
+		if (!phone.isEmpty() && !phone.matches("\\d+")) {
+			errorMessages.append("- Phone number must contain only numbers.\n");
+		}
 
 		if (dateVisit.getValue() != null && time != null) {
 			LocalDate selectedDate = dateVisit.getValue();
@@ -176,9 +194,9 @@ public class NewOrderFormController {
 				Alert simAlert = new Alert(Alert.AlertType.INFORMATION);
 				simAlert.setTitle("Simulation");
 				simAlert.setHeaderText("Simulation: SMS & Email Sent");
-				simAlert.setContentText("To Email: " + email + "\nTo Phone: " + phone
-						+ "\n\nYour order has been saved and is pending confirmation." + "\nOrder Number: "
-						+ orderNumber + "\nYour Entrance QR Code is: " + generatedQR);
+				simAlert.setContentText(
+						"To Email: " + email + "\nTo Phone: " + phone + "\n\nYour order has been successfully Booked"
+								+ "\nOrder Number: " + orderNumber + "\nYour Entrance QR Code is: " + generatedQR);
 				simAlert.showAndWait();
 				ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
 
@@ -193,10 +211,11 @@ public class NewOrderFormController {
 	}
 
 	/**
-	 * Displays an error alert dialog. * @param title The title of the alert.
+	 * Displays an error alert dialog with the specified title, header, and content.
+	 * * @param title The title of the alert window.
 	 * 
-	 * @param header  The header text.
-	 * @param content The content text.
+	 * @param header  The header text of the alert.
+	 * @param content The main message content to display.
 	 */
 	private void showAlert(String title, String header, String content) {
 		Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -208,7 +227,8 @@ public class NewOrderFormController {
 
 	/**
 	 * Handles the back button action, returning the user to the Traveler Entry
-	 * screen. * @param event The action event.
+	 * screen. * @param event The action event triggered by clicking the "Back"
+	 * button.
 	 */
 	@FXML
 	void clickBack(ActionEvent event) {

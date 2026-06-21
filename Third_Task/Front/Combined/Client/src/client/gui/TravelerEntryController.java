@@ -11,8 +11,9 @@ import client.ClientUI;
 import client.logic.ScreenSwitch;
 
 /**
- * Controller for the Traveler Entry screen. Handles traveler identification
- * locally before proceeding to order creation or management.
+ * Controller for the Traveler Entry screen. Handles the initial identification
+ * of travelers locally before directing them to either create a new order or
+ * manage an existing order based on their input.
  */
 public class TravelerEntryController {
 
@@ -35,8 +36,9 @@ public class TravelerEntryController {
 	private Button btnEbtnExit;
 
 	/**
-	 * Handles the Back button click, returning the user to the role selection
-	 * screen. * @param event The action event triggered by clicking the button.
+	 * Handles the action when the "Back" button is clicked. Returns the user to the
+	 * initial role selection screen. * @param event The action event triggered by
+	 * clicking the back button.
 	 */
 	@FXML
 	void clickBack(ActionEvent event) {
@@ -44,9 +46,10 @@ public class TravelerEntryController {
 	}
 
 	/**
-	 * Handles the Manage Order button click. Validates input and proceeds to the
-	 * manage order form if identification is successful. * @param event The action
-	 * event triggered by clicking the button.
+	 * Handles the action when the "Manage Order" button is clicked. Validates the
+	 * traveler ID input and authenticates with the server. If successful, navigates
+	 * the user to the manage order form. * @param event The action event triggered
+	 * by clicking the manage order button.
 	 */
 	@FXML
 	void clickManageOrder(ActionEvent event) {
@@ -59,16 +62,22 @@ public class TravelerEntryController {
 		}
 
 		if (!travelerId.matches("\\d+")) {
-			lblError.setText("ID must contain only numbers!");
+			lblError.setText("Input must contain only numbers!");
 			return;
 		}
 
+		int length = travelerId.length();
+		if (length != 4 && length != 5) {
+			lblError.setText("Subscriber number must be exactly 4 digits, ID must be exactly 5 digits.");
+			return;
+		}
+		
 		client.logic.TravelerLogic logic = new client.logic.TravelerLogic();
 		String loginResult = logic.loginTraveler(travelerId);
 
 		if (!loginResult.equals("SUCCESS")) {
 			System.out.println(loginResult);
-			lblError.setText(loginResult); // מציג את השגיאה על המסך
+			lblError.setText(loginResult);
 			return;
 		}
 
@@ -77,9 +86,10 @@ public class TravelerEntryController {
 	}
 
 	/**
-	 * Handles the New Order button click. Validates input and proceeds to the new
-	 * order form based on traveler type. * @param event The action event triggered
-	 * by clicking the button.
+	 * Handles the action when the "New Order" button is clicked. Validates the
+	 * traveler ID and queries the server to determine the specific traveler type
+	 * (Regular, Guide, or Subscriber) before proceeding to the booking form.
+	 * * @param event The action event triggered by clicking the new order button.
 	 */
 	@FXML
 	void clickNewOrder(ActionEvent event) {
@@ -92,16 +102,24 @@ public class TravelerEntryController {
 		}
 
 		if (!travelerId.matches("\\d+")) {
-			lblError.setText("ID must contain only numbers!");
+			lblError.setText("Input must contain only numbers!");
 			return;
 		}
-
+		int length = travelerId.length();
+		if (length != 4 && length != 5) {
+			lblError.setText("Subscriber number must be exactly 4 digits, ID must be exactly 5 digits.");
+			return;
+		}
 		System.out.println("Frontend validation passed for ID: " + travelerId);
 
 		client.logic.TravelerLogic logic = new client.logic.TravelerLogic();
 		String dbResult = logic.identifyTraveler(travelerId);
 
 		if (dbResult != null) {
+			if (dbResult.startsWith("ERROR:")) {
+				lblError.setText(dbResult.replace("ERROR:", "").trim());
+				return; 
+			}
 			System.out.println("The server returned: " + dbResult);
 
 			client.gui.NewOrderFormController.currentTravelerInfo = dbResult;
@@ -122,9 +140,9 @@ public class TravelerEntryController {
 	}
 
 	/**
-	 * Handles the Exit Park button click. Validates identification and proceeds to
-	 * the exit park screen. * @param event The action event triggered by clicking
-	 * the button.
+	 * Handles the action when the "Exit Park" button is clicked. Validates the
+	 * traveler ID and navigates the user to the visitor exit screen. * @param event
+	 * The action event triggered by clicking the exit park button.
 	 */
 	@FXML
 	public void onExitParkClicked(ActionEvent event) {
@@ -137,10 +155,14 @@ public class TravelerEntryController {
 		}
 
 		if (!travelerId.matches("\\d+")) {
-			lblError.setText("ID must contain only numbers!");
+			lblError.setText("Input must contain only numbers!");
 			return;
 		}
-
+		int length = travelerId.length();
+		if (length != 4 && length != 5) {
+			lblError.setText("Subscriber number must be exactly 4 digits, ID must be exactly 5 digits.");
+			return;
+		}
 		client.logic.TravelerLogic logic = new client.logic.TravelerLogic();
 		String loginResult = logic.loginTraveler(travelerId);
 

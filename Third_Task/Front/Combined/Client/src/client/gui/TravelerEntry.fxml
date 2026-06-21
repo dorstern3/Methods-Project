@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.TravelerEntryController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.TravelerEntryController">
    <children>
       <Label layoutX="218.0" layoutY="55.0" text="Traveler Menu" textAlignment="CENTER">
          <font>
@@ -44,7 +44,7 @@
          </font>
       </Label>
       <TextField fx:id="txtTravelerId" layoutX="206.0" layoutY="187.0" prefHeight="25.0" prefWidth="188.0" />
-      <Label fx:id="lblError" layoutX="242.0" layoutY="94.0" textFill="RED" />
+      <Label fx:id="lblError" layoutX="25.0" layoutY="94.0" textAlignment="CENTER" textFill="RED" />
       <Label layoutX="274.0" layoutY="287.0" text="OR:" textAlignment="CENTER">
          <font>
             <Font name="System Bold" size="14.0" />

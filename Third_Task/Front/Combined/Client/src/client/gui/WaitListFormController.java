@@ -12,8 +12,9 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 
 /**
- * Controller for the Waiting List screen. Handles user actions for checking
- * alternative dates or joining the waiting list.
+ * Controller for the Waiting List screen. Handles user actions when a park is
+ * fully booked, allowing them to either check alternative available dates or
+ * join the waiting list for the requested date.
  */
 public class WaitListFormController {
 
@@ -27,8 +28,10 @@ public class WaitListFormController {
 	private Button btnWaitList;
 
 	/**
-	 * Navigates to the Alternative Dates screen to offer the user other options.
-	 * * @param event The action event triggered by the button click.
+	 * Navigates the user to the Alternative Dates screen to explore other available
+	 * time slots. Passes the pending order details to the next controller before
+	 * switching screens. * @param event The action event triggered by clicking the
+	 * "Alternative Dates" button.
 	 */
 	@FXML
 	void clickAltDate(ActionEvent event) {
@@ -38,8 +41,9 @@ public class WaitListFormController {
 	}
 
 	/**
-	 * Cancels the current process and returns to the New Order form. * @param event
-	 * The action event triggered by the button click.
+	 * Cancels the current booking process and returns the user to the New Order
+	 * form. * @param event The action event triggered by clicking the "Cancel"
+	 * button.
 	 */
 	@FXML
 	void clickCancel(ActionEvent event) {
@@ -47,8 +51,10 @@ public class WaitListFormController {
 	}
 
 	/**
-	 * Registers the pending order into the waiting list via the server. * @param
-	 * event The action event triggered by the button click.
+	 * Registers the currently pending order into the park's waiting list via the
+	 * server. Displays a success message upon completion and redirects to the main
+	 * menu. * @param event The action event triggered by clicking the "Enter
+	 * Waiting List" button.
 	 */
 	@FXML
 	void clickWaitList(ActionEvent event) {

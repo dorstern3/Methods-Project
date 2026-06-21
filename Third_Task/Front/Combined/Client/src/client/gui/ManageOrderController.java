@@ -13,8 +13,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
 /**
- * Controller for the Manage Order screen. Handles searching, confirming, and
- * canceling existing visitor orders.
+ * Controller for the Manage Order screen. Handles the operations of searching,
+ * confirming, and canceling existing visitor orders.
  */
 public class ManageOrderController {
 
@@ -45,8 +45,8 @@ public class ManageOrderController {
 	public static String currentTravelerId = "";
 
 	/**
-	 * Initializes the controller. Sets the initial state of action buttons to
-	 * disabled.
+	 * Initializes the controller. Sets the initial state of the action buttons
+	 * (Confirm/Cancel) to disabled and instantiates the OrderLogic layer.
 	 */
 	@FXML
 	public void initialize() {
@@ -56,9 +56,10 @@ public class ManageOrderController {
 	}
 
 	/**
-	 * Handles the search action for an order number. Fetches order details and
-	 * updates the UI accordingly. * @param event The action event triggered by the
-	 * search button.
+	 * Handles the search action for a specific order number. Fetches the order
+	 * details from the database and updates the UI accordingly. Enables or disables
+	 * the action buttons based on the current order status. * @param event The
+	 * action event triggered by clicking the Search button.
 	 */
 	@FXML
 	void clickSearchOrder(ActionEvent event) {
@@ -84,13 +85,14 @@ public class ManageOrderController {
 
 			if (status.equals("Pending confirmation") || status.equals("Waiting list unconfirmed")) {
 				btnConfirm.setDisable(false);
-				btnCancel.setDisable(false);
-			} else if (status.equals("Confirmed")) {
-				btnConfirm.setDisable(true);
-				btnCancel.setDisable(false);
 			} else {
 				btnConfirm.setDisable(true);
+			}
+
+			if (status.equals("Canceled") || status.equals("Entered")) {
 				btnCancel.setDisable(true);
+			} else {
+				btnCancel.setDisable(false);
 			}
 		} else {
 			showAlert("Not Found / Unauthorized", "Order Not Found or Access Denied",
@@ -99,9 +101,13 @@ public class ManageOrderController {
 		}
 	}
 
+
 	/**
-	 * Handles the order confirmation process. * @param event The action event
-	 * triggered by the confirm button.
+	 * Handles the order confirmation process. Updates the status of the current
+	 * order from 'Pending confirmation' to 'Confirmed', or from 'Waiting list
+	 * unconfirmed' to 'Booked'.
+	 * 
+	 * @param event The action event triggered by clicking the Confirm button.
 	 */
 	@FXML
 	void clickConfirmOrder(ActionEvent event) {
@@ -112,25 +118,40 @@ public class ManageOrderController {
 		if (currentStatus.equals("Pending confirmation")) {
 			statusToSend = "Confirmed";
 		} else if (currentStatus.equals("Waiting list unconfirmed")) {
-			statusToSend = "Pending confirmation";
+			statusToSend = "Booked";
 		}
 
 		Object[] result = orderLogic.updateOrderStatus(orderNumber, statusToSend);
 		boolean isUpdated = (boolean) result[0];
 
 		if (isUpdated) {
-			showAlert("Success", "Order Updated", "Your order has been successfully updated!");
 			lblStatus.setText(statusToSend);
 			btnConfirm.setDisable(true);
+
+			if (currentStatus.equals("Waiting list unconfirmed")) {
+
+				Alert simAlert = new Alert(Alert.AlertType.INFORMATION);
+				simAlert.setTitle("Simulation");
+				simAlert.setHeaderText("Simulation: SMS & Email Sent");
+				simAlert.setContentText("To Email: " + currentOrder.getEmail() + "\n" + "To Phone: "
+						+ currentOrder.getPhoneNumber() + "\n\n" + "Your waitlist order has been successfully Booked!\n"
+						+ "Order Number: " + orderNumber + "\n" + "Your Entrance QR Code is: QR-" + orderNumber);
+				simAlert.showAndWait();
+			} else {
+				showAlert(Alert.AlertType.INFORMATION, "Success", "Order Updated",
+						"Your order has been successfully confirmed!");
+			}
+
 		} else {
 			showAlert("Error", "Update Failed", "Could not update the order. Please try again.");
 		}
 	}
 
 	/**
-	 * Handles the order cancellation process. Notifies the traveler and checks the
-	 * waiting list for subsequent updates. * @param event The action event
-	 * triggered by the cancel button.
+	 * Handles the order cancellation process. Updates the status of the current
+	 * order to 'Canceled'. If a spot becomes available, it triggers a simulated
+	 * notification (SMS/Email) to the next traveler on the waiting list. * @param
+	 * event The action event triggered by clicking the Cancel button.
 	 */
 	@FXML
 	void clickCancelOrder(ActionEvent event) {
@@ -164,9 +185,9 @@ public class ManageOrderController {
 	}
 
 	/**
-	 * Handles the back navigation action. Logs out the current traveler before
-	 * returning to the main menu. * @param event The action event triggered by the
-	 * back button.
+	 * Handles the back navigation action. Logs out the current traveler from the
+	 * system and returns to the Traveler main menu. * @param event The action event
+	 * triggered by clicking the Back button.
 	 */
 	@FXML
 	void clickBack(ActionEvent event) {
@@ -179,6 +200,13 @@ public class ManageOrderController {
 		}
 	}
 
+	/**
+	 * Displays a standard error alert dialog to the user. * @param title The title
+	 * of the alert window.
+	 * 
+	 * @param header  The header text of the alert.
+	 * @param content The main message content to display.
+	 */
 	private void showAlert(String title, String header, String content) {
 		Alert alert = new Alert(Alert.AlertType.ERROR);
 		alert.setTitle(title);
@@ -187,6 +215,27 @@ public class ManageOrderController {
 		alert.showAndWait();
 	}
 
+	/**
+	 * Displays a customizable alert dialog to the user based on the specified alert
+	 * type. * @param alertType The type of the alert (e.g., INFORMATION, ERROR,
+	 * WARNING).
+	 * 
+	 * @param title   The title of the alert window.
+	 * @param header  The header text of the alert.
+	 * @param content The main message content to display.
+	 */
+	private void showAlert(Alert.AlertType alertType, String title, String header, String content) {
+		Alert alert = new Alert(alertType);
+		alert.setTitle(title);
+		alert.setHeaderText(header);
+		alert.setContentText(content);
+		alert.showAndWait();
+	}
+
+	/**
+	 * Clears all data from the display labels and disables the action buttons. Used
+	 * when an order is not found or when resetting the view.
+	 */
 	private void clearLabels() {
 		lblParkName.setText("");
 		lblDate.setText("");

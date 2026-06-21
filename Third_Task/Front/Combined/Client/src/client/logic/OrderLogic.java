@@ -11,24 +11,33 @@ import common.Order;
 
 /**
  * Handles the business logic for order operations in the client-side of the
- * GoNature system. Acts as the Control layer in the ECB architecture,
- * communicating with the server.
+ * GoNature system. Acts as the Control layer in the ECB architecture, managing
+ * communication between the user interface and the server regarding order
+ * management.
  */
 public class OrderLogic {
+
 	/**
-	 * Holds details of an order that is currently pending further action (e.g.,
-	 * joining a waiting list).
+	 * Holds details of an order that is currently pending further action. This is
+	 * typically used when an order cannot be immediately confirmed and requires
+	 * joining a waiting list or selecting alternative dates.
 	 */
 	public static Order pendingOrderDetails;
 
+	/**
+	 * Default constructor for the OrderLogic class.
+	 */
 	public OrderLogic() {
 	}
 
 	/**
-	 * Checks if a park has available capacity for a given order by sending a
-	 * request to the server. * @param newOrder The order details to check.
+	 * Checks if a specific park has available capacity for a newly requested order.
+	 * Communicates with the server to perform the capacity validation. * @param
+	 * newOrder The order details containing park name, date, time, and number of
+	 * visitors to check.
 	 * 
-	 * @return true if capacity is available, false otherwise.
+	 * @return true if there is sufficient capacity available for the order, false
+	 *         otherwise.
 	 */
 	public boolean checkAvailability(Order newOrder) {
 		Message msg = new Message(MessageType.CHECK_AVAILABILITY, newOrder);
@@ -40,25 +49,29 @@ public class OrderLogic {
 	}
 
 	/**
-	 * Saves a new order to the database via the server. * @param newOrder The order
-	 * to save.
+	 * Submits a new confirmed order to be saved in the database via the server.
+	 * * @param newOrder The order object containing all required details to be
+	 * saved.
 	 * 
-	 * @return The generated QR code string if successful, or null on failure.
+	 * @return A generated String representing the QR code for the order if the
+	 *         operation is successful, or null if the saving process fails.
 	 */
 	public String saveNewOrder(Order newOrder) {
 		Message saveMsg = new Message(MessageType.SAVE_NEW_ORDER, newOrder);
 		Message saveReply = (Message) ClientUI.clientChat.accept(saveMsg);
 		if (saveReply != null && saveReply.getType() == MessageType.SAVE_SUCCESS) {
-			return (String) saveReply.getData(); // מחזיר את ה-QR
+			return (String) saveReply.getData();
 		}
 		return null;
 	}
 
 	/**
-	 * Adds an order to the waiting list via the server. * @param order The order to
-	 * add to the waiting list.
+	 * Registers a pending order into the park's waiting list via the server. This
+	 * method is called when the park is full at the requested time. * @param order
+	 * The pending order object to be added to the waiting list.
 	 * 
-	 * @return true if successfully added, false otherwise.
+	 * @return true if the order was successfully added to the waiting list, false
+	 *         otherwise.
 	 */
 	public boolean enterWaitingList(Order order) {
 		Message msg = new Message(MessageType.ENTER_WAITING_LIST, order);
@@ -70,11 +83,15 @@ public class OrderLogic {
 	}
 
 	/**
-	 * Fetches details of a specific order from the server. * @param orderNumber The
-	 * unique identifier of the order.
+	 * Retrieves the details of a specific order from the server database, ensuring
+	 * that the traveler requesting the details is authorized to view them. * @param
+	 * orderNumber The unique identifier number of the requested order.
 	 * 
-	 * @param travelerId The ID of the traveler requesting the details.
-	 * @return The Order object if found and authorized, null otherwise.
+	 * @param travelerId The ID of the traveler attempting to fetch the order
+	 *                   details.
+	 * @return The requested Order object if it is found and the traveler is
+	 *         authorized, or null if the order does not exist or authorization
+	 *         fails.
 	 */
 	public Order fetchOrderDetails(int orderNumber, String travelerId) {
 		ArrayList<Object> searchParams = new ArrayList<>();
@@ -85,18 +102,22 @@ public class OrderLogic {
 		Message reply = (Message) ClientUI.clientChat.accept(msg);
 
 		if (reply != null && reply.getType() == MessageType.FETCH_ORDER_RESULT) {
-			return (Order) reply.getData(); // השרת יחזיר אובייקט Order
+			return (Order) reply.getData();
 		}
 		return null;
 	}
 
 	/**
-	 * Updates the status of an existing order via the server. * @param orderNumber
-	 * The identifier of the order.
+	 * Updates the status of an existing order (e.g., from 'Booked' to 'Canceled' or
+	 * 'Confirmed'). Communicates the change to the server to persist the update in
+	 * the database. * @param orderNumber The unique identifier of the order to be
+	 * updated.
 	 * 
-	 * @param newStatus The new status to be applied.
-	 * @return An object array where index 0 is a boolean (success status) and index
-	 *         1 is an optional notification message.
+	 * @param newStatus The new status string to be applied to the order.
+	 * @return An Object array where: - Index 0 is a boolean indicating the success
+	 *         of the update operation. - Index 1 is a String containing an optional
+	 *         notification message (e.g., if a waiting list slot was triggered due
+	 *         to cancellation).
 	 */
 	public Object[] updateOrderStatus(int orderNumber, String newStatus) {
 		ArrayList<Object> updateData = new ArrayList<>();
@@ -117,10 +138,11 @@ public class OrderLogic {
 	}
 
 	/**
-	 * Performs logout for the traveler by notifying the server. * @param travelerId
-	 * The ID of the traveler to log out.
+	 * Performs a logout operation for the current traveler by notifying the server.
+	 * * @param travelerId The ID of the traveler attempting to log out.
 	 * 
-	 * @return true if the logout request was successful.
+	 * @return true if the logout request was processed successfully by the server,
+	 *         false otherwise.
 	 */
 	public boolean logoutTraveler(String travelerId) {
 		Message msg = new Message(MessageType.TRAVELER_LOGOUT, travelerId);
@@ -129,28 +151,30 @@ public class OrderLogic {
 	}
 
 	/**
-	 * Sends an order update request to the server. * @param order The order to
-	 * update.
+	 * Sends an order update request directly to the server. * @param order The
+	 * updated Order object containing the changes.
 	 * 
-	 * @return A server response message.
+	 * @return A String representing the server's response or status regarding the
+	 *         update.
 	 */
 	public String sendOrderUpdate(Order order) {
-		Object response = ClientUI.clientChat.accept(order); // Send the order to update to the server
+		Object response = ClientUI.clientChat.accept(order);
 		return (String) response;
 	}
 
 	/**
-	 * Requests a list of all orders from the server. * @return An ArrayList of all
-	 * available orders.
+	 * Requests a complete list of all available orders from the server. * @return
+	 * An ArrayList containing all Order objects fetched from the server.
 	 */
 	@SuppressWarnings("unchecked")
 	public ArrayList<Order> getAllOrders() {
-		Object response = ClientUI.clientChat.accept("101"); // Ask the server for all the order of subscriber 123
+		Object response = ClientUI.clientChat.accept("101");
 		return (ArrayList<Order>) response;
 	}
 
 	/**
-	 * Disconnects the client from the server.
+	 * Disconnects the client from the server gracefully, closing the active network
+	 * connection.
 	 */
 	public void disconnect() {
 		try {
@@ -159,5 +183,4 @@ public class OrderLogic {
 			e.printStackTrace();
 		}
 	}
-
 }

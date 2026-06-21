@@ -4,10 +4,11 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="400.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.ExitController">
+<AnchorPane prefHeight="400.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.ExitParkEmployeeController">
    <children>
       
       <Label layoutX="40.0" layoutY="30.0" text="GoNature - Park Exit Registration" textFill="#2c3e50">
@@ -18,12 +19,12 @@
 
       <VBox layoutX="40.0" layoutY="90.0" spacing="15.0">
          <children>
-            <Label text="Enter Order ID or Visitor ID to register exit:">
+            <Label text="Enter Order ID or QR Code to register exit:">
                <font>
                   <Font size="14.0" />
                </font>
             </Label>
-            <TextField fx:id="visitorIdInput" promptText="e.g., 12345" prefHeight="35.0" prefWidth="300.0" />
+            <TextField fx:id="visitorIdInput" prefHeight="35.0" prefWidth="300.0" promptText="e.g., 12345" />
             <Button mnemonicParsing="false" onAction="#onRegisterExitClicked" prefHeight="35.0" prefWidth="150.0" style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold;" text="Register Exit" />
          </children>
       </VBox>
@@ -35,6 +36,11 @@
       </Label>
 
       <Button layoutX="40.0" layoutY="330.0" mnemonicParsing="false" onAction="#onBackButtonClicked" prefHeight="30.0" prefWidth="150.0" text="Back to Dashboard" />
+      <HBox layoutX="40.0" layoutY="62.0" prefHeight="32.0" prefWidth="454.0" spacing="10.0">
+         <children>
+            <Button mnemonicParsing="false" onAction="#onRefreshCapacityClicked" text="🔄 Refresh" />
+            <Label fx:id="lblLiveCapacity" prefHeight="18.0" prefWidth="370.0" text="Loading..." />
+         </children></HBox>
       
    </children>
 </AnchorPane>

@@ -19,7 +19,7 @@ public class ClientController extends AbstractClient{
 		super(host, port);
 	}
 
-	
+	 
 	@Override
 	// Send the response back to logic level
 	protected synchronized void handleMessageFromServer(Object msg) {
@@ -43,6 +43,8 @@ public class ClientController extends AbstractClient{
             }
 		} catch(IOException e){
 			System.out.println("Could not send a message to server");
+			isDataReady = true;
+			notify();
 		}
 		return lastResponse;
 	}

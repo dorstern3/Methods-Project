@@ -1,34 +1,32 @@
 package client.gui;
 
+import client.logic.ScreenSwitch;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-//
+import javafx.scene.control.Button;
+
 public class DashboardController {
+	
+	private static final String BASE_URL = "/client/gui/";
+	
 	@FXML
-	void clickUpdateOrder(ActionEvent event) {
-		ScreenSwitch.switchScreen("/client/gui/Order.fxml", "Update Order Details");
-	}
+    public void handleNavigation(ActionEvent event) {
+        Button clickedButton = (Button) event.getSource();
+        String title = clickedButton.getText();
+        
+        String buttonId = clickedButton.getId(); 
 
+        if (buttonId == null || buttonId.isEmpty()) {
+            System.out.println("Error - button id most be defined");
+            return;
+        }
+        String fullFxmlPath = BASE_URL + buttonId + ".fxml";
+        ScreenSwitch.switchScreen(fullFxmlPath, title);
+    }
+	
 	@FXML
-	public void openOrderScreen(ActionEvent event) {
-		ScreenSwitch.switchScreen("/client/gui/NewOrderForm.fxml", "Book a Visit");
-		 //ScreenSwitch.switchScreen("/client/gui/WaitListForm.fxml", "Waiting List");
-		 //ScreenSwitch.switchScreen("/client/gui/AlternativeDatesForm.fxml",
-		 //"Alternative Dates");
+	public void logoutbtn() {
+		client.logic.CurUser.logout();
 	}
-
-	@FXML
-	public void openReportsScreen(ActionEvent event) {
-		ScreenSwitch.switchScreen("/client/gui/Reports.fxml", "Reports Screen");
-	}
-
-	@FXML
-	public void openEntranceScreen(ActionEvent event) {
-		ScreenSwitch.switchScreen("/client/gui/EntranceForm.fxml", "Entrance Control");
-	}
-
-	@FXML
-	public void openExitScreen(ActionEvent event) {
-		ScreenSwitch.switchScreen("/client/gui/ExitForm.fxml", "Park Exit Registration");
-	}
+    
 }

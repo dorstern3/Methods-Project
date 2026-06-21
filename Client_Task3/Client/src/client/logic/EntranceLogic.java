@@ -1,94 +1,109 @@
 package client.logic;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import client.ClientUI;
+import common.Message;
+import common.MessageType;
+
+/**
+ * Logic class handling entrance operations, pricing, and validations.
+ * Uses the Strategy Design Pattern to calculate prices dynamically.
+ */
 public class EntranceLogic {
     
-    // Dynamic variable to hold the base price fetched from the server
     private double fullPrice;
+    
+    // Map to hold the different pricing strategies
+    private Map<String, PricingStrategy> pricingStrategies;
 
     public EntranceLogic() {
-        // Fetch the base price when the logic class is instantiated
         this.fullPrice = fetchFullPriceFromServer();
+        
+        // Initialize the Strategy Pattern mapping
+        pricingStrategies = new HashMap<>();
+        
+        // Map each UI visitor type string to its corresponding strategy class
+        pricingStrategies.put("Regular/Family", new RegularPricingStrategy());
+        pricingStrategies.put("Group", new GroupPricingStrategy());
+        pricingStrategies.put("Subscriber", new SubscriberPricingStrategy());
     }
 
     /**
-     * Simulates fetching the base full price from the server/DB.
+     * Fetches the base full price for the park from the server.
+     * @return The full price as a double.
      */
     private double fetchFullPriceFromServer() {
-        /*
-         * TODO: FUTURE SERVER INTEGRATION
-         * 1. Create message: Message msg = new Message(Action.GET_FULL_PRICE);
-         * 2. Send to server: ClientUI.clientChat.accept(msg);
-         * 3. Wait for response...
-         * 4. Return the double value received.
-         */
-        System.out.println("EntranceLogic: Fetched Full Price from server (Simulated).");
-        return 50.0; // Simulated default price
+        System.out.println("EntranceLogic: Requesting Full Price from server.");
+        
+        String parkName = CurUser.getParkName(); 
+        
+        try {
+            Message request = new Message(MessageType.GET_FULL_PRICE, parkName);
+            Message response = (Message) ClientUI.clientChat.accept(request);
+            
+            if (response != null && response.getType() == MessageType.GET_FULL_PRICE_RESPONSE) {
+                return (double) response.getData();
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching full price from server.");
+            e.printStackTrace();
+        }
+        
+        return 50.0; // Fallback default price if server fails
     }
 
     /**
-     * Simulates checking for active promotions approved by the department manager.
+     * Checks the server for any active promotions (additional discount) for the park.
+     * @param parkId The name of the park.
+     * @return The discount as a decimal (e.g., 0.1 for 10%), or 0.0 if none exists.
      */
     private double checkActivePromotions(String parkId) {
-         /*
-          * TODO: FUTURE SERVER INTEGRATION
-          * Query the DB for active promotions for this park where status = 'Active'.
-          */
-         return 0.0; // Set to 0.0 for now
+        System.out.println("EntranceLogic: Checking active promotions for " + parkId);
+        
+        try {
+            // Package the request with the park name
+            Message request = new Message(MessageType.CHECK_PROMOTIONS, parkId);
+            
+            // Send to server and wait for the response
+            Message response = (Message) ClientUI.clientChat.accept(request);
+            
+            if (response != null && response.getType() == MessageType.CHECK_PROMOTIONS_RESPONSE) {
+                return (double) response.getData();
+            }
+        } catch (Exception e) {
+            System.err.println("Error communicating with server during promotions check.");
+            e.printStackTrace();
+        }
+        
+        return 0.0; // Fallback to 0 discount if server fails
     }
-
+    
+    
     /**
-     * Calculates the final price based on visitor type, amount, and booking status.
-     * @param visitorType  The visitor type: "Regular", "Subscriber", or "Group"
+     * Calculates the final price using the Strategy Pattern.
+     * @param visitorType  The visitor type from the UI
      * @param amount       The total number of visitors
-     * @param isPreBooked  True if the visit was pre-booked, false for casual visitors
+     * @param isPreBooked  True if pre-booked, false if casual
      * @return The final calculated price
      */
     public double calculatePrice(String visitorType, int amount, boolean isPreBooked) {
-        double finalPrice = 0;
-        int payingVisitors = amount;
-
-        switch (visitorType) {
-            case "Regular":
-                if (isPreBooked) {
-                    // Category 1: Pre-booked private visit - 15% discount
-                    finalPrice = payingVisitors * fullPrice * 0.85;
-                } else {
-                    // Category 2: Casual private visit - Full price
-                    finalPrice = payingVisitors * fullPrice;
-                }
-                break;
-
-            case "Group":
-                if (isPreBooked) {
-                    // Category 3: Pre-booked group - 25% discount, guide enters for free
-                    payingVisitors = amount - 1; // Guide is free
-                    if (payingVisitors < 0) payingVisitors = 0;
-                    
-                    finalPrice = payingVisitors * fullPrice * 0.75;
-                } else {
-                    // Category 4: Casual group - 10% discount, guide pays
-                    finalPrice = payingVisitors * fullPrice * 0.90;
-                }
-                break;
-
-            case "Subscriber":
-                // Category 5: Subscribers - calculate based on booking status, then apply 10% discount
-                double baseSubscriberPrice = (isPreBooked) ? 
-                                             (payingVisitors * fullPrice * 0.85) : // Like pre-booked private
-                                             (payingVisitors * fullPrice);         // Like casual private
-                
-                // Additional 10% subscriber discount
-                finalPrice = baseSubscriberPrice * 0.90;
-                break;
-                
-            default:
-                finalPrice = payingVisitors * fullPrice; // Default fallback
-                break;
+        
+        // 1. Retrieve the appropriate strategy (No Switch-Case needed!)
+        PricingStrategy strategy = pricingStrategies.get(visitorType);
+        
+        // Fallback: If type is not found, default to Regular
+        if (strategy == null) {
+            strategy = new RegularPricingStrategy();
         }
 
-        // Check for any active global promotions approved by the department manager
-        double currentActivePromotionDiscount = checkActivePromotions("PARK_1");
-        
+        // 2. Execute the calculation of the specific strategy
+        double finalPrice = strategy.calculate(amount, fullPrice, isPreBooked);
+
+        // 3. Apply any global promotions relevant to the whole park
+        double currentActivePromotionDiscount = checkActivePromotions(CurUser.getParkName());
         if (currentActivePromotionDiscount > 0) {
             finalPrice = finalPrice - (finalPrice * currentActivePromotionDiscount);
         }
@@ -96,27 +111,151 @@ public class EntranceLogic {
         return finalPrice;
     }
 
-    // --- Mock methods for previous functionalities ---
+    // --- System Validations & Operations ---
     
-    public boolean validateOrder(String inputId) {
-        if ("12345".equals(inputId)) {
-            System.out.println("EntranceLogic: Pre-booked Order " + inputId + " verified.");
-            return true;
+    public Object validateOrder(String orderId) {
+        System.out.println("EntranceLogic: Requesting Order validation for ID: " + orderId);
+        
+        try {
+            Message request = new Message(MessageType.VALIDATE_ORDER, orderId);
+            Message response = (Message) ClientUI.clientChat.accept(request);
+            
+            if (response != null && response.getType() == MessageType.VALIDATE_ORDER_RESPONSE) {
+                Object data = response.getData();
+                
+                // If the server sent a String, it's an error code
+                if (data instanceof String) {
+                    return data;
+                } 
+                // If the server sent an ArrayList, validation was successful
+                else if (data instanceof ArrayList) {
+                    ArrayList<Object> listData = (ArrayList<Object>) data;
+                    if (!listData.isEmpty()) {
+                        return new Object[] { listData.get(0), listData.get(1) }; 
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error communicating with server during Order Validation.");
+            e.printStackTrace();
         }
-        System.out.println("EntranceLogic: Order " + inputId + " not found.");
+        
+        return "SYSTEM_ERROR";
+    }
+    
+    /**
+     * Checks if the park has enough capacity for casual visitors.
+     * @param amount The number of casual visitors wishing to enter.
+     * @param parkName The name of the park to check.
+     * @return true if there is space, false if the park is at maximum capacity.
+     */
+    public boolean checkCasualAvailability(int amount, String parkName) { // <--- Added parkName
+        System.out.println("EntranceLogic: Checking casual availability for " + amount + " visitors in " + parkName);
+        
+        try {
+            // Pack both amount and park name into a list to send to the server
+            java.util.ArrayList<Object> dataList = new java.util.ArrayList<>();
+            dataList.add(amount);
+            dataList.add(parkName);
+            
+            Message request = new Message(MessageType.CHECK_CAPACITY, dataList);
+            Message response = (Message) ClientUI.clientChat.accept(request);
+            
+            if (response != null && response.getType() == MessageType.CHECK_CAPACITY_RESPONSE) {
+                return (boolean) response.getData();
+            }
+        } catch (Exception e) {
+            System.err.println("Error communicating with server during capacity check.");
+            e.printStackTrace();
+        }
+        
         return false;
     }
-
-    public boolean checkCasualAvailability(int amount) {
-        System.out.println("EntranceLogic: Checking space for " + amount + " casual visitors.");
-        if (amount > 50) {
-            System.out.println("EntranceLogic: Not enough space.");
-            return false;
+    /**
+     * Confirms the entry transaction payment parameters and communicates with the database server context.
+     * Packages structural validation parameters dynamically to coordinate cross-network operations.
+     *
+     * @param visitorsAmount The total headcount size of the arriving group.
+     * @param orderId        The unique tracking order key string (passed as null if casual visitor).
+     * @param parkName       The explicit park destination name context string.
+     * @param visitorType    The structural type category of the traveler (e.g., Regular, Subscriber, Guide).
+     * @param visitorId      The explicit personal Identification or Subscriber Number index of the leader.
+     * @return The active or database-allocated Order ID string mapping, or null if execution collapses.
+     */
+    public String confirmPayment(int visitorsAmount, String orderId, String parkName, String visitorType, String visitorId) {
+        System.out.println("EntranceLogic: Confirming payment for " + visitorsAmount + " visitors. ID: " + visitorId);
+        
+        try {
+            // Package all distinct transaction parameters sequentially inside a serialized structural collection
+            java.util.ArrayList<Object> dataList = new java.util.ArrayList<>();
+            dataList.add(visitorsAmount); // Index 0: Occupancy volume mapping
+            dataList.add(orderId);        // Index 1: Booking reference tracking string
+            dataList.add(parkName);       // Index 2: Target park context string
+            dataList.add(visitorType);    // Index 3: Categorized visitor type string
+            dataList.add(visitorId);      // Index 4: Identification string (Newly added criteria)
+            
+            Message request = new Message(MessageType.CONFIRM_PAYMENT, dataList);
+            Message response = (Message) ClientUI.clientChat.accept(request);
+            
+            if (response != null && response.getType() == MessageType.CONFIRM_PAYMENT_RESPONSE) {
+                // Extract and cast the response object token as a concrete database tracking reference index
+                return (String) response.getData();
+            }
+        } catch (Exception e) {
+            System.err.println("EntranceLogic: Critical exception intercepted during payment execution context communication.");
+            e.printStackTrace();
         }
-        return true;
+        return null; // Return null to explicitly declare network pipeline execution drops
     }
-
-    public void confirmPayment() {
-        System.out.println("EntranceLogic: Payment processed and entry registered in system.");
+    
+    /**
+     * Verifies if the provided ID belongs to a certified guide.
+     * @param guideId The ID to verify.
+     * @return true if valid, false otherwise.
+     */
+    /**
+     * Verifies if the provided ID belongs to a certified guide.
+     * @param guideId The ID to verify.
+     * @return true if valid, false otherwise.
+     */
+    public boolean verifyGuide(String guideId) {
+        System.out.println("EntranceLogic: Requesting Guide verification for ID: " + guideId);
+        
+        try {
+            Message request = new Message(MessageType.VERIFY_GUIDE, guideId);
+            Message response = (Message) ClientUI.clientChat.accept(request);
+            
+            if (response != null && response.getType() == MessageType.VERIFY_GUIDE_RESPONSE) {
+                return (boolean) response.getData();
+            }
+        } catch (Exception e) {
+            System.err.println("Error communicating with server during Guide Verification.");
+            e.printStackTrace();
+        }
+        
+        return false; 
+    }
+    
+    /**
+     * Verifies if the provided ID belongs to a valid subscriber.
+     * @param subscriberId The ID to verify.
+     * @return true if valid, false otherwise.
+     */
+    public boolean verifySubscriber(String subscriberId) {
+        System.out.println("EntranceLogic: Requesting Subscriber verification for ID: " + subscriberId);
+        
+        try {
+            Message request = new Message(MessageType.VERIFY_SUBSCRIBER, subscriberId);
+            Message response = (Message) ClientUI.clientChat.accept(request);
+            
+            if (response != null && response.getType() == MessageType.VERIFY_SUBSCRIBER_RESPONSE) {
+                return (boolean) response.getData();
+            }
+        } catch (Exception e) {
+            System.err.println("Error communicating with server during Subscriber Verification.");
+            e.printStackTrace();
+        }
+        
+        return false; 
     }
 }

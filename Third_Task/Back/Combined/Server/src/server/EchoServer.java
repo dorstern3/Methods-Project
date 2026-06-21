@@ -19,7 +19,7 @@ import common.OccupancyReportRow;
 import common.Order;
 import common.ParameterRequest;
 import common.TotalVisitorsReportRow;
-
+import db.DBSimulation;
 /**
  * Main server implementation extending AbstractServer. Handles client
  * communication and routes requests to database services.
@@ -259,11 +259,9 @@ public class EchoServer extends AbstractServer {
 					int orderNum = (int) searchParams.get(0);
 					String travelerIdStr = (String) searchParams.get(1);
 
-					// הלוגיקה שלך! נקבל חזרה אובייקט Order מוכן
 					Order validatedOrder = db.DBselect.fetchOrderWithValidation(orderNum, travelerIdStr);
 
 					try {
-						// שולחים את אובייקט ה-Order חזרה למסך
 						client.sendToClient(new Message(MessageType.FETCH_ORDER_RESULT, validatedOrder));
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -287,6 +285,37 @@ public class EchoServer extends AbstractServer {
 				}
 				case GET_PARK_OCCUPANCY: {
 					handleGetParkOccupancy((Message) msg, client);
+					break;
+				}
+				case SIMULATE_24H_REMINDER: {
+					ArrayList<Order> orders = db.DBSimulation.getPendingRemindersForTomorrow();
+
+					try {
+						client.sendToClient(new Message(MessageType.SIMULATE_24H_REMINDER_RESPONSE, orders));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					break;
+				}
+				case SIMULATE_WAITLIST_TIMEOUT: {
+					// קוראים למחלקה הנכונה ולפונקציה הנכונה!
+					ArrayList<String> messages = db.DBSimulation.handleWaitlistTimeouts();
+					try {
+						client.sendToClient(new Message(MessageType.SIMULATE_WAITLIST_RESPONSE, messages));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					break;
+				}
+
+				case SIMULATE_CONFIRMATION_TIMEOUT: {
+					// קוראים למחלקה הנכונה ולפונקציה הנכונה!
+					ArrayList<String> messages = db.DBSimulation.handleConfirmationTimeouts();
+					try {
+						client.sendToClient(new Message(MessageType.SIMULATE_CONFIRMATION_RESPONSE, messages));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 					break;
 				}
 				default:

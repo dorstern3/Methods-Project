@@ -1,8 +1,14 @@
 package client.gui;
 
+import client.logic.CurUser;
+import client.logic.LoginLogic;
+import client.logic.ScreenSwitch;
+import common.Message;
+import common.MessageType;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
@@ -11,7 +17,9 @@ import javafx.scene.control.TextField;
  * Handles employee authentication and navigation back to the role selection screen.
  */
 public class EmployeeLoginController {
-
+	
+	LoginLogic loginLogic;
+	
     @FXML
     private Button btnBack;
 
@@ -23,7 +31,9 @@ public class EmployeeLoginController {
 
     @FXML
     private TextField txtUsername;
-
+    @FXML private Label errorMessage;
+    
+    public void initialize() {loginLogic = new LoginLogic();}
     /**
      * Handles the Back button click.
      * Navigates the user back to the Role Selection screen.
@@ -45,6 +55,36 @@ public class EmployeeLoginController {
     void clickLogin(ActionEvent event) {
         String username = txtUsername.getText();
         String password = txtPassword.getText();
-        System.out.println("Login attempt - Username: " + username + " | Password: " + password);
+        Message response = loginLogic.authenticateUser(username, password);
+        if(response.getType() == MessageType.LOGIN_SUCCESS) {
+        	System.out.println("Login attempt - Username: " + username + " | Password: " + password);
+        	switch(CurUser.getRole()) {
+	        	case "Park_manager":{
+	        		ScreenSwitch.switchScreen("/client/gui/ManagersScreen.fxml","Manager");
+	        		break;
+	        	}
+	        	case "Dept_manager":{
+	        		ScreenSwitch.switchScreen("/client/gui/ManagersScreen.fxml","Manager");
+	        		break;
+	        	}
+	        	case "Entrance_emp":{
+	        		ScreenSwitch.switchScreen("/client/gui/EmployeeDashboard.fxml","Employee Dashboard");
+	        		break;
+	        	}
+	        	case "Customer_service":{
+	        		ScreenSwitch.switchScreen("/client/gui/ServiceRepScreen.fxml","Service");
+	        		break;
+	        	}
+	        	default:
+	        		//ScreenSwitch.switchScreen("/client/gui/Dashboard.fxml","Dashboard");
+        	}
+        }
+        else {
+        	errorMessage.setText((String)response.getData());
+        	return;
+        }
+        //System.out.println("Login attempt - Username: " + username + " | Password: " + password);
+        //ScreenSwitch.switchScreen("/client/gui/Dashboard.fxml" , "Dashboard");
     }
+    
 }

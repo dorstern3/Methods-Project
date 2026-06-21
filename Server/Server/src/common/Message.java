@@ -3,48 +3,45 @@ package common;
 import java.io.Serializable;
 
 /**
- * A generic message object used for communication between the client and the
- * server.
+ * A generic message class used for communication between the Client and the
+ * Server. Implements Serializable to allow transmission over the network via
+ * OCSF.
  */
 public class Message implements Serializable {
 
+	/**
+	 * Serial version UID for maintaining class compatibility during serialization.
+	 */
 	private static final long serialVersionUID = 1L;
 
-	private MessageType messageType;
-	private Object messageData;
+	private MessageType type;
+	private Object data;
 
 	/**
-	 * Constructor for a message with data. * @param messageType The type of the
-	 * message.
+	 * Constructs a new Message instance. * @param type The action type defined in
+	 * the MessageType enum.
 	 * 
-	 * @param messageData The data attached to the message.
+	 * @param data The payload data (e.g., Order, String, ArrayList), or null if
+	 *             none.
 	 */
-	public Message(MessageType messageType, Object messageData) {
-		this.messageType = messageType;
-		this.messageData = messageData;
+	public Message(MessageType type, Object data) {
+		this.type = type;
+		this.data = data;
 	}
 
 	/**
-	 * Constructor for a message without data. * @param messageType The type of the
-	 * message.
+	 * Retrieves the message action type. * @return The MessageType associated with
+	 * this message.
 	 */
-	public Message(MessageType messageType) {
-		this.messageType = messageType;
-		this.messageData = null;
+	public MessageType getType() {
+		return type;
 	}
 
 	/**
-	 * Gets the type of the message. * @return The message type.
+	 * Retrieves the data payload attached to this message. * @return The data
+	 * object, or null if no data is attached.
 	 */
-	public MessageType getMessageType() {
-		return messageType;
-	}
-
-	/**
-	 * Gets the data attached to the message. * @return The message data, or null if
-	 * no data is attached.
-	 */
-	public Object getMessageData() {
-		return messageData;
+	public Object getData() {
+		return data;
 	}
 }
