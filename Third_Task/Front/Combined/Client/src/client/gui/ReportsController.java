@@ -55,8 +55,11 @@ public class ReportsController {
 	@FXML
 	public void initialize() {
 		reportsLogic = new ReportsLogic();
+		// Needs to be dynamic
 		String userRole = CurUser.getRole();
-
+		//String userRole = "DepartmentManager";
+		//String userRole = "ParkManager";
+		
 		if("Park_manager".equals(userRole)) {
 			// Hide Department Manager buttons completely
 			btnVisitorsReport.setVisible(false);
@@ -67,6 +70,7 @@ public class ReportsController {
 			parkSelection.setManaged(false);
 		}
 		else if("Dept_manager".equals(userRole)) {
+			
 			// Load available parks into selection drop down for the Department Manager
 			ArrayList<String> parks = reportsLogic.getParks();
 			parkSelection.getItems().addAll(parks);
@@ -92,15 +96,13 @@ public class ReportsController {
 		// Ensure a park is selected before generation
 		if (btnVisitorsReport.isVisible() && parkSelection.getValue() == null) {
 	        System.out.println("Error: Please select a park first!");
-	        message.setText("Please select a park first!");
+	        message.setText("Error: Please select a park first!");
 	        return;
 	    }
 		// Global visitors report is not supported
 		if(parkSelection.getValue().equals("All parks")) {
-			reportContainer.getChildren().clear();
 			System.out.println("Error: Can not make all parks visitor report");
-			message.setText("Can not make all parks visitor report");
-			reportContainer.getChildren().add(message);
+			 message.setText("Error: Can not make all parks visitor report");
 			return;
 		}
 		
@@ -145,7 +147,7 @@ public class ReportsController {
 		if(!validateDates()) {return;}
 		if (btnCancellationsReport.isVisible() && parkSelection.getValue() == null) {
 	        System.out.println("Error: Please select a park first!");
-	        message.setText("Please select a park first!");
+	        message.setText("Error: Please select a park first!");
 	        return;
 	    }
 		String parkName = parkSelection.getValue(); 
@@ -199,6 +201,7 @@ public class ReportsController {
 		
 		if(!validateDates()) {return;}
 		String parkName = CurUser.getParkName();
+		//String parkName = "Banias"; 
 	    String start = startDate.getValue().toString();
 	    String end = endDate.getValue().toString();
 	    
@@ -269,6 +272,7 @@ public class ReportsController {
 		
 		if(!validateDates()) {return;}
 		String parkName = CurUser.getParkName();
+		//String parkName = "Banias"; 
 	    String start = startDate.getValue().toString();
 	    String end = endDate.getValue().toString();
 	    
@@ -361,7 +365,7 @@ public class ReportsController {
 		if(startDate.getValue() == null || endDate.getValue() == null) {
 			reportContainer.getChildren().clear();
 			System.out.println("Error: Please select both Start Date and End Date!");
-			message.setText("Please select both Start Date and End Date!");
+			message.setText("Error: Please select both Start Date and End Date!");
 			message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
 			reportContainer.getChildren().add(message);
 			return false;
@@ -369,7 +373,7 @@ public class ReportsController {
 		if(startDate.getValue().isAfter(endDate.getValue())) {
 			reportContainer.getChildren().clear();
 			System.out.println("Error: Start date cannot be after end date!");
-			message.setText("Start date cannot be after end date!");
+			message.setText("Error: Start date cannot be after end date!");
 			message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
 			reportContainer.getChildren().add(message);
 			return false;

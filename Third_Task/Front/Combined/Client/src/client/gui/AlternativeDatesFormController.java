@@ -14,30 +14,38 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import common.Order;
 
 /**
- * Controller for the Alternative Dates selection form. Displays available time
- * slots and manages order updates.
+ * Controller for the Alternative Dates selection form. Displays available
+ * alternative time slots and manages order updates for travelers when their
+ * originally requested time is fully booked.
  */
 public class AlternativeDatesFormController {
 
-	public static ArrayList<Object> originalOrderDetails;
+	public static Order originalOrderDetails;
 
 	@FXML
 	private Button btnBook;
+
 	@FXML
 	private Button btnCancel;
+
 	@FXML
 	private TableView<AvailableSlot> tblAlternativeDates;
+
 	@FXML
 	private TableColumn<AvailableSlot, String> colDate;
+
 	@FXML
 	private TableColumn<AvailableSlot, String> colTime;
 
 	private ObservableList<AvailableSlot> availableSlotsList = FXCollections.observableArrayList();
 
 	/**
-	 * Initializes the table and fetches available dates from the server.
+	 * Initializes the controller class. This method is automatically called after
+	 * the fxml file has been loaded. It sets up the table columns and fetches the
+	 * alternative available dates from the server.
 	 */
 	@FXML
 	public void initialize() {
@@ -50,6 +58,7 @@ public class AlternativeDatesFormController {
 			Message reply = (Message) client.ClientUI.clientChat.accept(msg);
 
 			if (reply != null && reply.getType() == MessageType.GET_ALTERNATIVE_DATES_RESULT) {
+				@SuppressWarnings("unchecked")
 				ArrayList<String> dates = (ArrayList<String>) reply.getData();
 				for (String dateTime : dates) {
 					String[] parts = dateTime.split(" ");
@@ -62,9 +71,10 @@ public class AlternativeDatesFormController {
 	}
 
 	/**
-	 * Handles the booking action for the selected slot.
-	 * 
-	 * @param event The action event.
+	 * Handles the book action for a selected alternative slot. Updates the original
+	 * order details with the new selected date and time, saves it to the database,
+	 * and displays a simulation of an SMS/Email confirmation. * @param event The
+	 * action event triggered by clicking the book button.
 	 */
 	@FXML
 	void clickBook(ActionEvent event) {
@@ -79,23 +89,22 @@ public class AlternativeDatesFormController {
 			return;
 		}
 
-		originalOrderDetails.set(1, selectedSlot.getDate());
-		originalOrderDetails.set(2, selectedSlot.getTime());
+		originalOrderDetails.setOrderDate(selectedSlot.getDate());
+		originalOrderDetails.setEntryTime(selectedSlot.getTime());
 
-		Message saveMsg = new Message(MessageType.SAVE_NEW_ORDER, originalOrderDetails);
-		Message saveReply = (Message) client.ClientUI.clientChat.accept(saveMsg);
+		client.logic.OrderLogic logic = new client.logic.OrderLogic();
+		String generatedQR = logic.saveNewOrder(originalOrderDetails);
 
-		if (saveReply != null && saveReply.getType() == MessageType.SAVE_SUCCESS) {
-			String generatedQR = (String) saveReply.getData();
+		if (generatedQR != null) {
 			String orderNumber = generatedQR.substring(3);
-			String email = (String) originalOrderDetails.get(4);
-			String phone = (String) originalOrderDetails.get(5);
+			String email = originalOrderDetails.getEmail();
+			String phone = originalOrderDetails.getPhoneNumber();
 
 			Alert simAlert = new Alert(Alert.AlertType.INFORMATION);
 			simAlert.setTitle("Simulation");
 			simAlert.setHeaderText("Simulation: SMS & Email Sent");
 			simAlert.setContentText("To Email: " + email + "\nTo Phone: " + phone
-					+ "\n\nYour alternative order has been saved and is pending confirmation.\nA reminder will be sent 24 hours before your visit."
+					+ "\n\nYour alternative order has been Booked.\nA reminder will be sent 24 hours before your visit."
 					+ "\nOrder Number: " + orderNumber + "\nYour Entrance QR Code is: " + generatedQR);
 			simAlert.showAndWait();
 
@@ -111,9 +120,9 @@ public class AlternativeDatesFormController {
 	}
 
 	/**
-	 * Cancels the current selection and returns to the booking form.
-	 * 
-	 * @param event The action event.
+	 * Cancels the current selection process, clears the pending order details, and
+	 * returns the user to the initial booking form. * @param event The action event
+	 * triggered by clicking the cancel button.
 	 */
 	@FXML
 	void clickCancel(ActionEvent event) {

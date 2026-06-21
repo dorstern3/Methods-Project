@@ -11,8 +11,9 @@ import client.ClientUI;
 import client.logic.ScreenSwitch;
 
 /**
- * Controller for the Traveler Entry screen. Handles traveler identification
- * locally before proceeding to order creation or management.
+ * Controller for the Traveler Entry screen. Handles the initial identification
+ * of travelers locally before directing them to either create a new order or
+ * manage an existing order based on their input.
  */
 public class TravelerEntryController {
 
@@ -30,15 +31,14 @@ public class TravelerEntryController {
 
 	@FXML
 	private Label lblError;
-	
+
 	@FXML
 	private Button btnEbtnExit;
 
 	/**
-	 * Handles the Back button click, returning the user to the role selection
-	 * screen.
-	 * 
-	 * @param event The action event triggered by clicking the button.
+	 * Handles the action when the "Back" button is clicked. Returns the user to the
+	 * initial role selection screen. * @param event The action event triggered by
+	 * clicking the back button.
 	 */
 	@FXML
 	void clickBack(ActionEvent event) {
@@ -46,9 +46,10 @@ public class TravelerEntryController {
 	}
 
 	/**
-	 * Validates the traveler ID and navigates to the order management screen.
-	 * 
-	 * @param event The action event triggered by clicking the button.
+	 * Handles the action when the "Manage Order" button is clicked. Validates the
+	 * traveler ID input and authenticates with the server. If successful, navigates
+	 * the user to the manage order form. * @param event The action event triggered
+	 * by clicking the manage order button.
 	 */
 	@FXML
 	void clickManageOrder(ActionEvent event) {
@@ -61,25 +62,34 @@ public class TravelerEntryController {
 		}
 
 		if (!travelerId.matches("\\d+")) {
-			lblError.setText("ID must contain only numbers!");
+			lblError.setText("Input must contain only numbers!");
+			return;
+		}
+
+		int length = travelerId.length();
+		if (length != 4 && length != 5) {
+			lblError.setText("Subscriber number must be exactly 4 digits, ID must be exactly 5 digits.");
+			return;
+		}
+		
+		client.logic.TravelerLogic logic = new client.logic.TravelerLogic();
+		String loginResult = logic.loginTraveler(travelerId);
+
+		if (!loginResult.equals("SUCCESS")) {
+			System.out.println(loginResult);
+			lblError.setText(loginResult);
 			return;
 		}
 
 		client.gui.ManageOrderController.currentTravelerId = travelerId;
-		Message msg = new Message(MessageType.TRAVELER_LOGIN,travelerId);
-		Message response = (Message) client.ClientUI.clientChat.accept(msg);
-		if(response.getType() == MessageType.LOGIN_FAILED) {
-			System.out.println((String) response.getData());
-			return;
-		}
 		ScreenSwitch.switchScreen("/client/gui/ManageOrderForm.fxml", "Manage Order");
 	}
 
 	/**
-	 * Validates the ID and queries the server to identify the traveler type, then
-	 * navigates to the new order screen.
-	 * 
-	 * @param event The action event triggered by clicking the button.
+	 * Handles the action when the "New Order" button is clicked. Validates the
+	 * traveler ID and queries the server to determine the specific traveler type
+	 * (Regular, Guide, or Subscriber) before proceeding to the booking form.
+	 * * @param event The action event triggered by clicking the new order button.
 	 */
 	@FXML
 	void clickNewOrder(ActionEvent event) {
@@ -92,38 +102,48 @@ public class TravelerEntryController {
 		}
 
 		if (!travelerId.matches("\\d+")) {
-			lblError.setText("ID must contain only numbers!");
+			lblError.setText("Input must contain only numbers!");
 			return;
 		}
-
+		int length = travelerId.length();
+		if (length != 4 && length != 5) {
+			lblError.setText("Subscriber number must be exactly 4 digits, ID must be exactly 5 digits.");
+			return;
+		}
 		System.out.println("Frontend validation passed for ID: " + travelerId);
 
-		Message messageToServer = new Message(MessageType.IDENTIFY_TRAVELER, travelerId);
-		Object response = ClientUI.clientChat.accept(messageToServer);
+		client.logic.TravelerLogic logic = new client.logic.TravelerLogic();
+		String dbResult = logic.identifyTraveler(travelerId);
 
-		if (response instanceof Message) {
-			Message responseMsg = (Message) response;
-
-			if (responseMsg.getType() == MessageType.IDENTIFY_TRAVELER_RESPONSE) {
-
-				String dbResult = (String) responseMsg.getData();
-				System.out.println("The server returned: " + dbResult);
-
-				client.gui.NewOrderFormController.currentTravelerInfo = dbResult;
-				client.gui.NewOrderFormController.currentTravelerId = travelerId;
-
-				if (dbResult.startsWith("Subscriber:")) {
-					System.out.println("Moving to Order Screen as a Subscriber...");
-				} else if (dbResult.startsWith("Guide:")) {
-					System.out.println("Moving to Order Screen as a Guide...");
-				} else {
-					System.out.println("Moving to Order Screen as a Regular Traveler...");
-				}
-
-				ScreenSwitch.switchScreen("/client/gui/NewOrderForm.fxml", "New Order");
+		if (dbResult != null) {
+			if (dbResult.startsWith("ERROR:")) {
+				lblError.setText(dbResult.replace("ERROR:", "").trim());
+				return; 
 			}
+			System.out.println("The server returned: " + dbResult);
+
+			client.gui.NewOrderFormController.currentTravelerInfo = dbResult;
+			client.gui.NewOrderFormController.currentTravelerId = travelerId;
+
+			if (dbResult.startsWith("Subscriber:")) {
+				System.out.println("Moving to Order Screen as a Subscriber...");
+			} else if (dbResult.startsWith("Guide:")) {
+				System.out.println("Moving to Order Screen as a Guide...");
+			} else {
+				System.out.println("Moving to Order Screen as a Regular Traveler...");
+			}
+
+			ScreenSwitch.switchScreen("/client/gui/NewOrderForm.fxml", "New Order");
+		} else {
+			lblError.setText("Error identifying traveler. Try again.");
 		}
 	}
+
+	/**
+	 * Handles the action when the "Exit Park" button is clicked. Validates the
+	 * traveler ID and navigates the user to the visitor exit screen. * @param event
+	 * The action event triggered by clicking the exit park button.
+	 */
 	@FXML
 	public void onExitParkClicked(ActionEvent event) {
 		lblError.setText("");
@@ -135,18 +155,24 @@ public class TravelerEntryController {
 		}
 
 		if (!travelerId.matches("\\d+")) {
-			lblError.setText("ID must contain only numbers!");
+			lblError.setText("Input must contain only numbers!");
 			return;
 		}
-		Message msg = new Message(MessageType.TRAVELER_LOGIN,travelerId);
-		Message response = (Message) client.ClientUI.clientChat.accept(msg);
-		if(response.getType() == MessageType.LOGIN_FAILED) {
-			System.out.println((String) response.getData());
-			lblError.setText((String) response.getData());
+		int length = travelerId.length();
+		if (length != 4 && length != 5) {
+			lblError.setText("Subscriber number must be exactly 4 digits, ID must be exactly 5 digits.");
 			return;
 		}
+		client.logic.TravelerLogic logic = new client.logic.TravelerLogic();
+		String loginResult = logic.loginTraveler(travelerId);
+
+		if (!loginResult.equals("SUCCESS")) {
+			System.out.println(loginResult);
+			lblError.setText(loginResult);
+			return;
+		}
+
 		client.gui.ExitParkVisitorController.currentTravelerId = travelerId;
-		
-	    ScreenSwitch.switchScreen("/client/gui/ExitParkVisitor.fxml", "Visitor Exit");
+		ScreenSwitch.switchScreen("/client/gui/ExitParkVisitor.fxml", "Visitor Exit");
 	}
 }

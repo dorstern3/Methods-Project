@@ -117,10 +117,10 @@ public class DBreports {
     	
     	String query = "SELECT " +
                 "    hours.slot AS time_slot, " +
-                "    IFNULL(AVG(CASE WHEN o.type_of_visitor IN ('Regular', 'Subscriber') " +
-                "                          THEN TIME_TO_SEC(TIMEDIFF(o.exit_time, o.entry_time)) / 3600 END), 0) AS avg_singles, " +
-                "    IFNULL(AVG(CASE WHEN o.type_of_visitor = 'Group' " +
-                "                          THEN TIME_TO_SEC(TIMEDIFF(o.exit_time, o.entry_time)) / 3600 END), 0) AS avg_groups " +
+                "    ROUND(IFNULL(AVG(CASE WHEN o.type_of_visitor IN ('Regular', 'Subscriber') " +
+                "                          THEN TIME_TO_SEC(TIMEDIFF(o.exit_time, o.entry_time)) / 3600 END), 0)) AS avg_singles, " +
+                "    ROUND(IFNULL(AVG(CASE WHEN o.type_of_visitor = 'Group' " +
+                "                          THEN TIME_TO_SEC(TIMEDIFF(o.exit_time, o.entry_time)) / 3600 END), 0)) AS avg_groups " +
                 "FROM ( " +
                 "    SELECT '08:00' AS slot UNION SELECT '09:00' UNION SELECT '10:00' UNION " +
                 "    SELECT '11:00' UNION SELECT '12:00' UNION SELECT '13:00' UNION " +
@@ -168,7 +168,7 @@ public class DBreports {
     	String query = "SELECT " +
                 "    days.day_name AS day_of_week, " +
                 "    COUNT(CASE WHEN o.status = 'Canceled' THEN 1 END) AS canceled_count, " +
-                "    COUNT(CASE WHEN (o.status = 'Pending confirmation' OR o.status = 'Confirmed') AND TIMESTAMP(o.order_date, o.entry_time) < NOW() THEN 1 END) AS noshow_count, " +
+                "    COUNT(CASE WHEN o.status = 'Pending confirmation' AND TIMESTAMP(o.order_date, o.entry_time) < NOW() THEN 1 END) AS noshow_count, " +
                 "    ROUND(IFNULL(COUNT(CASE WHEN o.status = 'Canceled' THEN 1 END) / COUNT(DISTINCT o.order_date), 0), 1) AS avg_canceled_per_day " +
                 "FROM ( " +
                 "    SELECT 'Sunday' AS day_name, 1 AS day_num UNION " +
@@ -181,7 +181,7 @@ public class DBreports {
                 ") days " +
                 "LEFT JOIN `Order` o ON " +
                 "    DAYNAME(o.order_date) = days.day_name " +
-                "    AND (o.status = 'Canceled' OR ((o.status = 'Pending confirmation' OR o.status = 'Confirmed') AND TIMESTAMP(o.order_date, o.entry_time) < NOW())) " +
+                "    AND (o.status = 'Canceled' OR (o.status = 'Pending confirmation' AND TIMESTAMP(o.order_date, o.entry_time) < NOW())) " +
                 "    AND o.park_name = ? " +
                 "    AND o.order_date BETWEEN ? AND ? " +
                 "GROUP BY days.day_name, days.day_num " +
@@ -218,7 +218,7 @@ public class DBreports {
     	ArrayList<CancellationReportRow> reportList = new ArrayList<>();
     	String query ="SELECT p.park_name, "+
     				  "		COUNT(CASE WHEN o.status = 'Canceled' THEN 1 END) as total_canceled, "+
-    				  "		COUNT(CASE WHEN (o.status = 'Pending confirmation' OR o.status = 'Confirmed') AND TIMESTAMP(o.order_date, o.entry_time) < NOW() THEN 1 END) AS total_noshow, "+
+    				  "		COUNT(CASE WHEN o.status = 'Pending confirmation' AND TIMESTAMP(o.order_date, o.entry_time) < NOW() THEN 1 END) AS total_noshow, "+
     				  "		ROUND(IFNULL(COUNT(CASE WHEN o.status = 'Canceled' THEN 1 END) / COUNT(DISTINCT o.order_date), 0), 1) AS avg_canceled_per_day "+
     				  "FROM `Parks` p " + "LEFT JOIN `Order` o ON o.park_name = p.park_name " + "AND o.order_date BETWEEN ? AND ? " +
     				  "GROUP BY p.park_name "+
