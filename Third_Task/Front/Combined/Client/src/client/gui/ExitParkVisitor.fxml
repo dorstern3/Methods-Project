@@ -18,12 +18,6 @@
                </font>
             </Label>
             
-            <Label text="Please enter your Order ID to register departure:" textFill="#555555">
-               <font>
-                  <Font size="16.0" />
-               </font>
-            </Label>
-            
             <VBox alignment="CENTER" spacing="5.0">
                <children>
                   <Label text="Order ID or QR Code:" textFill="#333333">

@@ -19,12 +19,12 @@
 
       <VBox layoutX="40.0" layoutY="90.0" spacing="15.0">
          <children>
-            <Label text="Enter Order ID or QR Code to register exit:">
+            <Label text="Enter Order number or QR Code to register exit:">
                <font>
                   <Font size="14.0" />
                </font>
             </Label>
-            <TextField fx:id="visitorIdInput" prefHeight="35.0" prefWidth="300.0" promptText="e.g., 12345" />
+            <TextField fx:id="visitorIdInput" prefHeight="35.0" prefWidth="300.0" />
             <Button mnemonicParsing="false" onAction="#onRegisterExitClicked" prefHeight="35.0" prefWidth="150.0" style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold;" text="Register Exit" />
          </children>
       </VBox>

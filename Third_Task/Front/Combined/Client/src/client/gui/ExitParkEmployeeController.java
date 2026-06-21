@@ -7,6 +7,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
+/**
+ * Controller class for the Park Exit screen.
+ * Manages the UI for processing visitor exits and tracking real-time park capacity.
+ */
 public class ExitParkEmployeeController {
 	
     @FXML
@@ -20,6 +24,10 @@ public class ExitParkEmployeeController {
     @FXML
     private Label lblLiveCapacity;
 
+    /**
+     * Initializes the controller class. Automatically called after the FXML file is loaded.
+     * Instantiates the logic handler and fetches the initial live park capacity.
+     */
     @FXML
     public void initialize() {
         // Instantiate the logic class
@@ -29,6 +37,12 @@ public class ExitParkEmployeeController {
         updateLiveCapacity();
     }
 
+    /**
+     * Handles the validation and processing of a visitor's exit request.
+     * Communicates with the logic layer to register the exit and update the database.
+     * If successful, it clears the input field and refreshes the live park capacity.
+     * * @param event The ActionEvent triggered by clicking the "Register Exit" button.
+     */
     @FXML
     public void onRegisterExitClicked(ActionEvent event) {
         String inputId = visitorIdInput.getText().trim();
@@ -40,17 +54,17 @@ public class ExitParkEmployeeController {
             return;
         }
 
-        // 2. Input Validation
-        if (!inputId.matches("[a-zA-Z0-9\\-]+")) {
+        // 2. Input Validation (Numbers only, since IDs and Sub Numbers are INTs)
+        if (!inputId.matches("[0-9]+")) {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Please enter a valid Order ID or QR code.");
+            statusLabel.setText("ID must contain only numbers.");
             return;
         }
         
-        // 3. Ensure the ID is not unreasonably long 
-        if (inputId.length() > 10) {
+        // 3. Length Validation (Enforce 4 digits for Subscriber, 5 digits for Regular ID)
+        if (inputId.length() != 4 && inputId.length() != 5) {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Invalid input! too long.");
+            statusLabel.setText("Invalid Length! Subscriber must be 4 digits. ID must be 5 digits.");
             return;
         }
 
@@ -73,7 +87,8 @@ public class ExitParkEmployeeController {
     }
 
     /**
-     * Handles the click event for the manual refresh button.
+     * Handles the click event for the manual refresh button to update park occupancy.
+     * * @param event The ActionEvent triggered by clicking the refresh button.
      */
     @FXML
     public void onRefreshCapacityClicked(javafx.event.ActionEvent event) {
@@ -81,11 +96,10 @@ public class ExitParkEmployeeController {
     }
 
     /**
-     * Dispatches a manual request query to the server context to grab real-time occupancy fields.
-     * Updates the text and color properties dynamically.
+     * Sends a request to the server to fetch the current live occupancy and maximum capacity of the park.
+     * Updates the UI label with the retrieved data, changing text color to red if the park is full.
      */
     private void updateLiveCapacity() {
-        // REMOVED the recursive call here that caused the StackOverflowError
         if (lblLiveCapacity == null) {
             return;
         }
@@ -119,6 +133,10 @@ public class ExitParkEmployeeController {
         }
     }
 
+    /**
+     * Navigates the user back to the Employee Dashboard screen.
+     * * @param event The ActionEvent triggered by clicking the "Back" button.
+     */
     @FXML
     public void onBackButtonClicked(ActionEvent event) {
     	ScreenSwitch.switchScreen("/client/gui/EmployeeDashboard.fxml","Employee Dashboard");
