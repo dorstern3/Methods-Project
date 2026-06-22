@@ -18,8 +18,7 @@ public class UpdateOrderTable {
 
 	/**
 	 * Saves a new order request to the waiting list when no capacity is available.
-	 * 
-	 * @param orderData The order object to be saved.
+	 * * @param orderData The order object to be saved.
 	 * @return true if the order was successfully added, false otherwise.
 	 */
 	public static boolean saveToWaitingList(Order orderData) {
@@ -82,13 +81,12 @@ public class UpdateOrderTable {
 	/**
 	 * Saves a new, confirmed order to the database and generates a unique QR code.
 	 * * @param orderData The order object to be saved.
-	 * 
 	 * @return The generated QR code string if successful, or null if failed.
 	 */
 	public static String saveNewOrder(Order orderData) {
 		try {
 			PreparedStatement stmt = DBconnection.getConnection().prepareStatement(
-					"INSERT INTO `order` (park_name, order_date, entry_time, number_of_visitors, email, phone_number, id, type_of_visitor, status, date_of_placing_order) "
+					"INSERT INTO gonature_db_new.`order` (park_name, order_date, entry_time, number_of_visitors, email, phone_number, id, type_of_visitor, status, date_of_placing_order) "
 							+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())",
 					Statement.RETURN_GENERATED_KEYS);
 
@@ -132,7 +130,7 @@ public class UpdateOrderTable {
 					int generatedOrderNumber = rs.getInt(1);
 					String qrCode = "QR-" + generatedOrderNumber;
 					PreparedStatement updateStmt = DBconnection.getConnection()
-							.prepareStatement("UPDATE `order` SET QR_code = ? WHERE order_number = ?");
+							.prepareStatement("UPDATE gonature_db_new.`order` SET QR_code = ? WHERE order_number = ?");
 					updateStmt.setString(1, qrCode);
 					updateStmt.setInt(2, generatedOrderNumber);
 					updateStmt.executeUpdate();
@@ -152,11 +150,10 @@ public class UpdateOrderTable {
 	/**
 	 * Updates the status of an order. If canceled, checks waiting list for eligible
 	 * travelers. If updated to 'Booked', generates and saves a QR code.
-	 * 
-	 * @param orderNumber The order identifier.
+	 * * @param orderNumber The order identifier.
 	 * @param status      The new status to be set.
 	 * @return An ArrayList with a boolean (success) and an optional notification
-	 *         message.
+	 * message.
 	 */
 	public static ArrayList<Object> updateOrderStatus(int orderNumber, String status) {
 		ArrayList<Object> result = new ArrayList<>();
@@ -193,5 +190,30 @@ public class UpdateOrderTable {
 		result.add(isUpdated);
 		result.add(waitingListMsg);
 		return result;
+	}
+
+	/**
+	 * Cleans up the waiting list for the current day. Any order scheduled for today
+	 * that is still 'On waiting list' will be automatically changed to 'Canceled'.
+	 * * @return The number of rows updated, or -1 if an error occurred.
+	 */
+	public static int cleanWaitingListForToday() {
+		try {
+			Connection conn = DBconnection.getConnection();
+			
+			// שינינו ל-gonature_db_new.`order` כדי לשמור על תקינות ועקביות מול שאר הקובץ
+			PreparedStatement stmt = conn.prepareStatement(
+					"UPDATE gonature_db_new.`order` SET status = 'Canceled' WHERE order_date = CURDATE() AND status = 'On waiting list'"
+			);
+			
+			int rowsUpdated = stmt.executeUpdate();
+			stmt.close();
+			return rowsUpdated;
+			
+		} catch (SQLException e) {
+			System.out.println("Error cleaning today's waiting list: " + " - " + e.getMessage());
+			e.printStackTrace();
+			return -1;
+		}
 	}
 }

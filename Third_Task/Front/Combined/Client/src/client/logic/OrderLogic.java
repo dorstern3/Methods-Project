@@ -183,4 +183,18 @@ public class OrderLogic {
 			e.printStackTrace();
 		}
 	}
+	/**
+     * Requests the list of active park names dynamically from the server database.
+     * @return An ArrayList of park names, or an empty list if the request fails.
+     */
+    @SuppressWarnings("unchecked")
+    public ArrayList<String> fetchParkNames() {
+        Message msg = new Message(MessageType.GET_PARKS, null);
+        Message reply = (Message) client.ClientUI.clientChat.accept(msg);
+        
+        if (reply != null && reply.getType() == MessageType.GET_PARKS_RESPONSE) {
+            return (ArrayList<String>) reply.getData();
+        }
+        return new ArrayList<>(); // Return empty list as a safe fallback on network failure
+    }
 }

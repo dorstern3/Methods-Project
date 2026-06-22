@@ -8,13 +8,19 @@ import java.util.ArrayList;
 import common.Order;
 
 /**
- * Handles simulation logic for the GoNature system, including reminder and
- * timeout management. This class interacts with the database to simulate
- * business scenarios such as pending visit reminders and waitlist/confirmation
- * timeouts.
+ * Handles simulation data access logic for the GoNature system, including
+ * reminder management and timeout processing. This class interacts directly
+ * with the database to simulate time-based business scenarios such as automated
+ * reminders and order cancellations.
  */
 public class DBSimulation {
 
+	/**
+	 * Fetches all orders scheduled for tomorrow that are currently in 'Booked'
+	 * state, and updates their status to 'Pending confirmation' as part of the
+	 * reminder simulation. * @return An ArrayList of Order objects that require
+	 * reminders for tomorrow.
+	 */
 	public static ArrayList<Order> getPendingRemindersForTomorrow() {
 		ArrayList<Order> ordersToRemind = new ArrayList<>();
 
@@ -45,6 +51,12 @@ public class DBSimulation {
 		return ordersToRemind;
 	}
 
+	/**
+	 * Processes unconfirmed waitlist slots that reached their 1-hour timeout.
+	 * Automatically cancels them and promotes the next eligible traveler in line
+	 * from the waiting list. * @return An ArrayList of log strings representing
+	 * simulated notification alerts sent to travelers.
+	 */
 	public static ArrayList<String> handleWaitlistTimeouts() {
 		ArrayList<String> logs = new ArrayList<>();
 		String findTimeoutsQuery = "SELECT * FROM gonature_db_new.`order` WHERE status = 'Waiting list unconfirmed'";
@@ -101,6 +113,12 @@ public class DBSimulation {
 		return logs;
 	}
 
+	/**
+	 * Processes pending order confirmations that reached their 2-hour timeout.
+	 * Automatically cancels them and triggers a check on the waiting list for
+	 * subsequent candidates. * @return An ArrayList of log strings containing the
+	 * simulated cancellation and promotion notifications.
+	 */
 	public static ArrayList<String> handleConfirmationTimeouts() {
 		ArrayList<String> logs = new ArrayList<>();
 		ArrayList<String[]> ordersToCancel = new ArrayList<>();
@@ -145,6 +163,14 @@ public class DBSimulation {
 		return logs;
 	}
 
+	/**
+	 * Maps a single database row from a ResultSet into a valid Common Order Entity.
+	 * * @param rs The active ResultSet cursor positioned at a valid row.
+	 * 
+	 * @return A fully populated Order object.
+	 * @throws SQLException If a database access error occurs or extracting columns
+	 *                      fails.
+	 */
 	private static Order mapResultSetToOrder(ResultSet rs) throws SQLException {
 		return new Order(rs.getInt("order_number"), rs.getString("park_name"), rs.getDate("order_date").toString(),
 				rs.getTime("entry_time").toString().substring(0, 5), rs.getInt("number_of_visitors"),

@@ -81,6 +81,7 @@ public class DBselect {
 		} catch (Exception e) {
 			System.out.println("Error identifying traveler: " + e.getMessage());
 			e.printStackTrace();
+			return null;
 		}
 
 		return "Regular Traveler";
@@ -307,4 +308,5 @@ public class DBselect {
 
 		return null;
 	}
+	
 }

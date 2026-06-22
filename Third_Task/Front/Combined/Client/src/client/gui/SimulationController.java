@@ -6,6 +6,7 @@ import common.Order;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -21,10 +22,17 @@ public class SimulationController {
 	private SimulationLogic simLogic = new SimulationLogic();
 
 	/**
+	 * Button to trigger the cleanup of expired waiting list entries for today.
+	 */
+	@FXML
+	private Button btnCleanWaitingList;
+
+	/**
 	 * Displays a custom alert dialog with a scrollable text area. This is
 	 * particularly useful for displaying long simulation logs or messages that
-	 * exceed the standard alert window size. * @param title The title of the alert
-	 * window.
+	 * exceed the standard alert window size.
+	 * 
+	 * @param title   The title of the alert window.
 	 * 
 	 * @param header  The header text of the alert.
 	 * @param content The detailed message content to be displayed in the scrollable
@@ -58,8 +66,10 @@ public class SimulationController {
 	/**
 	 * Handles the action to simulate sending reminders for the next day's orders.
 	 * Fetches pending reminders from the logic layer and displays the simulated
-	 * SMS/Email notifications to the user. * @param event The action event
-	 * triggered by clicking the "Send Reminders" button.
+	 * SMS/Email notifications to the user.
+	 * 
+	 * @param event The action event triggered by clicking the "Send Reminders"
+	 *              button.
 	 */
 	@FXML
 	void handleSendReminders(ActionEvent event) {
@@ -87,8 +97,10 @@ public class SimulationController {
 	/**
 	 * Handles the action to simulate waitlist confirmation timeouts. Simulates a
 	 * scenario where 1 hour has passed, canceling unconfirmed waitlist orders and
-	 * notifying the next eligible travelers in line. * @param event The action
-	 * event triggered by clicking the "Waitlist Timeout" button.
+	 * notifying the next eligible travelers in line.
+	 * 
+	 * @param event The action event triggered by clicking the "Waitlist Timeout"
+	 *              button.
 	 */
 	@FXML
 	void handleWaitlistTimeout(ActionEvent event) {
@@ -108,8 +120,10 @@ public class SimulationController {
 	/**
 	 * Handles the action to simulate pending confirmation timeouts. Simulates a
 	 * scenario where 2 hours have passed, automatically canceling orders that were
-	 * not confirmed in time. * @param event The action event triggered by clicking
-	 * the "Confirmation Timeout" button.
+	 * not confirmed in time.
+	 * 
+	 * @param event The action event triggered by clicking the "Confirmation
+	 *              Timeout" button.
 	 */
 	@FXML
 	void handleConfirmationTimeout(ActionEvent event) {
@@ -127,8 +141,31 @@ public class SimulationController {
 	}
 
 	/**
-	 * Navigates back to the main role selection screen. * @param event The action
-	 * event triggered by clicking the "Back" button.
+	 * Handles the action when the "Clean Waiting List for Today" button is clicked.
+	 * Requests the server to clean up any expired waiting list entries for the
+	 * current day.
+	 * 
+	 * @param event The action event triggered by the button click.
+	 */
+	@FXML
+	void clickCleanWaitingList(ActionEvent event) {
+		System.out.println("Simulation Triggered: Requesting server to clean expired waiting lists...");
+
+		int canceledCount = simLogic.cleanWaitingListForToday();
+
+		if (canceledCount >= 0) {
+			showScrollableAlert("Simulation Successful", "Waiting List Cleanup Completed",
+					"Successfully scanned the database.\nCanceled " + canceledCount
+							+ " expired waiting list entries for today.");
+		} else {
+			showAlert("Simulation Error", "An error occurred while communicating with the server.");
+		}
+	}
+
+	/**
+	 * Navigates back to the main role selection screen.
+	 * 
+	 * @param event The action event triggered by clicking the "Back" button.
 	 */
 	@FXML
 	void clickBack(ActionEvent event) {
@@ -136,8 +173,9 @@ public class SimulationController {
 	}
 
 	/**
-	 * Displays a standard simple information alert dialog. * @param title The title
-	 * of the alert window.
+	 * Displays a standard simple information alert dialog.
+	 * 
+	 * @param title   The title of the alert window.
 	 * 
 	 * @param content The message content to display.
 	 */

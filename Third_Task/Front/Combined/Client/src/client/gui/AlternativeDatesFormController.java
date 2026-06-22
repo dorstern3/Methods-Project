@@ -73,7 +73,8 @@ public class AlternativeDatesFormController {
 	/**
 	 * Handles the book action for a selected alternative slot. Updates the original
 	 * order details with the new selected date and time, saves it to the database,
-	 * and displays a simulation of an SMS/Email confirmation. * @param event The
+	 * and displays a simulation of an SMS/Email confirmation. 
+	 * @param event The
 	 * action event triggered by clicking the book button.
 	 */
 	@FXML
@@ -120,13 +121,12 @@ public class AlternativeDatesFormController {
 	}
 
 	/**
-	 * Cancels the current selection process, clears the pending order details, and
-	 * returns the user to the initial booking form. * @param event The action event
-	 * triggered by clicking the cancel button.
+	 * Cancels the current selection process and returns the user to the 
+	 * Waitlist/Alternative Dates selection screen.
+	 * @param event The action event triggered by clicking the cancel button.
 	 */
 	@FXML
 	void clickCancel(ActionEvent event) {
-		originalOrderDetails = null;
-		ScreenSwitch.switchScreen("/client/gui/NewOrderForm.fxml", "Book a Visit");
+		ScreenSwitch.switchScreen("/client/gui/WaitListForm.fxml", "Waiting List");
 	}
 }

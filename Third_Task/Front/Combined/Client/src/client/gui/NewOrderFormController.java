@@ -60,7 +60,13 @@ public class NewOrderFormController {
 	 */
 	@FXML
 	public void initialize() {
-		comboPark.getItems().addAll("Achziv", "Banias", "Caesarea", "Ein Gedi", "Masada");
+		OrderLogic orderLogic = new OrderLogic();
+		ArrayList<String> dynamicParks = orderLogic.fetchParkNames();
+		if (dynamicParks != null && !dynamicParks.isEmpty()) {
+			comboPark.getItems().addAll(dynamicParks);
+		} else {
+			comboPark.getItems().addAll("Achziv", "Banias", "Caesarea", "Ein Gedi", "Masada");
+		}
 		comboTime.getItems().addAll("08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00");
 
 		txtVisitors.setText("1");
@@ -89,7 +95,7 @@ public class NewOrderFormController {
 	 * fields, valid numbers, email format, future dates). If validation passes, it
 	 * interacts with the server to check park availability. If available, the order
 	 * is saved; otherwise, the user is redirected to the waiting list screen.
-	 * * @param event The action event triggered by clicking the "Book" button.
+	 * @param event The action event triggered by clicking the "Book" button.
 	 */
 	@FXML
 	void clickBookVisit(ActionEvent event) {
@@ -158,19 +164,17 @@ public class NewOrderFormController {
 		if (!email.isEmpty() && !email.contains("@")) {
 			errorMessages.append("- Please enter a valid email address.\n");
 		}
-		
+
 		if (!phone.isEmpty() && !phone.matches("\\d+")) {
 			errorMessages.append("- Phone number must contain only numbers.\n");
 		}
 
 		if (dateVisit.getValue() != null && time != null) {
 			LocalDate selectedDate = dateVisit.getValue();
-			LocalTime selectedTime = LocalTime.parse(time);
 			LocalDate today = LocalDate.now();
-			LocalTime now = LocalTime.now();
 
-			if (selectedDate.isBefore(today) || (selectedDate.isEqual(today) && selectedTime.isBefore(now))) {
-				errorMessages.append("- Visit date and time must be in the future.\n");
+			if (!selectedDate.isAfter(today)) {
+				errorMessages.append("- Bookings can only be made for tomorrow or later.\n");
 			}
 		}
 
@@ -212,7 +216,7 @@ public class NewOrderFormController {
 
 	/**
 	 * Displays an error alert dialog with the specified title, header, and content.
-	 * * @param title The title of the alert window.
+	 * @param title The title of the alert window.
 	 * 
 	 * @param header  The header text of the alert.
 	 * @param content The main message content to display.
@@ -227,7 +231,8 @@ public class NewOrderFormController {
 
 	/**
 	 * Handles the back button action, returning the user to the Traveler Entry
-	 * screen. * @param event The action event triggered by clicking the "Back"
+	 * screen. 
+	 * @param event The action event triggered by clicking the "Back"
 	 * button.
 	 */
 	@FXML

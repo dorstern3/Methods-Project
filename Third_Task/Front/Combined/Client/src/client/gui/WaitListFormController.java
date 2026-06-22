@@ -30,8 +30,10 @@ public class WaitListFormController {
 	/**
 	 * Navigates the user to the Alternative Dates screen to explore other available
 	 * time slots. Passes the pending order details to the next controller before
-	 * switching screens. * @param event The action event triggered by clicking the
-	 * "Alternative Dates" button.
+	 * switching screens.
+	 * 
+	 * @param event The action event triggered by clicking the "Alternative Dates"
+	 *              button.
 	 */
 	@FXML
 	void clickAltDate(ActionEvent event) {
@@ -42,8 +44,9 @@ public class WaitListFormController {
 
 	/**
 	 * Cancels the current booking process and returns the user to the New Order
-	 * form. * @param event The action event triggered by clicking the "Cancel"
-	 * button.
+	 * form.
+	 * 
+	 * @param event The action event triggered by clicking the "Cancel" button.
 	 */
 	@FXML
 	void clickCancel(ActionEvent event) {
@@ -53,8 +56,10 @@ public class WaitListFormController {
 	/**
 	 * Registers the currently pending order into the park's waiting list via the
 	 * server. Displays a success message upon completion and redirects to the main
-	 * menu. * @param event The action event triggered by clicking the "Enter
-	 * Waiting List" button.
+	 * menu.
+	 * 
+	 * @param event The action event triggered by clicking the "Enter Waiting List"
+	 *              button.
 	 */
 	@FXML
 	void clickWaitList(ActionEvent event) {

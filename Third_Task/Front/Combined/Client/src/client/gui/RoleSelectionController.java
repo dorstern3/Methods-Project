@@ -30,7 +30,8 @@ public class RoleSelectionController {
 
 	/**
 	 * Handles the action when the Traveler button is clicked. Navigates the user to
-	 * the Traveler Entry menu where they can identify themselves. * @param event
+	 * the Traveler Entry menu where they can identify themselves. 
+	 * @param event
 	 * The action event triggered by clicking the Traveler button.
 	 */
 	@FXML
@@ -40,7 +41,8 @@ public class RoleSelectionController {
 
 	/**
 	 * Handles the action when the Employee button is clicked. Navigates the user to
-	 * the Employee Login screen for authentication. * @param event The action event
+	 * the Employee Login screen for authentication. 
+	 * @param event The action event
 	 * triggered by clicking the Employee button.
 	 */
 	@FXML
@@ -51,7 +53,8 @@ public class RoleSelectionController {
 	/**
 	 * Opens the Simulation Dashboard screen. This is typically used for
 	 * demonstrating or testing system background processes (like sending SMS/Email
-	 * reminders or handling timeouts). * @param event The action event triggered by
+	 * reminders or handling timeouts). 
+	 * @param event The action event triggered by
 	 * the corresponding UI element.
 	 */
 	@FXML

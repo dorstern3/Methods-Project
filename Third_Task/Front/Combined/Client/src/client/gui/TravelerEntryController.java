@@ -37,8 +37,9 @@ public class TravelerEntryController {
 
 	/**
 	 * Handles the action when the "Back" button is clicked. Returns the user to the
-	 * initial role selection screen. * @param event The action event triggered by
-	 * clicking the back button.
+	 * initial role selection screen.
+	 * 
+	 * @param event The action event triggered by clicking the back button.
 	 */
 	@FXML
 	void clickBack(ActionEvent event) {
@@ -48,8 +49,9 @@ public class TravelerEntryController {
 	/**
 	 * Handles the action when the "Manage Order" button is clicked. Validates the
 	 * traveler ID input and authenticates with the server. If successful, navigates
-	 * the user to the manage order form. * @param event The action event triggered
-	 * by clicking the manage order button.
+	 * the user to the manage order form.
+	 * 
+	 * @param event The action event triggered by clicking the manage order button.
 	 */
 	@FXML
 	void clickManageOrder(ActionEvent event) {
@@ -71,7 +73,7 @@ public class TravelerEntryController {
 			lblError.setText("Subscriber number must be exactly 4 digits, ID must be exactly 5 digits.");
 			return;
 		}
-		
+
 		client.logic.TravelerLogic logic = new client.logic.TravelerLogic();
 		String loginResult = logic.loginTraveler(travelerId);
 
@@ -89,7 +91,8 @@ public class TravelerEntryController {
 	 * Handles the action when the "New Order" button is clicked. Validates the
 	 * traveler ID and queries the server to determine the specific traveler type
 	 * (Regular, Guide, or Subscriber) before proceeding to the booking form.
-	 * * @param event The action event triggered by clicking the new order button.
+	 * 
+	 * @param event The action event triggered by clicking the new order button.
 	 */
 	@FXML
 	void clickNewOrder(ActionEvent event) {
@@ -118,7 +121,7 @@ public class TravelerEntryController {
 		if (dbResult != null) {
 			if (dbResult.startsWith("ERROR:")) {
 				lblError.setText(dbResult.replace("ERROR:", "").trim());
-				return; 
+				return;
 			}
 			System.out.println("The server returned: " + dbResult);
 
@@ -141,8 +144,9 @@ public class TravelerEntryController {
 
 	/**
 	 * Handles the action when the "Exit Park" button is clicked. Validates the
-	 * traveler ID and navigates the user to the visitor exit screen. * @param event
-	 * The action event triggered by clicking the exit park button.
+	 * traveler ID and navigates the user to the visitor exit screen.
+	 * 
+	 * @param event The action event triggered by clicking the exit park button.
 	 */
 	@FXML
 	public void onExitParkClicked(ActionEvent event) {

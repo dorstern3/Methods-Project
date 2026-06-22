@@ -58,7 +58,8 @@ public class ManageOrderController {
 	/**
 	 * Handles the search action for a specific order number. Fetches the order
 	 * details from the database and updates the UI accordingly. Enables or disables
-	 * the action buttons based on the current order status. * @param event The
+	 * the action buttons based on the current order status. 
+	 * @param event The
 	 * action event triggered by clicking the Search button.
 	 */
 	@FXML
@@ -150,8 +151,8 @@ public class ManageOrderController {
 	/**
 	 * Handles the order cancellation process. Updates the status of the current
 	 * order to 'Canceled'. If a spot becomes available, it triggers a simulated
-	 * notification (SMS/Email) to the next traveler on the waiting list. * @param
-	 * event The action event triggered by clicking the Cancel button.
+	 * notification (SMS/Email) to the next traveler on the waiting list. 
+	 * @param event The action event triggered by clicking the Cancel button.
 	 */
 	@FXML
 	void clickCancelOrder(ActionEvent event) {
@@ -186,8 +187,8 @@ public class ManageOrderController {
 
 	/**
 	 * Handles the back navigation action. Logs out the current traveler from the
-	 * system and returns to the Traveler main menu. * @param event The action event
-	 * triggered by clicking the Back button.
+	 * system and returns to the Traveler main menu. 
+	 * @param event The action event triggered by clicking the Back button.
 	 */
 	@FXML
 	void clickBack(ActionEvent event) {
@@ -201,8 +202,8 @@ public class ManageOrderController {
 	}
 
 	/**
-	 * Displays a standard error alert dialog to the user. * @param title The title
-	 * of the alert window.
+	 * Displays a standard error alert dialog to the user. 
+	 * @param title The title of the alert window.
 	 * 
 	 * @param header  The header text of the alert.
 	 * @param content The main message content to display.
@@ -217,7 +218,8 @@ public class ManageOrderController {
 
 	/**
 	 * Displays a customizable alert dialog to the user based on the specified alert
-	 * type. * @param alertType The type of the alert (e.g., INFORMATION, ERROR,
+	 * type. 
+	 * @param alertType The type of the alert (e.g., INFORMATION, ERROR,
 	 * WARNING).
 	 * 
 	 * @param title   The title of the alert window.

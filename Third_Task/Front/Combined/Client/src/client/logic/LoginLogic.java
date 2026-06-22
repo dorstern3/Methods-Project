@@ -1,9 +1,10 @@
 package client.logic;
 
 import client.ClientUI;
+
+
 import common.Message;
 import common.MessageType;
-import common.PasswordHash;
 
 /**
  * Business logic layer for Login authentication.
@@ -17,7 +18,6 @@ public class LoginLogic {
      */
 	public Message authenticateUser(String username , String rawPassword) {
 		
-		//String hashedPassword = PasswordHash.hashPassword(rawPassword);
 		Object[] requestUser = new Object[] {username , rawPassword};
 		Message msg = new Message(MessageType.LOGIN_REQUEST , requestUser);
 		Message response = (Message) ClientUI.clientChat.accept(msg);

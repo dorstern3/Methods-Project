@@ -69,11 +69,28 @@ public enum MessageType {
 	/** Result of an order status update. */
 	UPDATE_ORDER_RESULT,
 
+	/** Request to simulate sending 24-hour reminders for upcoming visits. */
+	SIMULATE_24H_REMINDER, 
+	
+	/** Response containing the list of orders that were sent a reminder. */
+	SIMULATE_24H_REMINDER_RESPONSE,
 
-	SIMULATE_24H_REMINDER, SIMULATE_24H_REMINDER_RESPONSE,
+	/** Request to simulate a waitlist timeout (canceling unconfirmed and notifying next in line). */
+	SIMULATE_WAITLIST_TIMEOUT, 
+	
+	/** Response containing the log messages from the waitlist timeout simulation. */
+	SIMULATE_WAITLIST_RESPONSE,
 
-	SIMULATE_WAITLIST_TIMEOUT, SIMULATE_WAITLIST_RESPONSE,
-
-	SIMULATE_CONFIRMATION_TIMEOUT, SIMULATE_CONFIRMATION_RESPONSE
+	/** Request to simulate a confirmation timeout (canceling unconfirmed orders and checking waitlist). */
+	SIMULATE_CONFIRMATION_TIMEOUT, 
+	
+	/** Response containing the log messages from the confirmation timeout simulation. */
+	SIMULATE_CONFIRMATION_RESPONSE,
+	
+	/** Request to automatically cancel all expired waiting list entries for the current day. */
+	CLEAN_WAITING_LIST,
+	
+	/** Response containing the number of waiting list entries that were successfully canceled. */
+	CLEAN_WAITING_LIST_RESULT
 
 }
