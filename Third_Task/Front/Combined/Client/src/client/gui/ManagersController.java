@@ -124,14 +124,11 @@ public class ManagersController {
             tabPane.getTabs().addAll(parkManagerTab, deptManagerTab);
         }
           
-        Button btnBackToLogin = new Button("Back");
+        Button btnBackToLogin = new Button("Logout");
         btnBackToLogin.setStyle("-fx-cursor: hand; -fx-font-weight: bold;");
         btnBackToLogin.setOnAction(e -> {
-            
             ((javafx.scene.Node)e.getSource()).getScene().getWindow().hide();
-            
-            
-            ScreenSwitch.switchScreen("/client/gui/EmployeeLogin.fxml", "Employee Login");
+            client.logic.CurUser.logout();
         });
 
        

@@ -309,4 +309,22 @@ public class DBselect {
 		return null;
 	}
 	
+	
+	public static String getSubscriberId(String subscriberNum) {
+		try {
+			Connection conn = DBconnection.getConnection();
+			PreparedStatement ps = conn
+					.prepareStatement("SELECT id FROM gonature_db_new.subscriber WHERE sub_number = ?");
+			ps.setString(1, subscriberNum);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				return rs.getString("id");
+			}
+		} catch (SQLException e) {
+			System.out.println("Error fetching validated order: " + e.getMessage());
+			e.printStackTrace();
+		}
+
+		return null;
+	}
 }

@@ -78,7 +78,14 @@ public class EchoServer extends AbstractServer {
 				}
 				case TRAVELER_LOGIN: {
 					String travelerId = (String) message.getData();
-
+					if(travelerId.length() == 4) {
+						String subscriberId = db.DBselect.getSubscriberId(travelerId);
+						if(subscriberId == null) {
+							client.sendToClient(new Message(MessageType.LOGIN_FAILED , "There is no subscriber with " + travelerId + " subscriber number"));
+							break;
+						}
+						travelerId = subscriberId;
+					}
 					if (activeTravelers.contains(travelerId)) {
 						client.sendToClient(new Message(MessageType.LOGIN_FAILED, "Traveler already connected"));
 						System.out.println("Server Warning: Traveler [" + travelerId + "] is already active.");
@@ -345,7 +352,7 @@ public class EchoServer extends AbstractServer {
 	private void handleLoginRequest(Message message, ConnectionToClient client) {
 		Object[] credentials = (Object[]) message.getData();
 		String workerName = (String) credentials[0];
-		String hashedPassword = (String) credentials[1];
+		String password = (String) credentials[1];
 
 		Object[] workerData = null;
 		boolean isSuccess = false;
@@ -356,7 +363,7 @@ public class EchoServer extends AbstractServer {
 		try (Connection conn = DBconnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(query)) {
 
 			pstmt.setString(1, workerName);
-			pstmt.setString(2, hashedPassword);
+			pstmt.setString(2, password);
 
 			try (ResultSet rs = pstmt.executeQuery()) {
 				if (rs.next()) {

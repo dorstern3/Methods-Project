@@ -80,7 +80,7 @@ public class ExitParkVisitorController {
             orderIdInput.clear();
         } else {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Error: Could not register exit. Check your Order ID or Qr code.");
+            statusLabel.setText("Exit rejected. Parameters do not match any active 'Entered' order.");
         }
     }
     
