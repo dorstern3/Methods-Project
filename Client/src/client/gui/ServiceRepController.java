@@ -159,15 +159,48 @@ public class ServiceRepController{
         });
     }
     
-    
     private void handleFamilyRegister() {
-        if(famId.getText().isEmpty() || famFname.getText().isEmpty() || famMembers.getText().isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields!");
+       
+        if (famFname.getText().trim().isEmpty() || famLname.getText().trim().isEmpty() || 
+            famId.getText().trim().isEmpty() || famPhone.getText().trim().isEmpty() || 
+            famEmail.getText().trim().isEmpty() || famMembers.getText().trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields inside Family Subscription!");
             return;
         }
+
+        String idText = famId.getText().trim();
+        String phoneText = famPhone.getText().trim();
+        String membersText = famMembers.getText().trim();
+
+       
+        if (idText.length() != 5 || !idText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid ID Number", "ID Number must be exactly 5 digits long!");
+            return;
+        }
+
+        
+        if (!phoneText.matches("[0-9\\-]+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile Number must contain digits only!");
+            return;
+        }
+
+       
+        int parsedMembers;
+        try {
+            parsedMembers = Integer.parseInt(membersText);
+            if (parsedMembers <= 0) {
+                showAlert(Alert.AlertType.ERROR, "Invalid Members Amount", "Family Members Amount must be greater than 0!");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Members Amount", "Family Members Amount must be a valid number!");
+            return;
+        }
+
+        
         Message response = logic.requestFamilyRegistration(
-            Integer.parseInt(famId.getText()), famFname.getText(), famLname.getText(),
-            famEmail.getText(), famPhone.getText(), Integer.parseInt(famMembers.getText())
+            Integer.parseInt(idText), famFname.getText().trim(), famLname.getText().trim(),
+            famEmail.getText().trim(), phoneText, parsedMembers
         );
 
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
@@ -180,14 +213,33 @@ public class ServiceRepController{
     }
     
     private void handleSingleRegister() {
-        if(sId.getText().isEmpty() || sFname.getText().isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields!");
+          
+        if (sFname.getText().trim().isEmpty() || sLname.getText().trim().isEmpty() || 
+            sId.getText().trim().isEmpty() || sPhone.getText().trim().isEmpty() || 
+            sEmail.getText().trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields inside Single Subscription!");
             return;
         }
 
+        String idText = sId.getText().trim();
+        String phoneText = sPhone.getText().trim();
+
+       
+        if (idText.length() != 5 || !idText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid ID Number", "ID Number must be exactly 5 digits long!");
+            return;
+        }
+
+        
+        if (!phoneText.matches("[0-9\\-]+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile Number must contain digits only!");
+            return;
+        }
+
+         
         Message response = logic.requestSingleRegistration(
-            Integer.parseInt(sId.getText()), sFname.getText(), sLname.getText(),
-            sEmail.getText(), sPhone.getText()
+            Integer.parseInt(idText), sFname.getText().trim(), sLname.getText().trim(),
+            sEmail.getText().trim(), phoneText
         );
 
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
@@ -200,12 +252,33 @@ public class ServiceRepController{
     }
     
     private void handleGuideRegister() {
-        if(gFname.getText().isEmpty() || gEmail.getText().isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields!");
+        
+        if (gFname.getText().trim().isEmpty() || gLname.getText().trim().isEmpty() || 
+            gId.getText().trim().isEmpty() || gPhone.getText().trim().isEmpty() || 
+            gEmail.getText().trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields inside Group Guide!");
             return;
         }
 
-        Message response = logic.requestGuideRegistration(gFname.getText(), gLname.getText(), gEmail.getText(), gPhone.getText());
+        String idText = gId.getText().trim();
+        String phoneText = gPhone.getText().trim();
+
+        
+        if (idText.length() != 5 || !idText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid ID Number", "ID Number must be exactly 5 digits long!");
+            return;
+        }
+
+        
+        if (!phoneText.matches("[0-9\\-]+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile Number must contain digits only!");
+            return;
+        }
+
+        
+        Message response = logic.requestGuideRegistration(
+            gFname.getText().trim(), gLname.getText().trim(), gEmail.getText().trim(), phoneText
+        );
 
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
             showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Group Guide Registered Successfully!");
@@ -215,5 +288,3 @@ public class ServiceRepController{
         }
     }
 }
-
-

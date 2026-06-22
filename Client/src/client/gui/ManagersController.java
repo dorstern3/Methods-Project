@@ -196,9 +196,17 @@ public class ManagersController {
             else if (selectedUIParam.contains("Gap")) dbParamName = "casual_gap";
             else if (selectedUIParam.contains("Stay")) dbParamName = "estimated_stay_time";
 
-            Message response = logic.sendParameterRequest("Banias", 1, dbParamName, 500, Integer.parseInt(newValueStr));
+            // ⭐ שינוי דינמי: משיכת נתוני הפארק והעובד האמיתיים של המשתמש המחובר כרגע במערכת
+            String currentPark = CurUser.getParkName();
+            int currentWorkerId = CurUser.getEmployeeId();
+
+            if (currentPark == null || currentPark.isEmpty()) {
+                currentPark = "Banias"; // ברירת מחדל בטיחותית במידה והשדה ריק
+            }
+
+            Message response = logic.sendParameterRequest(currentPark, currentWorkerId, dbParamName, 500, Integer.parseInt(newValueStr));
             if (response != null && response.getType() == MessageType.REQUEST_SUBMIT_SUCCESS) {
-            	System.out.println("🚀 Success! Data inserted directly from the text field into MySQL!");
+            	System.out.println("🚀 Success! Data inserted dynamically for park: " + currentPark);
                 showMainDashboard();
             } else {
             	System.out.println("❌ SQL Error while inserting data from screen.");
@@ -384,10 +392,17 @@ public class ManagersController {
                     return;
                 }
                 double dbDiscountValue = discountPercent / 100.0;
-                Message response = logic.sendPromotionUpdate("Banias", dbDiscountValue);
+                
+                // ⭐ שינוי דינמי: עדכון הנחות ומבצעים ישירות על הפארק המשויך למשתמש המחובר
+                String currentPark = CurUser.getParkName();
+                if (currentPark == null || currentPark.isEmpty()) {
+                    currentPark = "Banias";
+                }
+
+                Message response = logic.sendPromotionUpdate(currentPark, dbDiscountValue);
                 
                 if (response != null && response.getType() == MessageType.PROMOTION_ACTIVATED_SUCCESS) {
-                    showAlert(Alert.AlertType.INFORMATION, "Success", "Promotion '" + couponName + "' activated successfully via Server!");
+                    showAlert(Alert.AlertType.INFORMATION, "Success", "Promotion '" + couponName + "' activated successfully for " + currentPark + "!");
                     
                     String newPromoText = String.format("%s | %s%% Off | %s - %s", 
                             couponName, discountStr, startDateStr, endDateStr);
