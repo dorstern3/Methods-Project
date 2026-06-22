@@ -1,5 +1,5 @@
 package application;
-	
+
 import client.logic.ScreenSwitch;
 import javafx.application.Application;
 import javafx.application.Platform;

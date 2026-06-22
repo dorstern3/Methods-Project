@@ -12,3 +12,5 @@
 /ScreenSwitch.class
 /ServiceRepLogic.class
 /SubscriberPricingStrategy.class
+/SimulationLogic.class
+/TravelerLogic.class
