@@ -93,7 +93,7 @@ CREATE TABLE `parameter_requests` (
   `current_value` int NOT NULL,
   `request_value` int NOT NULL,
   `status` enum('Pending','Approved','Declined') NOT NULL DEFAULT 'Pending',
-  `request_date` date NOT NULL,
+  `request_date` date NOT NULL default (current_date),
   PRIMARY KEY (`request_id`),
   CONSTRAINT `fk_param_park` FOREIGN KEY (`park_name`) REFERENCES `parks` (`park_name`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_param_worker` FOREIGN KEY (`worker_id`) REFERENCES `workers` (`worker_id`) ON DELETE CASCADE ON UPDATE CASCADE
