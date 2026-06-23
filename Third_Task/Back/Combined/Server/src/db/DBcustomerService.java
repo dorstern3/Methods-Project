@@ -7,21 +7,8 @@ import common.Message;
 import common.MessageType;
 import ocsf.server.ConnectionToClient;
 
-/**
- * Database handler class for Customer Service operations.
- * Manages the registration processes for new Family Subscribers, Single Subscribers, and Group Guides.
- */
 public class DBcustomerService {
-
-	/**
-	 * Processes the registration of a new family subscriber into the database.
-	 * Generates a unique 4-digit subscriber number and inserts the provided details.
-	 *
-	 * @param message The network message containing the subscriber's details in an Object array.
-	 * @param client  The connection thread representing the client making the request.
-	 */
 	public static void handleRegisterFamilySubscriber(Message message, ConnectionToClient client) {
-		// 1. Extract parameters from the message data
 		Object[] params = (Object[]) message.getData();
 		int id = (int) params[0];
 		String fname = (String) params[1];
@@ -30,74 +17,12 @@ public class DBcustomerService {
 		String phone = (String) params[4];
 		int familyMembers = (int) params[5];
 
-		// 2. Generate a random 4-digit subscriber number (1000-9999)
 		int generatedSubNum = new java.util.Random().nextInt(9000) + 1000;
 		boolean success = false;
 
 		String query = "INSERT INTO gonature_db_new.subscriber (id, fname, lname, email, phone_number, credit_card_number, family_members, sub_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
 
-		// 3. Fetch the singleton connection outside the try block to prevent auto-closure
-		Connection conn = DBconnection.getConnection(); 
-		
-		try (PreparedStatement pstmt = conn.prepareStatement(query)) {
-			// 4. Bind parameters to the prepared statement
-			pstmt.setInt(1, id);
-			pstmt.setString(2, fname);
-			pstmt.setString(3, lname);
-			pstmt.setString(4, email);
-			pstmt.setString(5, phone);
-			pstmt.setNull(6, java.sql.Types.VARCHAR); // Credit card is not provided at this stage
-			pstmt.setInt(7, familyMembers);
-			pstmt.setInt(8, generatedSubNum);
-
-			// 5. Execute the database insert operation
-			success = pstmt.executeUpdate() > 0;
-			if (success) {
-				System.out.println("Server: Family subscriber registered successfully. Sub Number: " + generatedSubNum);
-			}
-		} catch (Exception e) {
-			System.err.println("Server: Database error during family registration.");
-			e.printStackTrace();
-		}
-
-		// 6. Dispatch the registration result back to the client
-		try {
-			Message response = success ? new Message(MessageType.REGISTRATION_SUCCESS, generatedSubNum)
-					: new Message(MessageType.REGISTRATION_FAILED, null);
-			client.sendToClient(response);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Processes the registration of a new single subscriber into the database.
-	 * Generates a unique 4-digit subscriber number and inserts the provided details.
-	 *
-	 * @param message The network message containing the subscriber's details in an Object array.
-	 * @param client  The connection thread representing the client making the request.
-	 */
-	public static void handleRegisterSingleSubscriber(Message message, ConnectionToClient client) {
-		// 1. Extract parameters from the message data
-		Object[] params = (Object[]) message.getData();
-		int id = (int) params[0];
-		String fname = (String) params[1];
-		String lname = (String) params[2];
-		String email = (String) params[3];
-		String phone = (String) params[4];
-		int familyMembers = (int) params[5];
-
-		// 2. Generate a random 4-digit subscriber number (1000-9999)
-		int generatedSubNum = new java.util.Random().nextInt(9000) + 1000;
-		boolean success = false;
-
-		String query = "INSERT INTO gonature_db_new.subscriber (id, fname, lname, email, phone_number, credit_card_number, family_members, sub_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
-
-		// 3. Fetch the singleton connection outside the try block to prevent auto-closure
-		Connection conn = DBconnection.getConnection(); 
-		
-		try (PreparedStatement pstmt = conn.prepareStatement(query)) {
-			// 4. Bind parameters to the prepared statement
+		try (Connection conn = DBconnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(query)) {
 			pstmt.setInt(1, id);
 			pstmt.setString(2, fname);
 			pstmt.setString(3, lname);
@@ -107,17 +32,15 @@ public class DBcustomerService {
 			pstmt.setInt(7, familyMembers);
 			pstmt.setInt(8, generatedSubNum);
 
-			// 5. Execute the database insert operation
 			success = pstmt.executeUpdate() > 0;
 			if (success) {
-				System.out.println("Server: Single subscriber registered successfully. Sub Number: " + generatedSubNum);
+				System.out.println("Server: Family subscriber registered successfully. Sub Number: " + generatedSubNum);
 			}
 		} catch (Exception e) {
-			System.err.println("Server: Database error during single registration.");
+			System.err.println("Server: Database error during family registration.");
 			e.printStackTrace();
 		}
 
-		// 6. Dispatch the registration result back to the client
 		try {
 			Message response = success ? new Message(MessageType.REGISTRATION_SUCCESS, generatedSubNum)
 					: new Message(MessageType.REGISTRATION_FAILED, null);
@@ -127,37 +50,64 @@ public class DBcustomerService {
 		}
 	}
 
-	/**
-	 * Processes the registration of a new group guide into the database.
-	 * Inserts the provided details using the guide's ID as the primary key.
-	 *
-	 * @param message The network message containing the guide's details in an Object array.
-	 * @param client  The connection thread representing the client making the request.
-	 */
-	public static void handleRegisterGuide(Message message, ConnectionToClient client) {
-		// 1. Extract parameters from the message data
+	public static void handleRegisterSingleSubscriber(Message message, ConnectionToClient client) {
 		Object[] params = (Object[]) message.getData();
-		int id = (int) params[0]; 
+		int id = (int) params[0];
 		String fname = (String) params[1];
 		String lname = (String) params[2];
 		String email = (String) params[3];
 		String phone = (String) params[4];
+		int familyMembers = (int) params[5];
+
+		int generatedSubNum = new java.util.Random().nextInt(9000) + 1000;
 		boolean success = false;
 
-		String query = "INSERT INTO gonature_db_new.Guide (guide_id, fname, lname, email, phone_number) VALUES (?, ?, ?, ?, ?);";
+		String query = "INSERT INTO gonature_db_new.subscriber (id, fname, lname, email, phone_number, credit_card_number, family_members, sub_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
 
-		// 2. Fetch the singleton connection outside the try block to prevent auto-closure
-		Connection conn = DBconnection.getConnection(); 
-		
-		try (PreparedStatement pstmt = conn.prepareStatement(query)) {
-			// 3. Bind parameters to the prepared statement
+		try (Connection conn = DBconnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(query)) {
 			pstmt.setInt(1, id);
 			pstmt.setString(2, fname);
 			pstmt.setString(3, lname);
 			pstmt.setString(4, email);
 			pstmt.setString(5, phone);
+			pstmt.setNull(6, java.sql.Types.VARCHAR);
+			pstmt.setInt(7, familyMembers);
+			pstmt.setInt(8, generatedSubNum);
 
-			// 4. Execute the database insert operation
+			success = pstmt.executeUpdate() > 0;
+			if (success) {
+				System.out.println("Server: Single subscriber registered successfully. Sub Number: " + generatedSubNum);
+			}
+		} catch (Exception e) {
+			System.err.println("Server: Database error during single registration.");
+			e.printStackTrace();
+		}
+
+		try {
+			Message response = success ? new Message(MessageType.REGISTRATION_SUCCESS, generatedSubNum)
+					: new Message(MessageType.REGISTRATION_FAILED, null);
+			client.sendToClient(response);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void handleRegisterGuide(Message message, ConnectionToClient client) {
+		Object[] params = (Object[]) message.getData();
+		String fname = (String) params[0];
+		String lname = (String) params[1];
+		String email = (String) params[2];
+		String phone = (String) params[3];
+		boolean success = false;
+
+		String query = "INSERT INTO gonature_db_new.Guide (fname, lname, email, phone_number) VALUES (?, ?, ?, ?);";
+
+		try (Connection conn = DBconnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(query)) {
+			pstmt.setString(1, fname);
+			pstmt.setString(2, lname);
+			pstmt.setString(3, email);
+			pstmt.setString(4, phone);
+
 			success = pstmt.executeUpdate() > 0;
 			if (success) {
 				System.out.println("Server: Group Guide registered successfully: " + fname + " " + lname);
@@ -167,7 +117,6 @@ public class DBcustomerService {
 			e.printStackTrace();
 		}
 
-		// 5. Dispatch the registration result back to the client
 		try {
 			Message response = success ? new Message(MessageType.REGISTRATION_SUCCESS, null)
 					: new Message(MessageType.REGISTRATION_FAILED, null);
@@ -176,4 +125,5 @@ public class DBcustomerService {
 			e.printStackTrace();
 		}
 	}
+
 }

@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.layout.VBox?>
 
+<VBox fx:id="mainContainer" prefHeight="450.0" prefWidth="500.0" xmlns="http://javafx.scene.com/javafx/8.0.171" xmlns:fx="http://fxml.com/fxml/1" fx:controller="client.gui.ServiceRepController">
+   </VBox>
 
-<VBox fx:id="mainContainer" prefHeight="450.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.ServiceRepController">
-   <children>
-      <Button mnemonicParsing="false" onAction="#logoutbtn" text="Log Out" />
-   </children>
-</VBox>

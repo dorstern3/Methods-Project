@@ -6,36 +6,28 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.util.Random;
 
 import client.logic.ServiceRepLogic;
 import common.Message;
 import common.MessageType;
 
-/**
- * Controller class for the Service Representative Panel.
- * Manages the user interface for registering new Family Subscribers, 
- * Single Subscribers, and Group Guides into the GoNature system.
- */
-public class ServiceRepController {
+public class ServiceRepController{
 
-    @FXML 
-    private VBox mainContainer;
-    
+    private Connection dbConnection;
+    @FXML private VBox mainContainer;
     private TextField famFname, famLname, famId, famPhone, famEmail, famMembers;
     private TextField sFname, sLname, sId, sPhone, sEmail;
     private TextField gFname, gLname, gId, gPhone, gEmail;
     private ServiceRepLogic logic;
 
-    /**
-     * Initializes the user interface panel.
-     * Automatically called after the FXML file is loaded.
-     * Constructs the tabs and form fields for the registration processes.
-     */
-    @FXML
+    // Initializes the user interface panel and establishes database connection
     public void initialize() {
         logic = new ServiceRepLogic();
         
-        mainContainer.setSpacing(10);
+    	mainContainer.setSpacing(10);
         mainContainer.setPadding(new Insets(20));
         mainContainer.setAlignment(Pos.TOP_LEFT);
 
@@ -50,7 +42,7 @@ public class ServiceRepController {
         Tab groupTab = new Tab("Group Guide");
 
         // ---------------------------------------------------------------------
-        // Tab 1: Family Subscription Setup
+        // Tab 1: Family Subscription
         // ---------------------------------------------------------------------
         VBox familyVBox = new VBox(10);
         familyVBox.setPadding(new Insets(10));
@@ -79,13 +71,15 @@ public class ServiceRepController {
         familyGrid.add(famMembers, 1, 5);
 
         Button familySubmitBtn = new Button("Register to System");
+        
+        //handleFamilyRegister() 
         familySubmitBtn.setOnAction(e -> handleFamilyRegister());
 
         familyVBox.getChildren().addAll(familyGrid, familySubmitBtn);
         familyTab.setContent(familyVBox);
 
         // ---------------------------------------------------------------------
-        // Tab 2: Single Subscription Setup
+        // Tab 2: Single Subscription
         // ---------------------------------------------------------------------
         VBox singleVBox = new VBox(10);
         singleVBox.setPadding(new Insets(10));
@@ -111,13 +105,13 @@ public class ServiceRepController {
         singleGrid.add(sEmail, 1, 4);
 
         Button singleSubmitBtn = new Button("Register to System");
-        singleSubmitBtn.setOnAction(e -> handleSingleRegister());
         
+        singleSubmitBtn.setOnAction(e -> handleSingleRegister());
         singleVBox.getChildren().addAll(singleGrid, singleSubmitBtn);
         singleTab.setContent(singleVBox);
 
         // ---------------------------------------------------------------------
-        // Tab 3: Group Guide Setup
+        // Tab 3: Group Guide
         // ---------------------------------------------------------------------
         VBox groupVBox = new VBox(10);
         groupVBox.setPadding(new Insets(10));
@@ -143,6 +137,7 @@ public class ServiceRepController {
         groupGrid.add(gEmail, 1, 4);
 
         Button groupSubmitBtn = new Button("Register to System");
+        
         groupSubmitBtn.setOnAction(e -> handleGuideRegister());
 
         groupVBox.getChildren().addAll(groupGrid, groupSubmitBtn);
@@ -150,16 +145,10 @@ public class ServiceRepController {
 
         tabPane.getTabs().addAll(familyTab, singleTab, groupTab);
         mainContainer.getChildren().addAll(title, tabPane);
+
     }
 
-    /**
-     * Displays structural popup notifications on the screen for success or error feedback.
-     * Ensures the alert is triggered on the main JavaFX Application Thread.
-     *
-     * @param type    The specific AlertType (e.g., ERROR, INFORMATION).
-     * @param title   The title of the alert window.
-     * @param content The main body message of the alert.
-     */
+    // Displays structural popup notifications on the screen for success or error feedback
     private void showAlert(Alert.AlertType type, String title, String content) {
         Platform.runLater(() -> {
             Alert alert = new Alert(type);
@@ -170,10 +159,8 @@ public class ServiceRepController {
         });
     }
     
-    /**
-     * Validates input fields and delegates the Family Subscription registration request to the logic layer.
-     */
     private void handleFamilyRegister() {
+       
         if (famFname.getText().trim().isEmpty() || famLname.getText().trim().isEmpty() || 
             famId.getText().trim().isEmpty() || famPhone.getText().trim().isEmpty() || 
             famEmail.getText().trim().isEmpty() || famMembers.getText().trim().isEmpty()) {
@@ -185,16 +172,19 @@ public class ServiceRepController {
         String phoneText = famPhone.getText().trim();
         String membersText = famMembers.getText().trim();
 
+       
         if (idText.length() != 5 || !idText.matches("\\d+")) {
             showAlert(Alert.AlertType.ERROR, "Invalid ID Number", "ID Number must be exactly 5 digits long!");
             return;
         }
 
+        
         if (!phoneText.matches("[0-9\\-]+")) {
             showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile Number must contain digits only!");
             return;
         }
 
+       
         int parsedMembers;
         try {
             parsedMembers = Integer.parseInt(membersText);
@@ -207,6 +197,7 @@ public class ServiceRepController {
             return;
         }
 
+        
         Message response = logic.requestFamilyRegistration(
             Integer.parseInt(idText), famFname.getText().trim(), famLname.getText().trim(),
             famEmail.getText().trim(), phoneText, parsedMembers
@@ -221,10 +212,8 @@ public class ServiceRepController {
         }
     }
     
-    /**
-     * Validates input fields and delegates the Single Subscription registration request to the logic layer.
-     */
     private void handleSingleRegister() {
+          
         if (sFname.getText().trim().isEmpty() || sLname.getText().trim().isEmpty() || 
             sId.getText().trim().isEmpty() || sPhone.getText().trim().isEmpty() || 
             sEmail.getText().trim().isEmpty()) {
@@ -235,16 +224,19 @@ public class ServiceRepController {
         String idText = sId.getText().trim();
         String phoneText = sPhone.getText().trim();
 
+       
         if (idText.length() != 5 || !idText.matches("\\d+")) {
             showAlert(Alert.AlertType.ERROR, "Invalid ID Number", "ID Number must be exactly 5 digits long!");
             return;
         }
 
+        
         if (!phoneText.matches("[0-9\\-]+")) {
             showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile Number must contain digits only!");
             return;
         }
 
+         
         Message response = logic.requestSingleRegistration(
             Integer.parseInt(idText), sFname.getText().trim(), sLname.getText().trim(),
             sEmail.getText().trim(), phoneText
@@ -259,11 +251,8 @@ public class ServiceRepController {
         }
     }
     
-    /**
-     * Validates input fields and delegates the Group Guide registration request to the logic layer.
-     * Crucially includes the Guide's ID parameter in the request package.
-     */
     private void handleGuideRegister() {
+        
         if (gFname.getText().trim().isEmpty() || gLname.getText().trim().isEmpty() || 
             gId.getText().trim().isEmpty() || gPhone.getText().trim().isEmpty() || 
             gEmail.getText().trim().isEmpty()) {
@@ -274,19 +263,21 @@ public class ServiceRepController {
         String idText = gId.getText().trim();
         String phoneText = gPhone.getText().trim();
 
+        
         if (idText.length() != 5 || !idText.matches("\\d+")) {
             showAlert(Alert.AlertType.ERROR, "Invalid ID Number", "ID Number must be exactly 5 digits long!");
             return;
         }
 
+        
         if (!phoneText.matches("[0-9\\-]+")) {
             showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile Number must contain digits only!");
             return;
         }
 
+        
         Message response = logic.requestGuideRegistration(
-            Integer.parseInt(idText), gFname.getText().trim(), gLname.getText().trim(), 
-            gEmail.getText().trim(), phoneText
+            gFname.getText().trim(), gLname.getText().trim(), gEmail.getText().trim(), phoneText
         );
 
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
@@ -296,11 +287,4 @@ public class ServiceRepController {
             showAlert(Alert.AlertType.ERROR, "Registration Failed", "Server rejected guide registration.");
         }
     }
-    /**
-     * Logs the service rep out of the system.
-     */
-	@FXML
-	public void logoutbtn() {
-		client.logic.CurUser.logout();
-	}
 }
