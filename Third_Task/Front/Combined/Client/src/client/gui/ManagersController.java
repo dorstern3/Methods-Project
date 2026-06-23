@@ -150,7 +150,7 @@ public class ManagersController {
             ((javafx.scene.Node)e.getSource()).getScene().getWindow().hide();
             
             
-            client.logic.CurUser.Logout();
+            client.logic.CurUser.logout();
         });
 
        
