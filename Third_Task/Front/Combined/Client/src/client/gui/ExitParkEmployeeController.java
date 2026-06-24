@@ -47,40 +47,37 @@ public class ExitParkEmployeeController {
     public void onRegisterExitClicked(ActionEvent event) {
         String inputId = visitorIdInput.getText().trim();
 
-        // 1. Check if the field is empty
+        // 1. Validate that the input field is not empty
         if (inputId.isEmpty()) {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Please enter a valid Visitor ID or QR code.");
+            statusLabel.setText("Please enter a valid Order ID or QR code.");
             return;
         }
 
-        // 2. Input Validation (Numbers only, since IDs and Sub Numbers are INTs)
-        if (!inputId.matches("[0-9]+")) {
+        // 2. Validate input format: Allow alphanumeric characters for Order IDs and QR Codes.
+        // Removed the previous strict numeric-only check to support alphanumeric QR strings.
+        if (!inputId.matches("[a-zA-Z0-9]+")) {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("ID must contain only numbers.");
+            statusLabel.setText("Invalid format! Input must contain letters or numbers only.");
             return;
         }
         
-        // 3. Length Validation (Enforce 4 digits for Subscriber, 5 digits for Regular ID)
-        if (inputId.length() != 4 && inputId.length() != 5) {
-            statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Invalid Length! Subscriber must be 4 digits. ID must be 5 digits.");
-            return;
-        }
-
-        // 4. Delegate the exit process to the logic layer if validation passes
+        // 3. Delegate the exit process to the logic layer
+        // The logic layer will handle the specific lookup in the database 
+        // whether the input is a numeric Order ID or an alphanumeric QR Code.
         boolean isSuccess = exitLogic.registerExit(inputId, null);
 
         if (isSuccess) {
             statusLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
             statusLabel.setText("Exit registered successfully! Park capacity updated.");
             
-            // Clear the input field for the next visitor
+            // Clear input field for the next transaction
             visitorIdInput.clear();
             
-            // Auto-refresh the capacity after a successful exit
+            // Auto-refresh the live park capacity display after a successful exit
             updateLiveCapacity();
         } else {
+            // Display error if the parameter does not match any active 'Entered' order in the system
             statusLabel.setStyle("-fx-text-fill: red;");
             statusLabel.setText("Exit rejected. Parameters do not match any active 'Entered' order.");
         }
