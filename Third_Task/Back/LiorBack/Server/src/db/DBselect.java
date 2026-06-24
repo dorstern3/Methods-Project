@@ -327,4 +327,71 @@ public class DBselect {
 
 		return null;
 	}
+	
+	/**
+	 * Checks if a traveler has an active upcoming or existing order that can be managed.
+	 * Strictly excludes realized (Entered) or canceled states.
+	 */
+	public static boolean hasManageableOrder(String travelerId) {
+	    // Exclude ONLY 'Canceled' and 'Entered' statuses
+	    String query = "SELECT COUNT(*) FROM gonature_db_new.order WHERE id = ? " 
+	            + "AND status NOT IN ('Canceled', 'Entered')";
+	            
+	    try (Connection conn = DBconnection.getConnection();
+	         PreparedStatement ps = conn.prepareStatement(query)) {
+	        ps.setString(1, travelerId);
+	        
+	        try (ResultSet rs = ps.executeQuery()) {
+	            if (rs.next()) {
+	                return rs.getInt(1) > 0;
+	            }
+	        }
+	    } catch (SQLException e) {
+	        System.out.println("Error checking manageable order: " + e.getMessage());
+	        e.printStackTrace();
+	    }
+	    return false;
+	}
+	/**
+	 * Checks if a traveler is currently inside the park (Entered) and has not exited yet.
+	 */
+	public static boolean isCurrentlyInsidePark(String travelerId) {
+	    String query = "SELECT COUNT(*) FROM gonature_db_new.order WHERE id = ? " 
+	            + "AND status = 'Entered' "
+	            + "AND exit_time IS NULL";
+	            
+	    try (Connection conn = DBconnection.getConnection();
+	         PreparedStatement ps = conn.prepareStatement(query)) {
+	        ps.setString(1, travelerId);
+	        
+	        try (ResultSet rs = ps.executeQuery()) {
+	            if (rs.next()) {
+	                return rs.getInt(1) > 0;
+	            }
+	        }
+	    } catch (SQLException e) {
+	        System.out.println("Error checking inside park status: " + e.getMessage());
+	        e.printStackTrace();
+	    }
+	    return false;
+	}
+	/**
+	 * Translates a subscriber number to the corresponding traveler ID.
+	 * @param subNumber The subscriber number to translate.
+	 * @return The traveler ID as a string, or null if not found.
+	 */
+	public static String getTravelerIdBySubNumber(String subNumber) {
+	    try {
+	        Connection conn = DBconnection.getConnection();
+	        PreparedStatement ps = conn.prepareStatement("SELECT id FROM gonature_db_new.subscriber WHERE sub_number = ?");
+	        ps.setString(1, subNumber);
+	        ResultSet rs = ps.executeQuery();
+	        if (rs.next()) {
+	            return rs.getString("id");
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return null;
+	}
 }

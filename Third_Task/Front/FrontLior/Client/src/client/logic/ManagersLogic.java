@@ -8,7 +8,6 @@ import common.ParameterRequest;
 /**
  * Business logic layer for Manager operations.
  * Marshals ParameterRequest objects to and from the server.
- * @author Adi
  */
 public class ManagersLogic {
 

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 
 import client.ClientUI;
 import client.logic.EntranceLogic;
+import client.logic.OrderLogic;
 import client.logic.ScreenSwitch;
 
 /**
@@ -64,7 +65,13 @@ public class TravelerEntryController {
 	void clickManageOrder(ActionEvent event) {
 		lblError.setText("");
 		String travelerId = txtTravelerId.getText();
-
+		OrderLogic orderLogic = new OrderLogic();
+		
+		// FIXED: Call the future manageable order validator
+	    if (!orderLogic.checkManageableOrderExists(travelerId)) {
+	        lblError.setText("Error: Only travelers with an active upcoming order can access Manage Order.");
+	        return;
+	    }
 		if (travelerId == null || travelerId.trim().isEmpty()) {
 			lblError.setText("Please enter ID or Subscriber Number first!");
 			return;
@@ -159,7 +166,13 @@ public class TravelerEntryController {
 	public void onExitParkClicked(ActionEvent event) {
 		lblError.setText("");
 		String travelerId = txtTravelerId.getText();
-
+		OrderLogic orderLogic = new OrderLogic();
+		
+		// FIXED: Call the current inside-park validator
+	    if (!orderLogic.checkActiveCheckInExists(travelerId)) {
+	        lblError.setText("Error: Only travelers currently inside the park can access Exit Park.");
+	        return;
+	    }
 		if (travelerId == null || travelerId.trim().isEmpty()) {
 			lblError.setText("Please enter ID or Subscriber Number first!");
 			return;
@@ -186,6 +199,7 @@ public class TravelerEntryController {
 		client.gui.ExitParkVisitorController.currentTravelerId = travelerId;
 		ScreenSwitch.switchScreen("/client/gui/ExitParkVisitor.fxml", "Visitor Exit");
 	}
+
 	
 	/**
      * Handles the click event for the "Edit/View Subscriber Details" button.

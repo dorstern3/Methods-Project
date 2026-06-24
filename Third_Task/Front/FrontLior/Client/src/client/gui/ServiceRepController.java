@@ -5,18 +5,22 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 
+import java.util.ArrayList;
+
+import client.logic.CurUser;
 import client.logic.ServiceRepLogic;
-import client.logic.ScreenSwitch; // Required for screen navigation after logout
 import common.Message;
 import common.MessageType;
+import common.Subscriber;
+import common.Workers;
 
 /**
  * Controller class for the Service Representative Panel.
  * Manages the user interface for registering new Family Subscribers, 
  * Single Subscribers, and Group Guides into the GoNature system.
- * Implements centralized input validation to maintain clean and DRY (Don't Repeat Yourself) code.
  */
 public class ServiceRepController {
 
@@ -31,7 +35,7 @@ public class ServiceRepController {
     /**
      * Initializes the user interface panel.
      * Automatically called after the FXML file is loaded.
-     * Constructs the tabs, layout forms, and header components including the logout button.
+     * Constructs the tabs and form fields for the registration processes.
      */
     @FXML
     public void initialize() {
@@ -41,12 +45,82 @@ public class ServiceRepController {
         mainContainer.setPadding(new Insets(20));
         mainContainer.setAlignment(Pos.TOP_LEFT);
 
+        Label title = new Label("Service Representative Panel");
+        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        
+        Label myInfo = new Label(CurUser.getMyInfo());
+        myInfo.setStyle(
+                "-fx-background-color: #F8F9FA; " +      
+                "-fx-border-color: #E0E0E0; " +          
+                "-fx-border-width: 1px; " +              
+                "-fx-background-radius: 10px; " +        
+                "-fx-border-radius: 10px; " +            
+                "-fx-font-family: 'Segoe UI', sans-serif; " + 
+                "-fx-font-size: 13px; " +                
+                "-fx-text-fill: #333333; " +             
+                "-fx-line-spacing: 5px;"                 
+            );
+        myInfo.setPadding(new javafx.geometry.Insets(12, 16, 12, 16));
+        myInfo.setAlignment(javafx.geometry.Pos.TOP_LEFT);
+            
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-
         Tab familyTab = new Tab("Family Subscription");
         Tab singleTab = new Tab("Single Subscription");
         Tab groupTab = new Tab("Group Guide");
+        
+        Tab infoTab = new Tab("My Info");
+        infoTab.setContent(myInfo);
+        
+        // ---------------------------------------------------------------------
+        // General Info Tab: Workers and Subscribers
+        // ---------------------------------------------------------------------
+        Tab totalInfoTab = new Tab("Workers/Subscribers info");
+        
+        ComboBox<String> viewSelector = new ComboBox<>();
+        viewSelector.getItems().addAll("Subscribers", "Workers");
+        viewSelector.setValue("Subscribers"); 
+        viewSelector.setStyle("-fx-font-size: 13px; -fx-background-radius: 5px;");
+
+        TableView<Subscriber> subscriberTable = new TableView<>(); 
+        TableColumn<Subscriber, String> subFname  = createColumn("First name", "fname", 120);
+        TableColumn<Subscriber, String> subLname  = createColumn("Last name", "lname", 120);
+        TableColumn<Subscriber, String> subEmail  = createColumn("Email", "email", 160); 
+        TableColumn<Subscriber, String> subPhone  = createColumn("Phone number", "phone", 120);
+        TableColumn<Subscriber, String> subCard   = createColumn("Credit card", "card", 150);
+        TableColumn<Subscriber, Integer> subFamily = createColumn("Family members", "familyMembers", 120);
+        TableColumn<Subscriber, Integer> subNum    = createColumn("Subscriber number", "subNum", 130);
+        subscriberTable.getColumns().addAll(subFname, subLname, subEmail, subPhone, subCard, subFamily, subNum);
+
+        TableView<Workers> workersTable = new TableView<>();
+        TableColumn<Workers, String> workFname = createColumn("First name", "firstName", 120);
+        TableColumn<Workers, String> workLname = createColumn("Last name", "lastName", 120);
+        TableColumn<Workers, String> workEmail = createColumn("Email", "email", 160);
+        TableColumn<Workers, String> workRole  = createColumn("Role", "role", 120);
+        TableColumn<Workers, String> workPark  = createColumn("Park Name", "parkName", 120);
+        workersTable.getColumns().addAll(workFname, workLname, workEmail, workRole, workPark);
+
+        StackPane tableContainer = new StackPane();
+        tableContainer.getChildren().add(subscriberTable); 
+        VBox.setVgrow(tableContainer, Priority.ALWAYS); 
+
+        viewSelector.setOnAction(e -> {
+            tableContainer.getChildren().clear();
+            if ("Subscribers".equals(viewSelector.getValue())) {
+                tableContainer.getChildren().add(subscriberTable);
+                ArrayList<Subscriber> subs = logic.loadSubscribers();
+                subscriberTable.getItems().setAll(subs);
+            } else {
+                tableContainer.getChildren().add(workersTable);
+                ArrayList<Workers> workers = logic.loadWorkers();
+                workersTable.getItems().setAll(workers);
+            }
+        });
+
+        VBox totalInfoVBox = new VBox(15);
+        totalInfoVBox.setPadding(new Insets(15));
+        totalInfoVBox.getChildren().addAll(new Label("Select View Type:"), viewSelector, tableContainer);
+        totalInfoTab.setContent(totalInfoVBox);
 
         // ---------------------------------------------------------------------
         // Tab 1: Family Subscription Setup
@@ -111,7 +185,7 @@ public class ServiceRepController {
 
         Button singleSubmitBtn = new Button("Register to System");
         singleSubmitBtn.setOnAction(e -> handleSingleRegister());
-        
+            
         singleVBox.getChildren().addAll(singleGrid, singleSubmitBtn);
         singleTab.setContent(singleVBox);
 
@@ -147,19 +221,12 @@ public class ServiceRepController {
         groupVBox.getChildren().addAll(groupGrid, groupSubmitBtn);
         groupTab.setContent(groupVBox);
 
-        tabPane.getTabs().addAll(familyTab, singleTab, groupTab);
-        
-        // Add the configured tabs to the main layout
-        mainContainer.getChildren().addAll(tabPane);
+        tabPane.getTabs().addAll(familyTab, singleTab, groupTab, totalInfoTab, infoTab); 
+        mainContainer.getChildren().addAll(title, tabPane);
     }
 
     /**
-     * Displays UI popup notifications on the screen for success or error feedback.
-     * Ensures execution runs safely on the main JavaFX Application Thread.
-     *
-     * @param type    The specific AlertType configuration (e.g., ERROR, INFORMATION).
-     * @param title   The title of the alert window.
-     * @param content The main body message text content.
+     * Displays structural popup notifications on the screen for success or error feedback.
      */
     private void showAlert(Alert.AlertType type, String title, String content) {
         Platform.runLater(() -> {
@@ -170,176 +237,218 @@ public class ServiceRepController {
             alert.showAndWait();
         });
     }
-
-    /**
-     * Helper method to validate the 5 common input fields shared across all registration forms.
-     * Prevents code duplication following the DRY (Don't Repeat Yourself) principle.
-     *
-     * @param fname     First Name string.
-     * @param lname     Last Name string.
-     * @param idText    ID Number string.
-     * @param phoneText Mobile Number string.
-     * @param emailText Email address string.
-     * @return true if all inputs meet the structural formatting requirements, false otherwise.
-     */
-    private boolean isCommonInputValid(String fname, String lname, String idText, String phoneText, String emailText) {
-        // 1. Check for empty fields
-        if (fname.isEmpty() || lname.isEmpty() || idText.isEmpty() || phoneText.isEmpty() || emailText.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields!");
-            return false;
-        }
-
-        // 2. Validate names contain ENGLISH letters and spaces only
-        if (!fname.matches("[a-zA-Z\\s]+") || !lname.matches("[a-zA-Z\\s]+")) {
-            showAlert(Alert.AlertType.ERROR, "Invalid Name", "First and Last names must contain only English letters!");
-            return false;
-        }
-
-        // 3. Validate ID formatting constraints (exactly 5 digits)
-        if (!idText.matches("\\d{5}")) {
-            showAlert(Alert.AlertType.ERROR, "Invalid ID Number", "ID Number must be 5 digits long (numbers only)!");
-            return false;
-        }
-
-        // 4. Validate mobile identification (must contain only numbers)
-        if (!phoneText.matches("\\d+")) {
-            showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile Number must contain digits only!");
-            return false;
-        }
-        
-        // 5. Validate email structure (must contain an '@' symbol)
-        if (!emailText.contains("@")) {
-            showAlert(Alert.AlertType.ERROR, "Invalid Email", "Please enter an email containing an '@' symbol.");
-            return false;
-        }
-
-        return true;
-    }
     
     /**
-     * Extracts input fields, executes centralized validation logic, 
-     * verifies family size specifications, and dispatches the request to the logic layer.
+     * Validates input fields and delegates the Family Subscription registration request to the logic layer.
      */
     private void handleFamilyRegister() {
-        String fname = famFname.getText().trim();
-        String lname = famLname.getText().trim();
+        String firstName = famFname.getText().trim();
+        String lastName = famLname.getText().trim();
         String idText = famId.getText().trim();
         String phoneText = famPhone.getText().trim();
         String emailText = famEmail.getText().trim();
         String membersText = famMembers.getText().trim();
 
-        // 1. Invoke centralized validation helper
-        if (!isCommonInputValid(fname, lname, idText, phoneText, emailText)) {
+        // 1. Validation: Reject completely empty parameters
+        if (firstName.isEmpty() || lastName.isEmpty() || idText.isEmpty() || 
+            phoneText.isEmpty() || emailText.isEmpty() || membersText.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields inside Family Subscription!");
             return;
         }
 
-        // 2. Validate family-specific input parameters
-        if (membersText.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill Family Members Amount!");
+        // 2. Validation: Names must contain English alphabetic characters only
+        if (!firstName.matches("[a-zA-Z]+") || !lastName.matches("[a-zA-Z]+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Name Fields", "First name and last name must contain English letters only!");
             return;
         }
 
-        int parsedMembers;
-        try {
-            parsedMembers = Integer.parseInt(membersText);
-            if (parsedMembers <= 0) {
-                showAlert(Alert.AlertType.ERROR, "Invalid Members Amount", "Family Members Amount must be greater than 0!");
-                return;
-            }
-        } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Invalid Members Amount", "Family Members Amount must be a valid number!");
+        // 3. Validation: Identity specifications configuration (Exactly 5 digits long)
+        if (idText.length() != 5 || !idText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid ID Number", "ID Number must be exactly 5 digits long!");
             return;
         }
 
-        // 3. Dispatch the registration command message to the logic layer
+        // 4. Validation: Structural pattern checks for email fields
+        if (!emailText.contains("@")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Email Structure", "Email address must contain a valid '@' symbol.");
+            return;
+        }
+
+        // 5. Validation: Mobile number must contain digits only (Any length allowed)
+        if (!phoneText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile number must contain numeric digits only!");
+            return;
+        }
+
+        // 6. Validation: Bound the dynamic family headcount sizes securely between 1 and 15 maximum
+        if (!membersText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Format", "Family headcount must be a positive numeric value.");
+            return;
+        }
+
+        int parsedMembers = Integer.parseInt(membersText);
+        if (parsedMembers < 1 || parsedMembers > 15) {
+            showAlert(Alert.AlertType.ERROR, "Quota Boundary Broken", "Number of family members must be constrained strictly between 1 and 15 maximum.");
+            return; 
+        }
+
+        // 7. Data Pipeline Dispatching Phase
         Message response = logic.requestFamilyRegistration(
-            Integer.parseInt(idText), fname, lname, emailText, phoneText, parsedMembers
+            Integer.parseInt(idText), firstName, lastName, emailText, phoneText, parsedMembers
         );
 
-        // 4. Handle server response
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
             int subNum = (int) response.getData();
             showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Family Subscription Registered!\nSub Number: " + subNum);
-            
-            // Clear fields upon successful registration
             famFname.clear(); famLname.clear(); famId.clear(); famPhone.clear(); famEmail.clear(); famMembers.clear();
         } else {
-            showAlert(Alert.AlertType.ERROR, "Registration Failed", "Server rejected family subscription registration.");
+            // Check if the server provided a specific error reason string due to database constraint violation
+            String errorReason = (response != null && response.getData() != null) ? (String) response.getData() : "";
+            
+            if ("DUPLICATE_ID".equals(errorReason)) {
+                showAlert(Alert.AlertType.ERROR, "Registration Failed", 
+                    "Operation Aborted: This National ID Number is already registered to an active subscriber in the database!");
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Registration Failed", 
+                    "Server Error: Internal database constraint failure or network drop encountered.");
+            }
         }
     }
     
     /**
-     * Extracts input fields, executes centralized validation logic,
-     * and dispatches a single subscription request to the logic layer.
+     * Validates input fields and delegates the Single Subscription registration request to the logic layer.
      */
     private void handleSingleRegister() {
-        String fname = sFname.getText().trim();
-        String lname = sLname.getText().trim();
+        String firstName = sFname.getText().trim();
+        String lastName = sLname.getText().trim();
         String idText = sId.getText().trim();
         String phoneText = sPhone.getText().trim();
         String emailText = sEmail.getText().trim();
 
-        // 1. Invoke centralized validation helper
-        if (!isCommonInputValid(fname, lname, idText, phoneText, emailText)) {
+        // 1. Validation: Block empty variables
+        if (firstName.isEmpty() || lastName.isEmpty() || idText.isEmpty() || phoneText.isEmpty() || emailText.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields inside Single Subscription!");
             return;
         }
 
-        // 2. Dispatch the registration command message to the logic layer
+        // 2. Validation: Names must contain English alphabetic characters only
+        if (!firstName.matches("[a-zA-Z]+") || !lastName.matches("[a-zA-Z]+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Name Fields", "First name and last name must contain English letters only!");
+            return;
+        }
+
+        // 3. Validation: Identity configurations (Exactly 5 digits long)
+        if (idText.length() != 5 || !idText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid ID Number", "ID Number must be exactly 5 digits long!");
+            return;
+        }
+
+        // 4. Validation: Structural email checks
+        if (!emailText.contains("@")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Email Structure", "Email address must contain a valid '@' symbol.");
+            return;
+        }
+
+        // 5. Validation: Mobile number must contain digits only (Any length allowed)
+        if (!phoneText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile number must contain numeric digits only!");
+            return;
+        }
+
+        // 6. Data Pipeline Transmission Phase
         Message response = logic.requestSingleRegistration(
-            Integer.parseInt(idText), fname, lname, emailText, phoneText
+            Integer.parseInt(idText), firstName, lastName, emailText, phoneText
         );
 
-        // 3. Handle server response
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
             int subNum = (int) response.getData();
             showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Single Subscription Registered!\nSub Number: " + subNum);
-            
-            // Clear fields upon successful registration
             sFname.clear(); sLname.clear(); sId.clear(); sPhone.clear(); sEmail.clear();
         } else {
-            showAlert(Alert.AlertType.ERROR, "Registration Failed", "Server rejected single subscription registration.");
+            // Check if the server provided a specific error reason string due to database constraint violation
+            String errorReason = (response != null && response.getData() != null) ? (String) response.getData() : "";
+            
+            if ("DUPLICATE_ID".equals(errorReason)) {
+                showAlert(Alert.AlertType.ERROR, "Registration Failed", 
+                    "Operation Aborted: This National ID Number is already registered to an active subscriber in the database!");
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Registration Failed", 
+                    "Server Error: Internal database constraint failure or network drop encountered.");
+            }
         }
     }
     
     /**
-     * Extracts input fields, executes centralized validation logic,
-     * and dispatches a certified group guide request package to the logic layer.
+     * Validates input fields and delegates the Group Guide registration request to the logic layer.
      */
     private void handleGuideRegister() {
-        String fname = gFname.getText().trim();
-        String lname = gLname.getText().trim();
+        String firstName = gFname.getText().trim();
+        String lastName = gLname.getText().trim();
         String idText = gId.getText().trim();
         String phoneText = gPhone.getText().trim();
         String emailText = gEmail.getText().trim();
 
-        // 1. Invoke centralized validation helper
-        if (!isCommonInputValid(fname, lname, idText, phoneText, emailText)) {
+        // 1. Validation: Block incomplete arrays
+        if (firstName.isEmpty() || lastName.isEmpty() || idText.isEmpty() || phoneText.isEmpty() || emailText.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields inside Group Guide!");
             return;
         }
 
-        // 2. Dispatch the registration command message to the logic layer (includes the Guide ID)
+        // 2. Validation: Names must contain English alphabetic characters only
+        if (!firstName.matches("[a-zA-Z]+") || !lastName.matches("[a-zA-Z]+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Name Fields", "First name and last name must contain English letters only!");
+            return;
+        }
+
+        // 3. Validation: Structural sequence verification (Exactly 5 digits long)
+        if (idText.length() != 5 || !idText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid ID Number", "ID Number must be exactly 5 digits long!");
+            return;
+        }
+
+        // 4. Validation: Email criteria matching
+        if (!emailText.contains("@")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Email Structure", "Email address must contain a valid '@' symbol.");
+            return;
+        }
+
+        // 5. Validation: Mobile number must contain digits only (Any length allowed)
+        if (!phoneText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile number must contain numeric digits only!");
+            return;
+        }
+
+        // 6. Data Pipeline Transmission Phase
         Message response = logic.requestGuideRegistration(
-            Integer.parseInt(idText), fname, lname, emailText, phoneText
+            Integer.parseInt(idText), firstName, lastName, emailText, phoneText
         );
 
-        // 3. Handle server response
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
             showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Group Guide Registered Successfully!");
-            
-            // Clear fields upon successful registration
             gFname.clear(); gLname.clear(); gId.clear(); gPhone.clear(); gEmail.clear();
         } else {
-            showAlert(Alert.AlertType.ERROR, "Registration Failed", "Server rejected guide registration.");
+            // Check if the server provided a specific error reason string due to database constraint violation
+            String errorReason = (response != null && response.getData() != null) ? (String) response.getData() : "";
+            
+            if ("DUPLICATE_ID".equals(errorReason)) {
+                showAlert(Alert.AlertType.ERROR, "Registration Failed", 
+                    "Operation Aborted: This Guide ID Number is already registered to an active group guide in the database!");
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Registration Failed", 
+                    "Server Error: Internal database constraint failure or network drop encountered.");
+            }
         }
     }
-    
-    /**
-     * Logs the service representative out of the active user session 
-     * and redirects the window back to the main login panel screen view.
-     */
+
     @FXML
     public void logoutbtn() {
         client.logic.CurUser.logout();
-        ScreenSwitch.switchScreen("/client/gui/LoginScreen.fxml", "GoNature Login");
+    }
+    
+    private <S,T> TableColumn<S, T> createColumn(String title, String propertyName, double prefWidth) {
+        TableColumn<S, T> column = new TableColumn<>(title);
+        column.setPrefWidth(prefWidth);
+        column.setCellValueFactory(new PropertyValueFactory<>(propertyName));
+        return column;
     }
 }

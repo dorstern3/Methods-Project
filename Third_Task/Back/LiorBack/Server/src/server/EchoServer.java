@@ -212,6 +212,20 @@ public class EchoServer extends AbstractServer {
 					}
 					break;
 				}
+				case CHECK_ORDER_EXISTENCE:{
+				    String data = (String) message.getData();
+				    boolean exists;
+				    
+				    if (data.startsWith("CHECK_EXIT:")) {
+				        String realId = data.replace("CHECK_EXIT:", "");
+				        exists = db.DBselect.isCurrentlyInsidePark(realId); 
+				    } else {
+				        exists = db.DBselect.hasManageableOrder(data); 
+				    }
+				    
+				    client.sendToClient(new Message(MessageType.CHECK_ORDER_RESPONSE, exists));
+				    break;
+				}
 				case CHECK_AVAILABILITY: {
 					Order orderDetails = (Order) message.getData();
 					boolean isAvailable = DBselect.checkAvailability(orderDetails);
@@ -271,18 +285,26 @@ public class EchoServer extends AbstractServer {
 					break;
 				}
 				case FETCH_ORDER_DETAILS: {
-					ArrayList<Object> searchParams = (ArrayList<Object>) message.getData();
-					int orderNum = (int) searchParams.get(0);
-					String travelerIdStr = (String) searchParams.get(1);
+				    ArrayList<Object> searchParams = (ArrayList<Object>) message.getData();
+				    int orderNum = (int) searchParams.get(0);
+				    String travelerIdStr = (String) searchParams.get(1);
 
-					Order validatedOrder = db.DBselect.fetchOrderWithValidation(orderNum, travelerIdStr);
+				    try {
+				        if (travelerIdStr != null && travelerIdStr.length() == 4) {
+				            String convertedId = db.DBselect.getTravelerIdBySubNumber(travelerIdStr);
+				            if (convertedId != null) {
+				                travelerIdStr = convertedId;
+				            }
+				        }
 
-					try {
-						client.sendToClient(new Message(MessageType.FETCH_ORDER_RESULT, validatedOrder));
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					break;
+				        Order validatedOrder = db.DBselect.fetchOrderWithValidation(orderNum, travelerIdStr);
+				        client.sendToClient(new Message(MessageType.FETCH_ORDER_RESULT, validatedOrder));
+				        
+				    } catch (IOException e) {
+				        System.err.println("Server Error during FETCH_ORDER_DETAILS: " + e.getMessage());
+				        e.printStackTrace();
+				    }
+				    break;
 				}
 				case UPDATE_ORDER_STATUS: {
 					ArrayList<Object> updateData = (ArrayList<Object>) message.getData();
@@ -337,9 +359,18 @@ public class EchoServer extends AbstractServer {
 					client.sendToClient(new Message(MessageType.CLEAN_WAITING_LIST_RESULT, canceledCount));
 					break;
 				}
-				case UPDATE_SUBSCRIBER_DETAILS:
+				case UPDATE_SUBSCRIBER_DETAILS:{
 				    handleUpdateSubscriberDetails(message, client);
 				    break;
+				}
+				case GET_SUBSCRIBERS_LIST:{
+				    db.DBparks.handleGetSubscribersList(message, client);
+				    break;
+				}
+				case GET_WORKERS_LIST:{
+					db.DBparks.handleGetWorkersList(message, client);
+				    break;
+				}
 				default:
 					System.out.println("Server: Unknown message type received.");
 					break;

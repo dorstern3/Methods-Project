@@ -67,4 +67,13 @@ public class CurUser {
     public static String getRole() { return role; }
     public static String getParkName() { return parkName; }
     public static boolean isLoggedIn() { return isLoggedIn; }
+    
+    //Added
+    public static String getMyInfo() {
+    	return  "Full name: " + getFullName() + "\n" + 
+    			"Email: "+ email + "\n" +
+    			"Role: "+ role + "\n" 
+    			+ (("Dept_manager").equals(role) ? "Parks: All\n" : "My park: "+ parkName + "\n");
+    }
+    // End
 }

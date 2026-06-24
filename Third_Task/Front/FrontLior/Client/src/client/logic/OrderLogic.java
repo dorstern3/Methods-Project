@@ -149,6 +149,30 @@ public class OrderLogic {
 		Message response = (Message) client.ClientUI.clientChat.accept(msg);
 		return response != null && response.getType() == MessageType.LOGOUT_SUCCESS;
 	}
+	/**
+	 * Checks if a traveler has a future active order that can be managed.
+	 */
+	public boolean checkManageableOrderExists(String travelerId) {
+		Message msg = new Message(MessageType.CHECK_ORDER_EXISTENCE, travelerId); // Or a custom type if preferred
+		Message response = (Message) ClientUI.clientChat.accept(msg);
+		if (response != null && response.getType() == MessageType.CHECK_ORDER_RESPONSE) {
+			return (boolean) response.getData();
+		}
+		return false;
+	}
+
+	/**
+	 * Checks if a traveler is currently inside the park and can exit.
+	 */
+	public boolean checkActiveCheckInExists(String travelerId) {
+		// Tip: You can create a new MessageType like CHECK_EXIT_ELIGIBILITY if you want total separation
+		Message msg = new Message(MessageType.CHECK_ORDER_EXISTENCE, "CHECK_EXIT:" + travelerId); 
+		Message response = (Message) ClientUI.clientChat.accept(msg);
+		if (response != null && response.getType() == MessageType.CHECK_ORDER_RESPONSE) {
+			return (boolean) response.getData();
+		}
+		return false;
+	}
 
 	/**
 	 * Sends an order update request directly to the server. * @param order The
