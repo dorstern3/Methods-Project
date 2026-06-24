@@ -3,6 +3,7 @@ package client.gui;
 import client.logic.CurUser;
 import client.logic.LoginLogic;
 import client.logic.ScreenSwitch;
+import common.Message;
 import common.MessageType;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -54,8 +55,8 @@ public class EmployeeLoginController {
     void clickLogin(ActionEvent event) {
         String username = txtUsername.getText();
         String password = txtPassword.getText();
-        MessageType response = loginLogic.authenticateUser(username, password);
-        if(response == MessageType.LOGIN_SUCCESS) {
+        Message response = loginLogic.authenticateUser(username, password);
+        if(response.getType() == MessageType.LOGIN_SUCCESS) {
         	System.out.println("Login attempt - Username: " + username + " | Password: " + password);
         	switch(CurUser.getRole()) {
 	        	case "Park_manager":{
@@ -75,15 +76,12 @@ public class EmployeeLoginController {
 	        		break;
 	        	}
 	        	default:
-	        		//ScreenSwitch.switchScreen("/client/gui/Dashboard.fxml","Dashboard");
         	}
         }
         else {
-        	errorMessage.setText("Failed to login");
+        	errorMessage.setText((String)response.getData());
         	return;
         }
-        //System.out.println("Login attempt - Username: " + username + " | Password: " + password);
-        //ScreenSwitch.switchScreen("/client/gui/Dashboard.fxml" , "Dashboard");
     }
     
 }

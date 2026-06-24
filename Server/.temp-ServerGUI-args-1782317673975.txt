@@ -1,0 +1,11 @@
+--add-modules
+javafx.controls,javafx.fxml
+-Dfile.encoding=UTF-8
+-Dstdout.encoding=UTF-8
+-Dstderr.encoding=UTF-8
+-p
+"C:\\Users\\dorst\\.p2\\pool\\plugins\\org.eclipse.fx.ide.css.jfx8_3.11.0.202512050800.jar;C:\\Users\\dorst\\Downloads\\openjfx-17.0.19_windows-x64_bin-sdk\\javafx-sdk-17.0.19\\lib\\javafx.base.jar;C:\\Users\\dorst\\Downloads\\openjfx-17.0.19_windows-x64_bin-sdk\\javafx-sdk-17.0.19\\lib\\javafx.controls.jar;C:\\Users\\dorst\\Downloads\\openjfx-17.0.19_windows-x64_bin-sdk\\javafx-sdk-17.0.19\\lib\\javafx.fxml.jar;C:\\Users\\dorst\\Downloads\\openjfx-17.0.19_windows-x64_bin-sdk\\javafx-sdk-17.0.19\\lib\\javafx.graphics.jar;C:\\Users\\dorst\\Downloads\\openjfx-17.0.19_windows-x64_bin-sdk\\javafx-sdk-17.0.19\\lib\\javafx.media.jar;C:\\Users\\dorst\\Downloads\\openjfx-17.0.19_windows-x64_bin-sdk\\javafx-sdk-17.0.19\\lib\\javafx.swing.jar;C:\\Users\\dorst\\Downloads\\openjfx-17.0.19_windows-x64_bin-sdk\\javafx-sdk-17.0.19\\lib\\javafx.web.jar;C:\\Users\\dorst\\Downloads\\openjfx-17.0.19_windows-x64_bin-sdk\\javafx-sdk-17.0.19\\lib\\javafx-swt.jar"
+-classpath
+"C:\\Users\\dorst\\Desktop\\try\\Methods-Project\\Third_Task\\Back\\Combined\\Server\\bin;C:\\Users\\dorst\\Desktop\\OCSF\\bin;C:\\Users\\dorst\\Downloads\\mysql-connector-j-9.6.0\\mysql-connector-j-9.6.0\\mysql-connector-j-9.6.0.jar"
+-XX:+ShowCodeDetailsInExceptionMessages
+server.ServerGUI

@@ -66,7 +66,7 @@ public class ServerGUI extends Application {
             String cleanIp = ip.replace("/", "").trim();
             String cleanPort = port.trim();
 
-            // Search for an existing client in the list by a unique combination of IP and port to avoid duplicates
+            // Search for an existing client in the list by a unique combination of IP agnd port to avoid duplicates
             ConnectedClient existingClient = clientsList.stream()
                     .filter(c -> c.getIp().equals(cleanIp) && c.getPort().equals(cleanPort))
                     .findFirst()

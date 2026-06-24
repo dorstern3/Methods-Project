@@ -1,5 +1,9 @@
 package client.logic;
 
+import client.ClientUI;
+import common.Message;
+import common.MessageType;
+
 /**
  * Global session class to hold the currently authenticated user.
  * Built as a simple static utility class for ease of use across screens.
@@ -33,6 +37,16 @@ public class CurUser {
      * Clears all fields and resets the session on logout.
      */
     public static void logout() {
+    	if (isLoggedIn) {
+            String workerIdStr = String.valueOf(employeeId);
+            Message msg = new Message(MessageType.LOGOUT_REQUEST, workerIdStr);
+            
+            try {
+                ClientUI.clientChat.accept(msg);
+            } catch (Exception e) {
+                System.err.println("Could not send logout message to server: " + e.getMessage());
+            }
+        }
         employeeId = 0;
         firstName = null;
         lastName = null;

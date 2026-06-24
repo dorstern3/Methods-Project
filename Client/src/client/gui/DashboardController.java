@@ -5,7 +5,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 
-public class EmployeeDashboardController {
+public class DashboardController {
 	
 	private static final String BASE_URL = "/client/gui/";
 	
@@ -23,9 +23,10 @@ public class EmployeeDashboardController {
         String fullFxmlPath = BASE_URL + buttonId + ".fxml";
         ScreenSwitch.switchScreen(fullFxmlPath, title);
     }
+	
 	@FXML
-	public void onLogoutClicked(ActionEvent event) {
-	    client.logic.CurUser.logout(); 
+	public void logoutbtn() {
+		client.logic.CurUser.logout();
 	}
     
 }

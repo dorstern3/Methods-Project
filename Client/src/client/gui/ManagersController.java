@@ -55,7 +55,26 @@ public class ManagersController {
 
         
         parkSelectorComboBox = new ComboBox<>();
-        parkSelectorComboBox.getItems().addAll("Achziv", "Banias", "Caesarea", "Ein Gedi", "Masada"); // כל הפארקים מה-DB
+        
+        
+        try {
+            Message getParksRequest = new Message(MessageType.GET_PARKS, null);
+            Message getParksResponse = (Message) client.ClientUI.clientChat.accept(getParksRequest);
+
+            if (getParksResponse != null && getParksResponse.getType() == MessageType.GET_PARKS_RESPONSE) {
+               
+                java.util.ArrayList<String> dbParks = (java.util.ArrayList<String>) getParksResponse.getData();
+                parkSelectorComboBox.getItems().addAll(dbParks);
+            } else {
+                System.err.println(" Failed to load parks from DB, falling back to defaults.");
+                parkSelectorComboBox.getItems().addAll("Achziv", "Banias", "Caesarea", "Ein Gedi", "Masada");
+            }
+        } catch (Exception e) {
+            System.err.println(" Exception while fetching parks list from server:");
+            e.printStackTrace();
+            
+            parkSelectorComboBox.getItems().addAll("Achziv", "Banias", "Caesarea", "Ein Gedi", "Masada");
+        }
         
        
         String initialPark = CurUser.getParkName();
@@ -131,7 +150,7 @@ public class ManagersController {
             ((javafx.scene.Node)e.getSource()).getScene().getWindow().hide();
             
             
-            ScreenSwitch.switchScreen("/client/gui/EmployeeLogin.fxml", "Employee Login");
+            client.logic.CurUser.logout();
         });
 
        
@@ -196,12 +215,12 @@ public class ManagersController {
             else if (selectedUIParam.contains("Gap")) dbParamName = "casual_gap";
             else if (selectedUIParam.contains("Stay")) dbParamName = "estimated_stay_time";
 
-            // ⭐ שינוי דינמי: משיכת נתוני הפארק והעובד האמיתיים של המשתמש המחובר כרגע במערכת
+           
             String currentPark = CurUser.getParkName();
             int currentWorkerId = CurUser.getEmployeeId();
 
             if (currentPark == null || currentPark.isEmpty()) {
-                currentPark = "Banias"; // ברירת מחדל בטיחותית במידה והשדה ריק
+                currentPark = "Banias"; 
             }
 
             Message response = logic.sendParameterRequest(currentPark, currentWorkerId, dbParamName, 500, Integer.parseInt(newValueStr));
@@ -393,7 +412,7 @@ public class ManagersController {
                 }
                 double dbDiscountValue = discountPercent / 100.0;
                 
-                // ⭐ שינוי דינמי: עדכון הנחות ומבצעים ישירות על הפארק המשויך למשתמש המחובר
+                
                 String currentPark = CurUser.getParkName();
                 if (currentPark == null || currentPark.isEmpty()) {
                     currentPark = "Banias";

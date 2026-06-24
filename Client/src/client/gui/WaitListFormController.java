@@ -5,14 +5,16 @@ import java.util.ArrayList;
 import client.logic.ScreenSwitch;
 import common.Message;
 import common.MessageType;
+import common.Order;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 
 /**
- * Controller for the Waiting List screen. Handles user actions for checking
- * alternative dates or joining the waiting list.
+ * Controller for the Waiting List screen. Handles user actions when a park is
+ * fully booked, allowing them to either check alternative available dates or
+ * join the waiting list for the requested date.
  */
 public class WaitListFormController {
 
@@ -26,9 +28,12 @@ public class WaitListFormController {
 	private Button btnWaitList;
 
 	/**
-	 * Navigates to the Alternative Dates screen to offer the user other options.
+	 * Navigates the user to the Alternative Dates screen to explore other available
+	 * time slots. Passes the pending order details to the next controller before
+	 * switching screens.
 	 * 
-	 * @param event The action event.
+	 * @param event The action event triggered by clicking the "Alternative Dates"
+	 *              button.
 	 */
 	@FXML
 	void clickAltDate(ActionEvent event) {
@@ -38,9 +43,10 @@ public class WaitListFormController {
 	}
 
 	/**
-	 * Cancels the current process and returns to the New Order form.
+	 * Cancels the current booking process and returns the user to the New Order
+	 * form.
 	 * 
-	 * @param event The action event.
+	 * @param event The action event triggered by clicking the "Cancel" button.
 	 */
 	@FXML
 	void clickCancel(ActionEvent event) {
@@ -48,34 +54,33 @@ public class WaitListFormController {
 	}
 
 	/**
-	 * Registers the pending order into the waiting list via the server.
+	 * Registers the currently pending order into the park's waiting list via the
+	 * server. Displays a success message upon completion and redirects to the main
+	 * menu.
 	 * 
-	 * @param event The action event.
+	 * @param event The action event triggered by clicking the "Enter Waiting List"
+	 *              button.
 	 */
 	@FXML
 	void clickWaitList(ActionEvent event) {
-		ArrayList<Object> orderData = client.logic.OrderLogic.pendingOrderDetails;
+		Order pendingOrder = client.logic.OrderLogic.pendingOrderDetails;
 
-		if (orderData != null) {
-			Message msg = new Message(MessageType.ENTER_WAITING_LIST, orderData);
-			Message reply = (Message) client.ClientUI.clientChat.accept(msg);
+		if (pendingOrder != null) {
+			client.logic.OrderLogic logic = new client.logic.OrderLogic();
+			boolean isSaved = logic.enterWaitingList(pendingOrder);
 
-			if (reply.getType() == MessageType.ENTER_WAITING_LIST_RESULT) {
-				boolean isSaved = (boolean) reply.getData();
+			if (isSaved) {
+				Alert alert = new Alert(Alert.AlertType.INFORMATION);
+				alert.setTitle("Registration Successful");
+				alert.setHeaderText(null);
+				alert.setContentText(
+						"You have been successfully added to the waiting list.\n We will notify you if a spot becomes available.");
+				alert.showAndWait();
 
-				if (isSaved) {
-					Alert alert = new Alert(Alert.AlertType.INFORMATION);
-					alert.setTitle("Registration Successful");
-					alert.setHeaderText(null);
-					alert.setContentText(
-							"You have been successfully added to the waiting list.\n We will notify you if a spot becomes available.");
-					alert.showAndWait();
-
-					client.logic.OrderLogic.pendingOrderDetails = null;
-					ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
-				} else {
-					System.out.println("Error saving to waiting list in the database.");
-				}
+				client.logic.OrderLogic.pendingOrderDetails = null;
+				ScreenSwitch.switchScreen("/client/gui/TravelerEntry.fxml", "Traveler Menu");
+			} else {
+				System.out.println("Error saving to waiting list in the database.");
 			}
 		} else {
 			System.out.println("No order details found to add to waiting list.");

@@ -7,6 +7,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
+/**
+ * Controller class for the Park Exit screen.
+ * Manages the UI for processing visitor exits and tracking real-time park capacity.
+ */
 public class ExitParkEmployeeController {
 	
     @FXML
@@ -20,6 +24,10 @@ public class ExitParkEmployeeController {
     @FXML
     private Label lblLiveCapacity;
 
+    /**
+     * Initializes the controller class. Automatically called after the FXML file is loaded.
+     * Instantiates the logic handler and fetches the initial live park capacity.
+     */
     @FXML
     public void initialize() {
         // Instantiate the logic class
@@ -29,51 +37,55 @@ public class ExitParkEmployeeController {
         updateLiveCapacity();
     }
 
+    /**
+     * Handles the validation and processing of a visitor's exit request.
+     * Communicates with the logic layer to register the exit and update the database.
+     * If successful, it clears the input field and refreshes the live park capacity.
+     * * @param event The ActionEvent triggered by clicking the "Register Exit" button.
+     */
     @FXML
     public void onRegisterExitClicked(ActionEvent event) {
         String inputId = visitorIdInput.getText().trim();
 
-        // 1. Check if the field is empty
+        // 1. Validate that the input field is not empty
         if (inputId.isEmpty()) {
-            statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Please enter a valid Visitor ID or QR code.");
-            return;
-        }
-
-        // 2. Input Validation
-        if (!inputId.matches("[a-zA-Z0-9\\-]+")) {
             statusLabel.setStyle("-fx-text-fill: red;");
             statusLabel.setText("Please enter a valid Order ID or QR code.");
             return;
         }
-        
-        // 3. Ensure the ID is not unreasonably long 
-        if (inputId.length() > 10) {
+
+        // 2. Validate input format: Allow alphanumeric characters for Order IDs and QR Codes.
+        // Removed the previous strict numeric-only check to support alphanumeric QR strings.
+        if (!inputId.matches("[a-zA-Z0-9]+")) {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Invalid input! too long.");
+            statusLabel.setText("Invalid format! Input must contain letters or numbers only.");
             return;
         }
-
-        // 4. Delegate the exit process to the logic layer if validation passes
+        
+        // 3. Delegate the exit process to the logic layer
+        // The logic layer will handle the specific lookup in the database 
+        // whether the input is a numeric Order ID or an alphanumeric QR Code.
         boolean isSuccess = exitLogic.registerExit(inputId, null);
 
         if (isSuccess) {
             statusLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
             statusLabel.setText("Exit registered successfully! Park capacity updated.");
             
-            // Clear the input field for the next visitor
+            // Clear input field for the next transaction
             visitorIdInput.clear();
             
-            // Auto-refresh the capacity after a successful exit
+            // Auto-refresh the live park capacity display after a successful exit
             updateLiveCapacity();
         } else {
+            // Display error if the parameter does not match any active 'Entered' order in the system
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("System Error: Could not register exit.");
+            statusLabel.setText("Exit rejected. Parameters do not match any active 'Entered' order.");
         }
     }
 
     /**
-     * Handles the click event for the manual refresh button.
+     * Handles the click event for the manual refresh button to update park occupancy.
+     * * @param event The ActionEvent triggered by clicking the refresh button.
      */
     @FXML
     public void onRefreshCapacityClicked(javafx.event.ActionEvent event) {
@@ -81,11 +93,10 @@ public class ExitParkEmployeeController {
     }
 
     /**
-     * Dispatches a manual request query to the server context to grab real-time occupancy fields.
-     * Updates the text and color properties dynamically.
+     * Sends a request to the server to fetch the current live occupancy and maximum capacity of the park.
+     * Updates the UI label with the retrieved data, changing text color to red if the park is full.
      */
     private void updateLiveCapacity() {
-        // REMOVED the recursive call here that caused the StackOverflowError
         if (lblLiveCapacity == null) {
             return;
         }
@@ -119,6 +130,10 @@ public class ExitParkEmployeeController {
         }
     }
 
+    /**
+     * Navigates the user back to the Employee Dashboard screen.
+     * * @param event The ActionEvent triggered by clicking the "Back" button.
+     */
     @FXML
     public void onBackButtonClicked(ActionEvent event) {
     	ScreenSwitch.switchScreen("/client/gui/EmployeeDashboard.fxml","Employee Dashboard");
