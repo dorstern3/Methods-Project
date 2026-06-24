@@ -48,90 +48,80 @@ public class ServiceRepController {
         Label title = new Label("Service Representative Panel");
         title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
         
-        // Added
         Label myInfo = new Label(CurUser.getMyInfo());
         myInfo.setStyle(
-        	    "-fx-background-color: #F8F9FA; " +      
-        	    "-fx-border-color: #E0E0E0; " +          
-        	    "-fx-border-width: 1px; " +              
-        	    "-fx-background-radius: 10px; " +        
-        	    "-fx-border-radius: 10px; " +            
-        	    "-fx-font-family: 'Segoe UI', sans-serif; " + 
-        	    "-fx-font-size: 13px; " +                
-        	    "-fx-text-fill: #333333; " +             
-        	    "-fx-line-spacing: 5px;"                 
-        	);
-        	myInfo.setPadding(new javafx.geometry.Insets(12, 16, 12, 16));
-        	myInfo.setAlignment(javafx.geometry.Pos.TOP_LEFT);
-        // End
-        	
-        	TabPane tabPane = new TabPane();
-            tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-            Tab familyTab = new Tab("Family Subscription");
-            Tab singleTab = new Tab("Single Subscription");
-            Tab groupTab = new Tab("Group Guide");
+                "-fx-background-color: #F8F9FA; " +      
+                "-fx-border-color: #E0E0E0; " +          
+                "-fx-border-width: 1px; " +              
+                "-fx-background-radius: 10px; " +        
+                "-fx-border-radius: 10px; " +            
+                "-fx-font-family: 'Segoe UI', sans-serif; " + 
+                "-fx-font-size: 13px; " +                
+                "-fx-text-fill: #333333; " +             
+                "-fx-line-spacing: 5px;"                 
+            );
+        myInfo.setPadding(new javafx.geometry.Insets(12, 16, 12, 16));
+        myInfo.setAlignment(javafx.geometry.Pos.TOP_LEFT);
             
-            Tab infoTab = new Tab("My Info");
-            infoTab.setContent(myInfo);
-            
-            // ---------------------------------------------------------------------
-            // General Info Tab: Workers and Subscribers
-            // ---------------------------------------------------------------------
-            Tab totalInfoTab = new Tab("Workers/Subscribers info");
-            
-            // 1. Create the ComboBox selector
-            ComboBox<String> viewSelector = new ComboBox<>();
-            viewSelector.getItems().addAll("Subscribers", "Workers");
-            viewSelector.setValue("Subscribers"); // Default selection
-            viewSelector.setStyle("-fx-font-size: 13px; -fx-background-radius: 5px;");
+        TabPane tabPane = new TabPane();
+        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+        Tab familyTab = new Tab("Family Subscription");
+        Tab singleTab = new Tab("Single Subscription");
+        Tab groupTab = new Tab("Group Guide");
+        
+        Tab infoTab = new Tab("My Info");
+        infoTab.setContent(myInfo);
+        
+        // ---------------------------------------------------------------------
+        // General Info Tab: Workers and Subscribers
+        // ---------------------------------------------------------------------
+        Tab totalInfoTab = new Tab("Workers/Subscribers info");
+        
+        ComboBox<String> viewSelector = new ComboBox<>();
+        viewSelector.getItems().addAll("Subscribers", "Workers");
+        viewSelector.setValue("Subscribers"); 
+        viewSelector.setStyle("-fx-font-size: 13px; -fx-background-radius: 5px;");
 
-            // 2. Build the Subscriber Table
-            TableView<Subscriber> subscriberTable = new TableView<>(); 
-            TableColumn<Subscriber, String> subFname  = createColumn("First name", "fname", 120);
-            TableColumn<Subscriber, String> subLname  = createColumn("Last name", "lname", 120);
-            TableColumn<Subscriber, String> subEmail  = createColumn("Email", "email", 160); 
-            TableColumn<Subscriber, String> subPhone  = createColumn("Phone number", "phone", 120);
-            TableColumn<Subscriber, String> subCard   = createColumn("Credit card", "card", 150);
-            TableColumn<Subscriber, Integer> subFamily = createColumn("Family members", "familyMembers", 120);
-            TableColumn<Subscriber, Integer> subNum    = createColumn("Subscriber number", "subNum", 130);
-            subscriberTable.getColumns().addAll(subFname, subLname, subEmail, subPhone, subCard, subFamily, subNum);
+        TableView<Subscriber> subscriberTable = new TableView<>(); 
+        TableColumn<Subscriber, String> subFname  = createColumn("First name", "fname", 120);
+        TableColumn<Subscriber, String> subLname  = createColumn("Last name", "lname", 120);
+        TableColumn<Subscriber, String> subEmail  = createColumn("Email", "email", 160); 
+        TableColumn<Subscriber, String> subPhone  = createColumn("Phone number", "phone", 120);
+        TableColumn<Subscriber, String> subCard   = createColumn("Credit card", "card", 150);
+        TableColumn<Subscriber, Integer> subFamily = createColumn("Family members", "familyMembers", 120);
+        TableColumn<Subscriber, Integer> subNum    = createColumn("Subscriber number", "subNum", 130);
+        subscriberTable.getColumns().addAll(subFname, subLname, subEmail, subPhone, subCard, subFamily, subNum);
 
-            // 3. Build the Workers Table
-            TableView<Workers> workersTable = new TableView<>();
-            TableColumn<Workers, String> workFname = createColumn("First name", "firstName", 120);
-            TableColumn<Workers, String> workLname = createColumn("Last name", "lastName", 120);
-            TableColumn<Workers, String> workEmail = createColumn("Email", "email", 160);
-            TableColumn<Workers, String> workRole  = createColumn("Role", "role", 120);
-            TableColumn<Workers, String> workPark  = createColumn("Park Name", "parkName", 120);
-            workersTable.getColumns().addAll(workFname, workLname, workEmail, workRole, workPark);
+        TableView<Workers> workersTable = new TableView<>();
+        TableColumn<Workers, String> workFname = createColumn("First name", "firstName", 120);
+        TableColumn<Workers, String> workLname = createColumn("Last name", "lastName", 120);
+        TableColumn<Workers, String> workEmail = createColumn("Email", "email", 160);
+        TableColumn<Workers, String> workRole  = createColumn("Role", "role", 120);
+        TableColumn<Workers, String> workPark  = createColumn("Park Name", "parkName", 120);
+        workersTable.getColumns().addAll(workFname, workLname, workEmail, workRole, workPark);
 
-            // 4. Create a StackPane container to switch between the tables dynamically
-            StackPane tableContainer = new StackPane();
-            tableContainer.getChildren().add(subscriberTable); // Show subscribers by default
-            VBox.setVgrow(tableContainer, Priority.ALWAYS); // Force the table to fill remaining vertical space
+        StackPane tableContainer = new StackPane();
+        tableContainer.getChildren().add(subscriberTable); 
+        VBox.setVgrow(tableContainer, Priority.ALWAYS); 
 
-            // 5. Handle the ComboBox action to swap tables dynamically based on selection
-            viewSelector.setOnAction(e -> {
-                tableContainer.getChildren().clear();
-                if ("Subscribers".equals(viewSelector.getValue())) {
-                    tableContainer.getChildren().add(subscriberTable);
-                    ArrayList<Subscriber> subs = logic.loadSubscribers();
-                    subscriberTable.getItems().setAll(subs);
-                } else {
-                    tableContainer.getChildren().add(workersTable);
-                    ArrayList<Workers> workers = logic.loadWorkers();
-                    workersTable.getItems().setAll(workers);
-                }
-            });
+        viewSelector.setOnAction(e -> {
+            tableContainer.getChildren().clear();
+            if ("Subscribers".equals(viewSelector.getValue())) {
+                tableContainer.getChildren().add(subscriberTable);
+                ArrayList<Subscriber> subs = logic.loadSubscribers();
+                subscriberTable.getItems().setAll(subs);
+            } else {
+                tableContainer.getChildren().add(workersTable);
+                ArrayList<Workers> workers = logic.loadWorkers();
+                workersTable.getItems().setAll(workers);
+            }
+        });
 
-            // 6. Layout configuration using a VBox
-            VBox totalInfoVBox = new VBox(15);
-            totalInfoVBox.setPadding(new Insets(15));
-            totalInfoVBox.getChildren().addAll(new Label("Select View Type:"), viewSelector, tableContainer);
-            totalInfoTab.setContent(totalInfoVBox);
+        VBox totalInfoVBox = new VBox(15);
+        totalInfoVBox.setPadding(new Insets(15));
+        totalInfoVBox.getChildren().addAll(new Label("Select View Type:"), viewSelector, tableContainer);
+        totalInfoTab.setContent(totalInfoVBox);
 
-		
-        // End
         // ---------------------------------------------------------------------
         // Tab 1: Family Subscription Setup
         // ---------------------------------------------------------------------
@@ -195,9 +185,7 @@ public class ServiceRepController {
 
         Button singleSubmitBtn = new Button("Register to System");
         singleSubmitBtn.setOnAction(e -> handleSingleRegister());
-        
-        
-        	
+            
         singleVBox.getChildren().addAll(singleGrid, singleSubmitBtn);
         singleTab.setContent(singleVBox);
 
@@ -233,17 +221,12 @@ public class ServiceRepController {
         groupVBox.getChildren().addAll(groupGrid, groupSubmitBtn);
         groupTab.setContent(groupVBox);
 
-        tabPane.getTabs().addAll(familyTab, singleTab, groupTab,totalInfoTab,infoTab); //Added
+        tabPane.getTabs().addAll(familyTab, singleTab, groupTab, totalInfoTab, infoTab); 
         mainContainer.getChildren().addAll(title, tabPane);
     }
 
     /**
      * Displays structural popup notifications on the screen for success or error feedback.
-     * Ensures the alert is triggered on the main JavaFX Application Thread.
-     *
-     * @param type    The specific AlertType (e.g., ERROR, INFORMATION).
-     * @param title   The title of the alert window.
-     * @param content The main body message of the alert.
      */
     private void showAlert(Alert.AlertType type, String title, String content) {
         Platform.runLater(() -> {
@@ -259,42 +242,59 @@ public class ServiceRepController {
      * Validates input fields and delegates the Family Subscription registration request to the logic layer.
      */
     private void handleFamilyRegister() {
-        if (famFname.getText().trim().isEmpty() || famLname.getText().trim().isEmpty() || 
-            famId.getText().trim().isEmpty() || famPhone.getText().trim().isEmpty() || 
-            famEmail.getText().trim().isEmpty() || famMembers.getText().trim().isEmpty()) {
+        String firstName = famFname.getText().trim();
+        String lastName = famLname.getText().trim();
+        String idText = famId.getText().trim();
+        String phoneText = famPhone.getText().trim();
+        String emailText = famEmail.getText().trim();
+        String membersText = famMembers.getText().trim();
+
+        // 1. Validation: Reject completely empty parameters
+        if (firstName.isEmpty() || lastName.isEmpty() || idText.isEmpty() || 
+            phoneText.isEmpty() || emailText.isEmpty() || membersText.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields inside Family Subscription!");
             return;
         }
 
-        String idText = famId.getText().trim();
-        String phoneText = famPhone.getText().trim();
-        String membersText = famMembers.getText().trim();
+        // 2. Validation: Names must contain English alphabetic characters only
+        if (!firstName.matches("[a-zA-Z]+") || !lastName.matches("[a-zA-Z]+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Name Fields", "First name and last name must contain English letters only!");
+            return;
+        }
 
+        // 3. Validation: Identity specifications configuration (Exactly 5 digits long)
         if (idText.length() != 5 || !idText.matches("\\d+")) {
             showAlert(Alert.AlertType.ERROR, "Invalid ID Number", "ID Number must be exactly 5 digits long!");
             return;
         }
 
-        if (!phoneText.matches("[0-9\\-]+")) {
-            showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile Number must contain digits only!");
+        // 4. Validation: Structural pattern checks for email fields
+        if (!emailText.contains("@")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Email Structure", "Email address must contain a valid '@' symbol.");
             return;
         }
 
-        int parsedMembers;
-        try {
-            parsedMembers = Integer.parseInt(membersText);
-            if (parsedMembers <= 0) {
-                showAlert(Alert.AlertType.ERROR, "Invalid Members Amount", "Family Members Amount must be greater than 0!");
-                return;
-            }
-        } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Invalid Members Amount", "Family Members Amount must be a valid number!");
+        // 5. Validation: Mobile number must contain digits only (Any length allowed)
+        if (!phoneText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile number must contain numeric digits only!");
             return;
         }
 
+        // 6. Validation: Bound the dynamic family headcount sizes securely between 1 and 15 maximum
+        if (!membersText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Format", "Family headcount must be a positive numeric value.");
+            return;
+        }
+
+        int parsedMembers = Integer.parseInt(membersText);
+        if (parsedMembers < 1 || parsedMembers > 15) {
+            showAlert(Alert.AlertType.ERROR, "Quota Boundary Broken", "Number of family members must be constrained strictly between 1 and 15 maximum.");
+            return; 
+        }
+
+        // 7. Data Pipeline Dispatching Phase
         Message response = logic.requestFamilyRegistration(
-            Integer.parseInt(idText), famFname.getText().trim(), famLname.getText().trim(),
-            famEmail.getText().trim(), phoneText, parsedMembers
+            Integer.parseInt(idText), firstName, lastName, emailText, phoneText, parsedMembers
         );
 
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
@@ -310,29 +310,45 @@ public class ServiceRepController {
      * Validates input fields and delegates the Single Subscription registration request to the logic layer.
      */
     private void handleSingleRegister() {
-        if (sFname.getText().trim().isEmpty() || sLname.getText().trim().isEmpty() || 
-            sId.getText().trim().isEmpty() || sPhone.getText().trim().isEmpty() || 
-            sEmail.getText().trim().isEmpty()) {
+        String firstName = sFname.getText().trim();
+        String lastName = sLname.getText().trim();
+        String idText = sId.getText().trim();
+        String phoneText = sPhone.getText().trim();
+        String emailText = sEmail.getText().trim();
+
+        // 1. Validation: Block empty variables
+        if (firstName.isEmpty() || lastName.isEmpty() || idText.isEmpty() || phoneText.isEmpty() || emailText.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields inside Single Subscription!");
             return;
         }
 
-        String idText = sId.getText().trim();
-        String phoneText = sPhone.getText().trim();
+        // 2. Validation: Names must contain English alphabetic characters only
+        if (!firstName.matches("[a-zA-Z]+") || !lastName.matches("[a-zA-Z]+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Name Fields", "First name and last name must contain English letters only!");
+            return;
+        }
 
+        // 3. Validation: Identity configurations (Exactly 5 digits long)
         if (idText.length() != 5 || !idText.matches("\\d+")) {
             showAlert(Alert.AlertType.ERROR, "Invalid ID Number", "ID Number must be exactly 5 digits long!");
             return;
         }
 
-        if (!phoneText.matches("[0-9\\-]+")) {
-            showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile Number must contain digits only!");
+        // 4. Validation: Structural email checks
+        if (!emailText.contains("@")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Email Structure", "Email address must contain a valid '@' symbol.");
             return;
         }
 
+        // 5. Validation: Mobile number must contain digits only (Any length allowed)
+        if (!phoneText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile number must contain numeric digits only!");
+            return;
+        }
+
+        // 6. Data Pipeline Transmission Phase
         Message response = logic.requestSingleRegistration(
-            Integer.parseInt(idText), sFname.getText().trim(), sLname.getText().trim(),
-            sEmail.getText().trim(), phoneText
+            Integer.parseInt(idText), firstName, lastName, emailText, phoneText
         );
 
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
@@ -346,32 +362,47 @@ public class ServiceRepController {
     
     /**
      * Validates input fields and delegates the Group Guide registration request to the logic layer.
-     * Crucially includes the Guide's ID parameter in the request package.
      */
     private void handleGuideRegister() {
-        if (gFname.getText().trim().isEmpty() || gLname.getText().trim().isEmpty() || 
-            gId.getText().trim().isEmpty() || gPhone.getText().trim().isEmpty() || 
-            gEmail.getText().trim().isEmpty()) {
+        String firstName = gFname.getText().trim();
+        String lastName = gLname.getText().trim();
+        String idText = gId.getText().trim();
+        String phoneText = gPhone.getText().trim();
+        String emailText = gEmail.getText().trim();
+
+        // 1. Validation: Block incomplete arrays
+        if (firstName.isEmpty() || lastName.isEmpty() || idText.isEmpty() || phoneText.isEmpty() || emailText.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields inside Group Guide!");
             return;
         }
 
-        String idText = gId.getText().trim();
-        String phoneText = gPhone.getText().trim();
+        // 2. Validation: Names must contain English alphabetic characters only
+        if (!firstName.matches("[a-zA-Z]+") || !lastName.matches("[a-zA-Z]+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Name Fields", "First name and last name must contain English letters only!");
+            return;
+        }
 
+        // 3. Validation: Structural sequence verification (Exactly 5 digits long)
         if (idText.length() != 5 || !idText.matches("\\d+")) {
             showAlert(Alert.AlertType.ERROR, "Invalid ID Number", "ID Number must be exactly 5 digits long!");
             return;
         }
 
-        if (!phoneText.matches("[0-9\\-]+")) {
-            showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile Number must contain digits only!");
+        // 4. Validation: Email criteria matching
+        if (!emailText.contains("@")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Email Structure", "Email address must contain a valid '@' symbol.");
             return;
         }
 
+        // 5. Validation: Mobile number must contain digits only (Any length allowed)
+        if (!phoneText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile number must contain numeric digits only!");
+            return;
+        }
+
+        // 6. Data Pipeline Transmission Phase
         Message response = logic.requestGuideRegistration(
-            Integer.parseInt(idText), gFname.getText().trim(), gLname.getText().trim(), 
-            gEmail.getText().trim(), phoneText
+            Integer.parseInt(idText), firstName, lastName, emailText, phoneText
         );
 
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
@@ -381,39 +412,16 @@ public class ServiceRepController {
             showAlert(Alert.AlertType.ERROR, "Registration Failed", "Server rejected guide registration.");
         }
     }
-    /**
-     * Logs the service rep out of the system.
-     */
-	@FXML
-	public void logoutbtn() {
-		client.logic.CurUser.logout();
-	}
-	
-	// Added
-	/**
-	 * Helper method to instantiate and pre-configure a basic generic TableView.
-	 * Applies auto-resize column policies and full-stretch positioning constraints.
-	 * * @param <T>   The type of objects to be held and displayed in the table rows.
-	 * @return A stylized TableView component ready to receive columns and items.
-	 */
-	private <T> TableView<T> createBaseTable() {
-		
-	    TableView<T> table = new TableView<T>();
-	    AnchorPane.setTopAnchor(table, 0.0);
-	    AnchorPane.setBottomAnchor(table, 0.0);
-	    AnchorPane.setLeftAnchor(table, 0.0);
-	    AnchorPane.setRightAnchor(table, 0.0);
-	    table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY); 
-	    
-	    return table;
-	}
-	
-	private <S,T> TableColumn<S, T> createColumn(String title, String propertyName, double prefWidth) {
-	    TableColumn<S, T> column = new TableColumn<>(title);
-	    column.setPrefWidth(prefWidth);
-	    column.setCellValueFactory(new PropertyValueFactory<>(propertyName));
-	    return column;
-	}
-	
-	// End
+
+    @FXML
+    public void logoutbtn() {
+        client.logic.CurUser.logout();
+    }
+    
+    private <S,T> TableColumn<S, T> createColumn(String title, String propertyName, double prefWidth) {
+        TableColumn<S, T> column = new TableColumn<>(title);
+        column.setPrefWidth(prefWidth);
+        column.setCellValueFactory(new PropertyValueFactory<>(propertyName));
+        return column;
+    }
 }
