@@ -18,12 +18,13 @@ import client.logic.ScreenSwitch;
 import common.Message;
 import common.MessageType;
 import common.ParameterRequest;
-
+import client.logic.CurUser;
 
 public class ManagersController {
 
     // --- Field for occupancy tracking ---
     private Label lblLiveCapacity;
+    private ComboBox<String> parkSelectorComboBox;
     
     @FXML private VBox mainContainer;
     private ManagersLogic logic;
@@ -52,12 +53,49 @@ public class ManagersController {
         btnRefreshCapacity.setStyle("-fx-cursor: hand;");
         btnRefreshCapacity.setOnAction(e -> updateLiveCapacity());
 
-        // Group them together in an HBox
+        
+        parkSelectorComboBox = new ComboBox<>();
+        
+        
+        try {
+            Message getParksRequest = new Message(MessageType.GET_PARKS, null);
+            Message getParksResponse = (Message) client.ClientUI.clientChat.accept(getParksRequest);
+
+            if (getParksResponse != null && getParksResponse.getType() == MessageType.GET_PARKS_RESPONSE) {
+               
+                java.util.ArrayList<String> dbParks = (java.util.ArrayList<String>) getParksResponse.getData();
+                parkSelectorComboBox.getItems().addAll(dbParks);
+            } else {
+                System.err.println(" Failed to load parks from DB, falling back to defaults.");
+                parkSelectorComboBox.getItems().addAll("Achziv", "Banias", "Caesarea", "Ein Gedi", "Masada");
+            }
+        } catch (Exception e) {
+            System.err.println(" Exception while fetching parks list from server:");
+            e.printStackTrace();
+            
+            parkSelectorComboBox.getItems().addAll("Achziv", "Banias", "Caesarea", "Ein Gedi", "Masada");
+        }
+        
+       
+        String initialPark = CurUser.getParkName();
+        if (initialPark == null || initialPark.isEmpty()) {
+            initialPark = "Caesarea"; 
+        }
+        parkSelectorComboBox.setValue(initialPark);
+        
+        
+        parkSelectorComboBox.setOnAction(e -> updateLiveCapacity());
+
+       
         HBox capacityContainer = new HBox(15);
         capacityContainer.setAlignment(Pos.CENTER);
-        capacityContainer.getChildren().addAll(lblLiveCapacity, btnRefreshCapacity);
         
-     
+        
+        if ("Dept_manager".equals(CurUser.getRole())) {
+            capacityContainer.getChildren().addAll(new Label("Select Park:"), parkSelectorComboBox, lblLiveCapacity, btnRefreshCapacity);
+        } else {
+            capacityContainer.getChildren().addAll(lblLiveCapacity, btnRefreshCapacity);
+        }
 
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
@@ -105,14 +143,14 @@ public class ManagersController {
             tabPane.getTabs().addAll(parkManagerTab, deptManagerTab);
         }
           
-        Button btnBackToLogin = new Button("Logout");
+        Button btnBackToLogin = new Button("Back");
         btnBackToLogin.setStyle("-fx-cursor: hand; -fx-font-weight: bold;");
         btnBackToLogin.setOnAction(e -> {
             
             ((javafx.scene.Node)e.getSource()).getScene().getWindow().hide();
             
+            
             client.logic.CurUser.logout();
-           // ScreenSwitch.switchScreen("/client/gui/EmployeeLogin.fxml", "Employee Login");
         });
 
        
@@ -177,9 +215,17 @@ public class ManagersController {
             else if (selectedUIParam.contains("Gap")) dbParamName = "casual_gap";
             else if (selectedUIParam.contains("Stay")) dbParamName = "estimated_stay_time";
 
-            Message response = logic.sendParameterRequest("Banias", 1, dbParamName, 500, Integer.parseInt(newValueStr));
+           
+            String currentPark = CurUser.getParkName();
+            int currentWorkerId = CurUser.getEmployeeId();
+
+            if (currentPark == null || currentPark.isEmpty()) {
+                currentPark = "Banias"; 
+            }
+
+            Message response = logic.sendParameterRequest(currentPark, currentWorkerId, dbParamName, 500, Integer.parseInt(newValueStr));
             if (response != null && response.getType() == MessageType.REQUEST_SUBMIT_SUCCESS) {
-            	System.out.println("🚀 Success! Data inserted directly from the text field into MySQL!");
+            	System.out.println("🚀 Success! Data inserted dynamically for park: " + currentPark);
                 showMainDashboard();
             } else {
             	System.out.println("❌ SQL Error while inserting data from screen.");
@@ -281,7 +327,7 @@ public class ManagersController {
 
     // Displays the promotions management form and updates the park discount parameter in the database
     private void switchToSharedPromotionsScreen() {
-    	mainContainer.getChildren().clear();
+        mainContainer.getChildren().clear();
         mainContainer.setAlignment(Pos.TOP_LEFT);
 
         Label title = new Label("Promotions Management");
@@ -317,36 +363,78 @@ public class ManagersController {
         ListView<String> promoList = new ListView<>();
         promoList.setPrefHeight(120);
 
+        
         btnSubmitPromo.setOnAction(e -> {
-        	String discountStr = discountField.getText();
+            String discountStr = discountField.getText();
             String couponName = couponNameField.getText();
+            String startDateStr = startDateField.getText();
+            String endDateStr = endDateField.getText();
 
-            if (discountStr.isEmpty() || couponName.isEmpty()) {
-                System.out.println("⚠️ Please fill Coupon Name and Discount fields!");
+           
+            if (discountStr.isEmpty() || couponName.isEmpty() || startDateStr.isEmpty() || endDateStr.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Missing Fields", "Please fill all fields before submitting!");
+                return;
+            }
+
+         
+            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/uuuu")
+                    .withResolverStyle(java.time.format.ResolverStyle.STRICT);
+            
+            java.time.LocalDate startDate = null;
+            java.time.LocalDate endDate = null;
+
+            try {
+                startDate = java.time.LocalDate.parse(startDateStr, formatter);
+            } catch (java.time.format.DateTimeParseException ex) {
+                showAlert(Alert.AlertType.ERROR, "Invalid Date", "Start Date is invalid! Please use DD/MM/YYYY with real dates.");
                 return;
             }
 
             try {
+                endDate = java.time.LocalDate.parse(endDateStr, formatter);
+            } catch (java.time.format.DateTimeParseException ex) {
+                showAlert(Alert.AlertType.ERROR, "Invalid Date", "End Date is invalid! Please use DD/MM/YYYY with real dates.");
+                return;
+            }
+
+         
+            if (endDate.isBefore(startDate)) {
+                showAlert(Alert.AlertType.ERROR, "Logical Error", "End Date cannot be earlier than Start Date!");
+                return;
+            }
+
+            
+            try {
                 double discountPercent = Double.parseDouble(discountStr);
                 if (discountPercent < 0 || discountPercent > 100) {
-                    System.out.println("⚠️ Discount must be between 0 and 100!");
+                    showAlert(Alert.AlertType.WARNING, "Invalid Value", "Discount must be between 0 and 100!");
                     return;
                 }
                 double dbDiscountValue = discountPercent / 100.0;
-                Message response = logic.sendPromotionUpdate("Banias", dbDiscountValue);
+                
+                
+                String currentPark = CurUser.getParkName();
+                if (currentPark == null || currentPark.isEmpty()) {
+                    currentPark = "Banias";
+                }
+
+                Message response = logic.sendPromotionUpdate(currentPark, dbDiscountValue);
                 
                 if (response != null && response.getType() == MessageType.PROMOTION_ACTIVATED_SUCCESS) {
-                    System.out.println("🚀 Success! Promotion '" + couponName + "' activated via Server!");
+                    showAlert(Alert.AlertType.INFORMATION, "Success", "Promotion '" + couponName + "' activated successfully for " + currentPark + "!");
+                    
                     String newPromoText = String.format("%s | %s%% Off | %s - %s", 
-                            couponName, discountStr, startDateField.getText(), endDateField.getText());
+                            couponName, discountStr, startDateStr, endDateStr);
                     promoList.getItems().add(0, newPromoText);
+                    
+                     
                     couponNameField.clear(); discountField.clear(); 
                     startDateField.clear(); endDateField.clear();
                 } else {
-                    System.out.println("❌ Server failed to activate promotion.");
+                    showAlert(Alert.AlertType.ERROR, "Server Error", "Server failed to activate promotion.");
                 }
             } catch (NumberFormatException ex) {
-                System.out.println("⚠️ Discount must be a valid number!");
+                showAlert(Alert.AlertType.ERROR, "Invalid Input", "Discount must be a valid number!");
             }
         });
 
@@ -356,6 +444,15 @@ public class ManagersController {
         mainContainer.getChildren().addAll(title, grid, btnSubmitPromo, new Separator(), listTitle, promoList, backBtn);
     }
 
+    
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+    
     // Holds structural information of parameter requests for custom user interface list rendering
     private static class ListCellData {
         int requestId;
@@ -384,9 +481,15 @@ public class ManagersController {
         }
         
         try {
-            String parkName = client.logic.CurUser.getParkName();
-            if (parkName == null || parkName.isEmpty()) {
-                parkName = "Banias"; // Fallback default matching system parameters
+           
+            String parkName = "Banias";
+            if (parkSelectorComboBox != null && parkSelectorComboBox.getValue() != null) {
+                parkName = parkSelectorComboBox.getValue();
+            } else {
+                parkName = CurUser.getParkName();
+                if (parkName == null || parkName.isEmpty()) {
+                    parkName = "Banias";
+                }
             }
 
             Message request = new Message(MessageType.GET_PARK_OCCUPANCY, parkName);
@@ -399,7 +502,6 @@ public class ManagersController {
 
                 lblLiveCapacity.setText(String.format("Current Park Occupancy (%s): %d / %d", parkName, current, max));
                 
-                // Color alert styling depending on total utilization volume
                 if (current >= max) {
                     lblLiveCapacity.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: red;");
                 } else {

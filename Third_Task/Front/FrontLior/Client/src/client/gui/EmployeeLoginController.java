@@ -76,15 +76,12 @@ public class EmployeeLoginController {
 	        		break;
 	        	}
 	        	default:
-	        		//ScreenSwitch.switchScreen("/client/gui/Dashboard.fxml","Dashboard");
         	}
         }
         else {
         	errorMessage.setText((String)response.getData());
         	return;
         }
-        //System.out.println("Login attempt - Username: " + username + " | Password: " + password);
-        //ScreenSwitch.switchScreen("/client/gui/Dashboard.fxml" , "Dashboard");
     }
     
 }

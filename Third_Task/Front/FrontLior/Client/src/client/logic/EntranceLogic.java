@@ -10,7 +10,8 @@ import common.MessageType;
 
 /**
  * Logic class handling entrance operations, pricing, and validations.
- * Uses the Strategy Design Pattern to calculate prices dynamically.
+ * Acts as the intermediary between the Entrance GUI and the Server.
+ * Uses the Strategy Design Pattern to calculate entry prices dynamically based on visitor types.
  */
 public class EntranceLogic {
     
@@ -19,6 +20,11 @@ public class EntranceLogic {
     // Map to hold the different pricing strategies
     private Map<String, PricingStrategy> pricingStrategies;
 
+    /**
+     * Constructs a new EntranceLogic instance.
+     * Initializes the pricing strategies mapping and fetches the base full price 
+     * for the current park directly from the server.
+     */
     public EntranceLogic() {
         this.fullPrice = fetchFullPriceFromServer();
         
@@ -32,8 +38,8 @@ public class EntranceLogic {
     }
 
     /**
-     * Fetches the base full price for the park from the server.
-     * @return The full price as a double.
+     * Fetches the base full ticket price for the specific park from the server.
+     * * @return The full price as a double. Returns 50.0 as a fallback if the server request fails.
      */
     private double fetchFullPriceFromServer() {
         System.out.println("EntranceLogic: Requesting Full Price from server.");
@@ -56,9 +62,9 @@ public class EntranceLogic {
     }
 
     /**
-     * Checks the server for any active promotions (additional discount) for the park.
-     * @param parkId The name of the park.
-     * @return The discount as a decimal (e.g., 0.1 for 10%), or 0.0 if none exists.
+     * Checks the server for any active promotions or additional discounts for the park.
+     * * @param parkId The name of the park to check.
+     * @return The active discount as a decimal (e.g., 0.1 for 10%), or 0.0 if none exists or the connection fails.
      */
     private double checkActivePromotions(String parkId) {
         System.out.println("EntranceLogic: Checking active promotions for " + parkId);
@@ -81,13 +87,12 @@ public class EntranceLogic {
         return 0.0; // Fallback to 0 discount if server fails
     }
     
-    
     /**
-     * Calculates the final price using the Strategy Pattern.
-     * @param visitorType  The visitor type from the UI
-     * @param amount       The total number of visitors
-     * @param isPreBooked  True if pre-booked, false if casual
-     * @return The final calculated price
+     * Calculates the final ticket price using the Strategy Pattern and applies active promotions.
+     * * @param visitorType  The visitor classification type selected from the UI (e.g., "Group", "Subscriber").
+     * @param amount       The total number of visitors in the current transaction.
+     * @param isPreBooked  Boolean flag indicating if the visit was pre-booked (true) or is a casual drop-in (false).
+     * @return The final calculated total price as a double.
      */
     public double calculatePrice(String visitorType, int amount, boolean isPreBooked) {
         
@@ -113,6 +118,13 @@ public class EntranceLogic {
 
     // --- System Validations & Operations ---
     
+    /**
+     * Validates a pre-booked order by cross-referencing the ID/QR Code with the database.
+     * Checks constraints such as date, scheduled time, and confirmation status.
+     * * @param orderId The Order ID or QR code to validate.
+     * @return An Object array containing [visitorsAmount, visitorType] upon successful validation.
+     * If validation fails, returns a String containing the specific error code (e.g., "NOT_FOUND").
+     */
     public Object validateOrder(String orderId) {
         System.out.println("EntranceLogic: Requesting Order validation for ID: " + orderId);
         
@@ -144,12 +156,13 @@ public class EntranceLogic {
     }
     
     /**
-     * Checks if the park has enough capacity for casual visitors.
-     * @param amount The number of casual visitors wishing to enter.
-     * @param parkName The name of the park to check.
-     * @return true if there is space, false if the park is at maximum capacity.
+     * Evaluates if the specific park has enough available capacity to accommodate casual visitors.
+     * Takes into account the park's maximum capacity and the reserved casual gap.
+     * * @param amount   The number of casual visitors wishing to enter.
+     * @param parkName The explicit name of the destination park.
+     * @return true if there is enough space to admit the visitors, false if the park is near or at maximum capacity.
      */
-    public boolean checkCasualAvailability(int amount, String parkName) { // <--- Added parkName
+    public boolean checkCasualAvailability(int amount, String parkName) {
         System.out.println("EntranceLogic: Checking casual availability for " + amount + " visitors in " + parkName);
         
         try {
@@ -171,16 +184,18 @@ public class EntranceLogic {
         
         return false;
     }
+
     /**
-     * Confirms the entry transaction payment parameters and communicates with the database server context.
+     * Confirms the entry transaction after payment, communicates with the server to update the database,
+     * alters order statuses, and increments the real-time park occupancy.
      * Packages structural validation parameters dynamically to coordinate cross-network operations.
      *
      * @param visitorsAmount The total headcount size of the arriving group.
-     * @param orderId        The unique tracking order key string (passed as null if casual visitor).
+     * @param orderId        The unique tracking order key string (passed as null if it's a casual visitor).
      * @param parkName       The explicit park destination name context string.
-     * @param visitorType    The structural type category of the traveler (e.g., Regular, Subscriber, Guide).
+     * @param visitorType    The structural type category of the traveler (e.g., "Regular", "Subscriber", "Group").
      * @param visitorId      The explicit personal Identification or Subscriber Number index of the leader.
-     * @return The active or database-allocated Order ID string mapping, or null if execution collapses.
+     * @return The active or newly database-allocated Order ID string mapping, or null if the execution collapses.
      */
     public String confirmPayment(int visitorsAmount, String orderId, String parkName, String visitorType, String visitorId) {
         System.out.println("EntranceLogic: Confirming payment for " + visitorsAmount + " visitors. ID: " + visitorId);
@@ -209,14 +224,9 @@ public class EntranceLogic {
     }
     
     /**
-     * Verifies if the provided ID belongs to a certified guide.
-     * @param guideId The ID to verify.
-     * @return true if valid, false otherwise.
-     */
-    /**
-     * Verifies if the provided ID belongs to a certified guide.
-     * @param guideId The ID to verify.
-     * @return true if valid, false otherwise.
+     * Verifies if the provided identification string belongs to a certified and registered group guide.
+     * * @param guideId The Guide ID string to verify against the database.
+     * @return true if the guide exists and is certified, false otherwise.
      */
     public boolean verifyGuide(String guideId) {
         System.out.println("EntranceLogic: Requesting Guide verification for ID: " + guideId);
@@ -237,11 +247,11 @@ public class EntranceLogic {
     }
     
     /**
-     * Verifies if the provided ID belongs to a valid subscriber.
-     * @param subscriberId The ID to verify.
-     * @return true if valid, false otherwise.
+     * Verifies if the provided identification string belongs to a valid, active subscriber in the system.
+     * * @param subscriberId The Subscriber Number or ID to verify against the database.
+     * @return An ArrayList containing [Boolean (exists), Integer (family_members)], or null if an error occurs.
      */
-    public boolean verifySubscriber(String subscriberId) {
+    public ArrayList<Object> verifySubscriber(String subscriberId) {
         System.out.println("EntranceLogic: Requesting Subscriber verification for ID: " + subscriberId);
         
         try {
@@ -249,13 +259,14 @@ public class EntranceLogic {
             Message response = (Message) ClientUI.clientChat.accept(request);
             
             if (response != null && response.getType() == MessageType.VERIFY_SUBSCRIBER_RESPONSE) {
-                return (boolean) response.getData();
+                // Return the full array list containing validation status and family limit
+                return (ArrayList<Object>) response.getData();
             }
         } catch (Exception e) {
             System.err.println("Error communicating with server during Subscriber Verification.");
             e.printStackTrace();
         }
         
-        return false; 
+        return null; 
     }
 }

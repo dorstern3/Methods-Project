@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="TOP_CENTER" prefHeight="550.0" prefWidth="600.0" spacing="20.0" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.SubscriberEditorController">
+   <children>
+      
+      <VBox alignment="CENTER" spacing="5.0" style="-fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);">
+         <padding>
+            <Insets bottom="15.0" top="15.0" />
+         </padding>
+         <children>
+            <Label text="GoNature - Edit Subscriber Profile" textFill="#2e7d32">
+               <font>
+                  <Font name="System Bold" size="24.0" />
+               </font>
+            </Label>
+            <Label text="Update your personal contact, billing, and family configuration" textFill="#555555">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+         </children>
+      </VBox>
+      
+      <Label fx:id="lblMessage" alignment="CENTER" maxWidth="500.0" wrapText="true">
+         <font>
+            <Font name="System Bold" size="14.0" />
+         </font>
+      </Label>
+
+      <GridPane alignment="CENTER" hgap="15.0" maxWidth="500.0" style="-fx-background-color: #ffffff; -fx-padding: 20; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2);" vgap="15.0">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" maxWidth="180.0" minWidth="10.0" prefWidth="150.0" />
+          <ColumnConstraints hgrow="SOMETIMES" maxWidth="320.0" minWidth="10.0" prefWidth="300.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            
+            <Label text="Personal ID:" GridPane.rowIndex="0">
+               <font><Font name="System Bold" size="13.0" /></font>
+            </Label>
+            <TextField fx:id="txtId" editable="false" style="-fx-background-color: #e0e0e0; -fx-text-fill: #757575;" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+            
+            <Label text="Subscriber Number:" GridPane.rowIndex="1">
+               <font><Font name="System Bold" size="13.0" /></font>
+            </Label>
+            <TextField fx:id="txtSubNumber" editable="false" style="-fx-background-color: #e0e0e0; -fx-text-fill: #757575;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            
+            <Label text="First Name:" GridPane.rowIndex="2">
+               <font><Font name="System Bold" size="13.0" /></font>
+            </Label>
+            <TextField fx:id="txtFname" editable="false" style="-fx-background-color: #e0e0e0; -fx-text-fill: #757575;" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            
+            <Label text="Last Name:" GridPane.rowIndex="3">
+               <font><Font name="System Bold" size="13.0" /></font>
+            </Label>
+            <TextField fx:id="txtLname" editable="false" style="-fx-background-color: #e0e0e0; -fx-text-fill: #757575;" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            
+            <Label text="Email Address:" GridPane.rowIndex="4">
+               <font><Font name="System Bold" size="13.0" /></font>
+            </Label>
+            <TextField fx:id="txtEmail" promptText="Enter email address" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+            
+            <Label text="Phone Number:" GridPane.rowIndex="5">
+               <font><Font name="System Bold" size="13.0" /></font>
+            </Label>
+            <TextField fx:id="txtPhone" promptText="Enter phone number" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+            
+            <Label text="Credit Card Number:" GridPane.rowIndex="6">
+               <font><Font name="System Bold" size="13.0" /></font>
+            </Label>
+            <TextField fx:id="txtCreditCard" promptText="Enter digits only" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+            
+            <Label text="Family Members:" GridPane.rowIndex="7">
+               <font><Font name="System Bold" size="13.0" /></font>
+            </Label>
+            <TextField fx:id="txtFamilyMembers" promptText="Enter number (Max 15)" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+            
+         </children>
+      </GridPane>
+      
+      <HBox alignment="CENTER" spacing="20.0">
+         <children>
+            <Button fx:id="btnCancel" mnemonicParsing="false" onAction="#onCancelClicked" prefHeight="35.0" prefWidth="120.0" style="-fx-background-color: #757575; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-cursor: hand;" text="Cancel / Back" />
+            <Button fx:id="btnSaveChanges" mnemonicParsing="false" onAction="#onSaveChangesClicked" prefHeight="35.0" prefWidth="160.0" style="-fx-background-color: #2e7d32; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-cursor: hand;" text="Save Changes" />
+         </children>
+         <padding>
+            <Insets top="10.0" />
+         </padding>
+      </HBox>
+      
+   </children>
+</VBox>

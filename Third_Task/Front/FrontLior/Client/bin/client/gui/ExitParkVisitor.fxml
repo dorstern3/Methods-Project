@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="500.0" prefWidth="600.0" style="-fx-background-color: #f9f9f9; -fx-border-color: #2d5d2d; -fx-border-width: 2;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.ExitParkVisitorController">
+<AnchorPane prefHeight="500.0" prefWidth="600.0" style="-fx-background-color: #f9f9f9; -fx-border-color: #2d5d2d; -fx-border-width: 2;" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.ExitParkVisitorController">
    <children>
       <VBox alignment="CENTER" layoutX="100.0" layoutY="40.0" spacing="20.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="80.0" AnchorPane.rightAnchor="80.0" AnchorPane.topAnchor="40.0">
          <children>
@@ -18,15 +18,9 @@
                </font>
             </Label>
             
-            <Label text="Please enter your Order ID to register departure:" textFill="#555555">
-               <font>
-                  <Font size="16.0" />
-               </font>
-            </Label>
-            
             <VBox alignment="CENTER" spacing="5.0">
                <children>
-                  <Label text="Order ID or QR Code:" textFill="#333333">
+                  <Label text="Order Number or QR Code:" textFill="#333333">
                      <font>
                         <Font name="System Bold" size="14.0" />
                      </font>

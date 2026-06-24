@@ -6,33 +6,40 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.util.Random;
 
 import client.logic.ServiceRepLogic;
+import client.logic.ScreenSwitch; // Required for screen navigation after logout
 import common.Message;
 import common.MessageType;
 
-public class ServiceRepController{
+/**
+ * Controller class for the Service Representative Panel.
+ * Manages the user interface for registering new Family Subscribers, 
+ * Single Subscribers, and Group Guides into the GoNature system.
+ * Implements centralized input validation to maintain clean and DRY (Don't Repeat Yourself) code.
+ */
+public class ServiceRepController {
 
-    private Connection dbConnection;
-    @FXML private VBox mainContainer;
+    @FXML 
+    private VBox mainContainer;
+    
     private TextField famFname, famLname, famId, famPhone, famEmail, famMembers;
     private TextField sFname, sLname, sId, sPhone, sEmail;
     private TextField gFname, gLname, gId, gPhone, gEmail;
     private ServiceRepLogic logic;
 
-    // Initializes the user interface panel and establishes database connection
+    /**
+     * Initializes the user interface panel.
+     * Automatically called after the FXML file is loaded.
+     * Constructs the tabs, layout forms, and header components including the logout button.
+     */
+    @FXML
     public void initialize() {
         logic = new ServiceRepLogic();
         
-    	mainContainer.setSpacing(10);
+        mainContainer.setSpacing(10);
         mainContainer.setPadding(new Insets(20));
         mainContainer.setAlignment(Pos.TOP_LEFT);
-
-        Label title = new Label("Service Representative Panel");
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
 
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
@@ -42,7 +49,7 @@ public class ServiceRepController{
         Tab groupTab = new Tab("Group Guide");
 
         // ---------------------------------------------------------------------
-        // Tab 1: Family Subscription
+        // Tab 1: Family Subscription Setup
         // ---------------------------------------------------------------------
         VBox familyVBox = new VBox(10);
         familyVBox.setPadding(new Insets(10));
@@ -71,15 +78,13 @@ public class ServiceRepController{
         familyGrid.add(famMembers, 1, 5);
 
         Button familySubmitBtn = new Button("Register to System");
-        
-        //handleFamilyRegister() 
         familySubmitBtn.setOnAction(e -> handleFamilyRegister());
 
         familyVBox.getChildren().addAll(familyGrid, familySubmitBtn);
         familyTab.setContent(familyVBox);
 
         // ---------------------------------------------------------------------
-        // Tab 2: Single Subscription
+        // Tab 2: Single Subscription Setup
         // ---------------------------------------------------------------------
         VBox singleVBox = new VBox(10);
         singleVBox.setPadding(new Insets(10));
@@ -105,13 +110,13 @@ public class ServiceRepController{
         singleGrid.add(sEmail, 1, 4);
 
         Button singleSubmitBtn = new Button("Register to System");
-        
         singleSubmitBtn.setOnAction(e -> handleSingleRegister());
+        
         singleVBox.getChildren().addAll(singleGrid, singleSubmitBtn);
         singleTab.setContent(singleVBox);
 
         // ---------------------------------------------------------------------
-        // Tab 3: Group Guide
+        // Tab 3: Group Guide Setup
         // ---------------------------------------------------------------------
         VBox groupVBox = new VBox(10);
         groupVBox.setPadding(new Insets(10));
@@ -137,21 +142,25 @@ public class ServiceRepController{
         groupGrid.add(gEmail, 1, 4);
 
         Button groupSubmitBtn = new Button("Register to System");
-        
         groupSubmitBtn.setOnAction(e -> handleGuideRegister());
 
         groupVBox.getChildren().addAll(groupGrid, groupSubmitBtn);
         groupTab.setContent(groupVBox);
 
         tabPane.getTabs().addAll(familyTab, singleTab, groupTab);
-        Button logoutBtn = new Button("Logout");
-        logoutBtn.setOnAction(e -> client.logic.CurUser.logout());
         
-        mainContainer.getChildren().addAll(title, tabPane, logoutBtn);
-
+        // Add the configured tabs to the main layout
+        mainContainer.getChildren().addAll(tabPane);
     }
 
-    // Displays structural popup notifications on the screen for success or error feedback
+    /**
+     * Displays UI popup notifications on the screen for success or error feedback.
+     * Ensures execution runs safely on the main JavaFX Application Thread.
+     *
+     * @param type    The specific AlertType configuration (e.g., ERROR, INFORMATION).
+     * @param title   The title of the alert window.
+     * @param content The main body message text content.
+     */
     private void showAlert(Alert.AlertType type, String title, String content) {
         Platform.runLater(() -> {
             Alert alert = new Alert(type);
@@ -161,62 +170,176 @@ public class ServiceRepController{
             alert.showAndWait();
         });
     }
-    
-    
-    private void handleFamilyRegister() {
-        if(famId.getText().isEmpty() || famFname.getText().isEmpty() || famMembers.getText().isEmpty()) {
+
+    /**
+     * Helper method to validate the 5 common input fields shared across all registration forms.
+     * Prevents code duplication following the DRY (Don't Repeat Yourself) principle.
+     *
+     * @param fname     First Name string.
+     * @param lname     Last Name string.
+     * @param idText    ID Number string.
+     * @param phoneText Mobile Number string.
+     * @param emailText Email address string.
+     * @return true if all inputs meet the structural formatting requirements, false otherwise.
+     */
+    private boolean isCommonInputValid(String fname, String lname, String idText, String phoneText, String emailText) {
+        // 1. Check for empty fields
+        if (fname.isEmpty() || lname.isEmpty() || idText.isEmpty() || phoneText.isEmpty() || emailText.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields!");
+            return false;
+        }
+
+        // 2. Validate names contain ENGLISH letters and spaces only
+        if (!fname.matches("[a-zA-Z\\s]+") || !lname.matches("[a-zA-Z\\s]+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Name", "First and Last names must contain only English letters!");
+            return false;
+        }
+
+        // 3. Validate ID formatting constraints (exactly 5 digits)
+        if (!idText.matches("\\d{5}")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid ID Number", "ID Number must be 5 digits long (numbers only)!");
+            return false;
+        }
+
+        // 4. Validate mobile identification (must contain only numbers)
+        if (!phoneText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile Number must contain digits only!");
+            return false;
+        }
+        
+        // 5. Validate email structure (must contain an '@' symbol)
+        if (!emailText.contains("@")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Email", "Please enter an email containing an '@' symbol.");
+            return false;
+        }
+
+        return true;
+    }
+    
+    /**
+     * Extracts input fields, executes centralized validation logic, 
+     * verifies family size specifications, and dispatches the request to the logic layer.
+     */
+    private void handleFamilyRegister() {
+        String fname = famFname.getText().trim();
+        String lname = famLname.getText().trim();
+        String idText = famId.getText().trim();
+        String phoneText = famPhone.getText().trim();
+        String emailText = famEmail.getText().trim();
+        String membersText = famMembers.getText().trim();
+
+        // 1. Invoke centralized validation helper
+        if (!isCommonInputValid(fname, lname, idText, phoneText, emailText)) {
             return;
         }
+
+        // 2. Validate family-specific input parameters
+        if (membersText.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill Family Members Amount!");
+            return;
+        }
+
+        int parsedMembers;
+        try {
+            parsedMembers = Integer.parseInt(membersText);
+            if (parsedMembers <= 0) {
+                showAlert(Alert.AlertType.ERROR, "Invalid Members Amount", "Family Members Amount must be greater than 0!");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Members Amount", "Family Members Amount must be a valid number!");
+            return;
+        }
+
+        // 3. Dispatch the registration command message to the logic layer
         Message response = logic.requestFamilyRegistration(
-            Integer.parseInt(famId.getText()), famFname.getText(), famLname.getText(),
-            famEmail.getText(), famPhone.getText(), Integer.parseInt(famMembers.getText())
+            Integer.parseInt(idText), fname, lname, emailText, phoneText, parsedMembers
         );
 
+        // 4. Handle server response
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
             int subNum = (int) response.getData();
             showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Family Subscription Registered!\nSub Number: " + subNum);
+            
+            // Clear fields upon successful registration
             famFname.clear(); famLname.clear(); famId.clear(); famPhone.clear(); famEmail.clear(); famMembers.clear();
         } else {
             showAlert(Alert.AlertType.ERROR, "Registration Failed", "Server rejected family subscription registration.");
         }
     }
     
+    /**
+     * Extracts input fields, executes centralized validation logic,
+     * and dispatches a single subscription request to the logic layer.
+     */
     private void handleSingleRegister() {
-        if(sId.getText().isEmpty() || sFname.getText().isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields!");
+        String fname = sFname.getText().trim();
+        String lname = sLname.getText().trim();
+        String idText = sId.getText().trim();
+        String phoneText = sPhone.getText().trim();
+        String emailText = sEmail.getText().trim();
+
+        // 1. Invoke centralized validation helper
+        if (!isCommonInputValid(fname, lname, idText, phoneText, emailText)) {
             return;
         }
 
+        // 2. Dispatch the registration command message to the logic layer
         Message response = logic.requestSingleRegistration(
-            Integer.parseInt(sId.getText()), sFname.getText(), sLname.getText(),
-            sEmail.getText(), sPhone.getText()
+            Integer.parseInt(idText), fname, lname, emailText, phoneText
         );
 
+        // 3. Handle server response
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
             int subNum = (int) response.getData();
             showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Single Subscription Registered!\nSub Number: " + subNum);
+            
+            // Clear fields upon successful registration
             sFname.clear(); sLname.clear(); sId.clear(); sPhone.clear(); sEmail.clear();
         } else {
             showAlert(Alert.AlertType.ERROR, "Registration Failed", "Server rejected single subscription registration.");
         }
     }
     
+    /**
+     * Extracts input fields, executes centralized validation logic,
+     * and dispatches a certified group guide request package to the logic layer.
+     */
     private void handleGuideRegister() {
-        if(gFname.getText().isEmpty() || gEmail.getText().isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields!");
+        String fname = gFname.getText().trim();
+        String lname = gLname.getText().trim();
+        String idText = gId.getText().trim();
+        String phoneText = gPhone.getText().trim();
+        String emailText = gEmail.getText().trim();
+
+        // 1. Invoke centralized validation helper
+        if (!isCommonInputValid(fname, lname, idText, phoneText, emailText)) {
             return;
         }
 
-        Message response = logic.requestGuideRegistration(gFname.getText(), gLname.getText(), gEmail.getText(), gPhone.getText());
+        // 2. Dispatch the registration command message to the logic layer (includes the Guide ID)
+        Message response = logic.requestGuideRegistration(
+            Integer.parseInt(idText), fname, lname, emailText, phoneText
+        );
 
+        // 3. Handle server response
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
             showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Group Guide Registered Successfully!");
+            
+            // Clear fields upon successful registration
             gFname.clear(); gLname.clear(); gId.clear(); gPhone.clear(); gEmail.clear();
         } else {
             showAlert(Alert.AlertType.ERROR, "Registration Failed", "Server rejected guide registration.");
         }
     }
+    
+    /**
+     * Logs the service representative out of the active user session 
+     * and redirects the window back to the main login panel screen view.
+     */
+    @FXML
+    public void logoutbtn() {
+        client.logic.CurUser.logout();
+        ScreenSwitch.switchScreen("/client/gui/LoginScreen.fxml", "GoNature Login");
+    }
 }
-
-
