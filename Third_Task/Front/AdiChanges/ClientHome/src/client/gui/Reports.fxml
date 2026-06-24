@@ -17,15 +17,15 @@
          <children>
             <ToolBar maxHeight="40.0" prefHeight="40.0" prefWidth="556.0" style="-fx-spacing: 20;" VBox.vgrow="NEVER">
               <items>
-                  <Button mnemonicParsing="false" onAction="#openDashboard" text="Dashboard" />
-                  <Label text="Start" />
-                  <DatePicker fx:id="startDate" />
-                  <Label text="End" />
-                  <DatePicker fx:id="endDate" />
-                  <ComboBox fx:id="parkSelection" prefWidth="150.0" promptText="Select a park" />
+                  <Button focusTraversable="false" mnemonicParsing="false" onAction="#openDashboard" styleClass="link-button" text="Dashboard" />
+                  <Label styleClass="field-label" text="Start" />
+                  <DatePicker fx:id="startDate" focusTraversable="false" />
+                  <Label styleClass="field-label" text="End" />
+                  <DatePicker fx:id="endDate" focusTraversable="false" />
+                  <ComboBox fx:id="parkSelection" focusTraversable="false" prefWidth="150.0" promptText="Select a park" />
               </items>
             </ToolBar>
-            <AnchorPane fx:id="reportContainer" VBox.vgrow="ALWAYS">
+            <AnchorPane fx:id="reportContainer" styleClass="root-container" VBox.vgrow="ALWAYS">
                <VBox.margin>
                   <Insets />
                </VBox.margin>
@@ -37,12 +37,12 @@
                   </Label>
                </children>
             </AnchorPane>
-            <HBox alignment="CENTER" maxHeight="50.0" prefHeight="50.0" prefWidth="450.0" spacing="50.0" style="-fx-border-color: black; -fx-border-radius: 5;" VBox.vgrow="NEVER">
+            <HBox alignment="CENTER" maxHeight="50.0" prefHeight="50.0" prefWidth="450.0" spacing="50.0" styleClass="bottom-section" VBox.vgrow="NEVER">
                <children>
-                  <Button fx:id="btnVisitorsReport" mnemonicParsing="false" onAction="#onClickVisitorsReport" text="Visitors Report" />
-                  <Button fx:id="btnCancellationsReport" mnemonicParsing="false" onAction="#onClickCanclingReport" prefHeight="25.0" prefWidth="123.0" text="Cancellation Report" />
-                  <Button fx:id="btnTotalVisitorsReport" mnemonicParsing="false" onAction="#onClickTotalVisitorsReport" text="Total Visitors Report" />
-                  <Button fx:id="btnOccupancyReport" mnemonicParsing="false" onAction="#onClickOccupancyReport" text="Occupancy Report" />
+                  <Button fx:id="btnVisitorsReport" focusTraversable="false" mnemonicParsing="false" onAction="#onClickVisitorsReport" styleClass="primary-button" text="Visitors Report" />
+                  <Button fx:id="btnCancellationsReport" focusTraversable="false" mnemonicParsing="false" onAction="#onClickCanclingReport" prefHeight="25.0" prefWidth="123.0" styleClass="primary-button" text="Cancellation Report" />
+                  <Button fx:id="btnTotalVisitorsReport" focusTraversable="false" mnemonicParsing="false" onAction="#onClickTotalVisitorsReport" styleClass="primary-button" text="Total Visitors Report" />
+                  <Button fx:id="btnOccupancyReport" focusTraversable="false" mnemonicParsing="false" onAction="#onClickOccupancyReport" styleClass="primary-button" text="Occupancy Report" />
                </children>
                <VBox.margin>
                   <Insets />

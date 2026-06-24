@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="217.0" prefWidth="603.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.WaitListFormController">
+   <children>
+      <Label layoutX="57.0" layoutY="51.0" text="We are sorry, the park is full at the requested time." textAlignment="CENTER">
+         <font>
+            <Font size="22.0" />
+         </font>
+      </Label>
+      <Button fx:id="btnWaitList" layoutX="138.0" layoutY="109.0" mnemonicParsing="false" onAction="#clickWaitList" prefHeight="41.0" prefWidth="137.0" text="Enter Waiting List">
+         <font>
+            <Font name="System Bold" size="13.0" />
+         </font>
+      </Button>
+      <Button fx:id="btnAltDate" layoutX="313.0" layoutY="109.0" mnemonicParsing="false" onAction="#clickAltDate" prefHeight="41.0" prefWidth="195.0" text="Choose Alternative Date">
+         <font>
+            <Font name="System Bold" size="13.0" />
+         </font>
+      </Button>
+      <Button fx:id="btnCancel" layoutX="537.0" layoutY="177.0" mnemonicParsing="false" onAction="#clickCancel" text="Cancel" />
+   </children>
+</AnchorPane>

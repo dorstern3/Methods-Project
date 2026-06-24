@@ -1,0 +1,72 @@
+/* קובץ עיצוב אחיד למערכת GoNature - style.css */
+
+/* 1. עיצוב האבא/הרקע הראשי של המסכים */
+.root-container {
+    -fx-background-color: #f9f9f9;
+    -fx-border-color: #2d5d2d;
+    -fx-border-width: 2;
+}
+
+/* 2. כותרות ראשיות (כמו GoNature - Visitor Exit) */
+.main-title {
+    -fx-font-family: "System";
+    -fx-font-weight: bold;
+    -fx-font-size: 28px;
+    -fx-text-fill: #2d5d2d;
+}
+
+/* 3. טקסטים משניים ולייבלים רגילים */
+.secondary-label {
+    -fx-font-family: "System";
+    -fx-font-size: 16px;
+    -fx-text-fill: #555555;
+}
+
+.field-label {
+    -fx-font-family: "System";
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: #333333;
+}
+
+/* 4. תיבות הטקסט (Input Fields) עם פינות מעוגלות */
+.text-field, .password-field {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1;
+    -fx-background-color: #ffffff;
+    -fx-font-size: 14px;
+}
+
+
+
+/* 5. הכפתור הראשי הירוק והגדול (REGISTER EXIT / LOGIN) */
+.button.primary-button {
+    -fx-background-color: #27ae60;
+    -fx-text-fill: white;
+    -fx-background-radius: 15;
+    -fx-font-family: "System";
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+
+
+/* 6. כפתורי הקישור השקופים (Back to Dashboard / Back) */
+.link-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #7f8c8d;
+    -fx-font-family: "System";
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+}
+
+
+.bottom-section {
+    -fx-background-color: #f1f1f1; /* אפור בהיר מאוד שמפריד את האזור מהרקע הלבן */
+    -fx-border-color: #e0e0e0 transparent transparent transparent; /* גבול עדין רק בחלק העליון */
+    -fx-border-width: 1;
+    -fx-padding: 10 20 10 20; /* מרווח פנימי יפה כדי שהכפתורים לא יידבקו לקצוות */
+}

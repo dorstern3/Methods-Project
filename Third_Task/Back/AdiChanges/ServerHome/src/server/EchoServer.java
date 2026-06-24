@@ -99,6 +99,16 @@ public class EchoServer extends AbstractServer {
 				}
 				case TRAVELER_LOGOUT: {
 					String travelerIdentifier = (String) message.getData();
+					// New for ServerHome
+					if(travelerIdentifier.length() == 4) {
+						String subscriberId = db.DBselect.getSubscriberId(travelerIdentifier);
+						if(subscriberId == null) {
+							client.sendToClient(new Message(MessageType.LOGIN_FAILED , "There is no subscriber with " + travelerIdentifier + " subscriber number"));
+							break;
+						}
+						travelerIdentifier = subscriberId;
+					}
+					// End
 					if (travelerIdentifier != null) {
 						activeTravelers.remove(travelerIdentifier);
 						client.setInfo("travelerId", null);
@@ -334,10 +344,18 @@ public class EchoServer extends AbstractServer {
 					client.sendToClient(new Message(MessageType.CLEAN_WAITING_LIST_RESULT, canceledCount));
 					break;
 				}
+				case GET_SUBSCRIBERS_LIST:
+				    db.DBparks.handleGetSubscribersList(message, client);
+				    break;
+
+				case GET_WORKERS_LIST:
+					db.DBparks.handleGetWorkersList(message, client);
+				    break;
 				default:
 					System.out.println("Server: Unknown message type received.");
 					break;
 				}
+				
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
