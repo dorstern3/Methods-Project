@@ -8,13 +8,9 @@ public class DBconnection {
 	
     private static final String DB_URL = "jdbc:mysql://localhost:3306/gonature_db_new?serverTimezone=UTC";
     private static final String USER = "root";
-<<<<<<< HEAD
-    private static final String PASS = "Lior1234";
-=======
     
     private static final int POOL_SIZE = 10;
     private static DBconnectionPool connectionPool = null;
->>>>>>> 94e485d1971cab666a5c2a05740a6bbb694d75a2
 
     // Static rank that will hold the connection of the individual server
     private static Connection conn = null;
