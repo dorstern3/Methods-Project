@@ -406,8 +406,11 @@ public class EchoServer extends AbstractServer {
 		String query = "SELECT worker_id, fname, lname, email, role, park_name "
 				+ "FROM gonature_db_new.Workers WHERE fname = ? AND hash_password = ?;";
 
-		try (Connection conn = DBconnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(query)) {
-
+		Connection conn = null; 
+		try {
+			conn = DBconnection.getConnection(); 
+			
+			try (PreparedStatement pstmt = conn.prepareStatement(query)) {
 			pstmt.setString(1, workerName);
 			pstmt.setString(2, password);
 
@@ -418,10 +421,16 @@ public class EchoServer extends AbstractServer {
 							rs.getString("email"), rs.getString("role"), rs.getString("park_name") };
 				}
 			}
+		}
 		} catch (Exception e) {
 			System.err.println("Server Error: Database failure during login for user " + workerName);
 			e.printStackTrace();
+		}finally {
+			if (conn != null) {
+				db.DBconnection.release(conn); 
+			}
 		}
+		
 		try {
 			if (isSuccess) {
 				String workerId = String.valueOf(workerData[0]);
@@ -521,11 +530,15 @@ public class EchoServer extends AbstractServer {
 
         String query = "SELECT id, fname, lname, email, phone_number, credit_card_number, family_members " +
                        "FROM gonature_db_new.Subscriber WHERE sub_number = ?";
+        
+        java.sql.Connection conn = null;
+        java.sql.PreparedStatement pstmt = null;
+        java.sql.ResultSet rs = null;
         try {
-            java.sql.Connection conn = DBconnection.getConnection();
-            java.sql.PreparedStatement pstmt = conn.prepareStatement(query);
+            conn = DBconnection.getConnection();
+            pstmt = conn.prepareStatement(query);
             pstmt.setInt(1, Integer.parseInt(subNumber));
-            java.sql.ResultSet rs = pstmt.executeQuery();
+            rs = pstmt.executeQuery();
 
             if (rs.next()) {
                 subscriberDetails = new ArrayList<>();
@@ -540,11 +553,13 @@ public class EchoServer extends AbstractServer {
                 
                 subscriberDetails.add(String.valueOf(rs.getInt("family_members"))); // Index 6
             }
-            rs.close();
-            pstmt.close();
         } catch (Exception e) {
             System.err.println("Server: Error fetching subscriber details for editor.");
             e.printStackTrace();
+        }finally {
+            if (rs != null) { try { rs.close(); } catch (Exception e) {} }
+            if (pstmt != null) { try { pstmt.close(); } catch (Exception e) {} }
+            if (conn != null) { try { DBconnection.release(conn); } catch (Exception e) {} }
         }
 
         try {
@@ -573,9 +588,12 @@ public class EchoServer extends AbstractServer {
         String query = "UPDATE gonature_db_new.Subscriber SET email = ?, phone_number = ?, " +
                        "credit_card_number = ?, family_members = ? WHERE sub_number = ?";
         
+        java.sql.Connection conn = null;
+        java.sql.PreparedStatement pstmt = null;
+        
         try {
-            java.sql.Connection conn = DBconnection.getConnection();
-            java.sql.PreparedStatement pstmt = conn.prepareStatement(query);
+            conn = DBconnection.getConnection();
+            pstmt = conn.prepareStatement(query);
             pstmt.setString(1, email);
             pstmt.setString(2, phone);
             pstmt.setString(3, creditCard.isEmpty() ? null : creditCard);
@@ -587,10 +605,12 @@ public class EchoServer extends AbstractServer {
                 success = true;
                 System.out.println("Server: Subscriber " + subNumber + " updated profile parameters successfully.");
             }
-            pstmt.close();
         } catch (Exception e) {
             System.err.println("Server: Error updating subscriber parameters into schema tables.");
             e.printStackTrace();
+        }finally {
+            if (pstmt != null) { try { pstmt.close(); } catch (Exception e) {} }
+            if (conn != null) { try { DBconnection.release(conn); } catch (Exception e) {} }
         }
         
         try { 
