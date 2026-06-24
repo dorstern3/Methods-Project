@@ -1,5 +1,10 @@
 package common;
 
+/**
+ * Enumeration representing all distinctive cross-network application message types.
+ * Used by the client-server communication layer to identify request actions and route 
+ * responses correctly via serialized message structures.
+ */
 public enum MessageType {
 	GET_FULL_PRICE, GET_FULL_PRICE_RESPONSE,
 
@@ -91,6 +96,17 @@ public enum MessageType {
 	CLEAN_WAITING_LIST,
 	
 	/** Response containing the number of waiting list entries that were successfully canceled. */
-	CLEAN_WAITING_LIST_RESULT
+	CLEAN_WAITING_LIST_RESULT,
+	
+	UPDATE_SUBSCRIBER_DETAILS, 
+	UPDATE_SUBSCRIBER_DETAILS_RESPONSE,
+	
+	GET_SUBSCRIBER_DETAILS_RESPONSE, 
+	GET_SUBSCRIBER_DETAILS,
+	CHECK_ORDER_EXISTENCE, CHECK_ORDER_RESPONSE,
+	GET_SUBSCRIBERS_LIST,
+	GET_SUBSCRIBERS_LIST_RESPONSE,
+	GET_WORKERS_LIST,
+	GET_WORKERS_LIST_RESPONSE,
 
 }

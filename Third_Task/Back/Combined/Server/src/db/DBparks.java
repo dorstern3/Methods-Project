@@ -27,7 +27,8 @@ import java.util.ArrayList;
 import common.Message;
 
 import common.MessageType;
-
+import common.Subscriber;
+import common.Workers;
 import ocsf.server.ConnectionToClient;
 
 
@@ -863,65 +864,53 @@ public static void handleVerifyGuide(Message message, ConnectionToClient client)
 
      */
 
+/**
+ * Verifies if a provided subscriber number exists and is valid in the system.
+ * Retrieves the allowed family members limit to enforce quota rules.
+ * * @param message The network message containing the Subscriber ID/Number (String).
+ * @param client  The connection thread representing the client making the request.
+ */
 public static void handleVerifySubscriber(Message message, ConnectionToClient client) {
-
-        String subIdStr = (String) message.getData();
-
-        boolean isSubValid = false;
-
+    String subIdStr = (String) message.getData();
+    // Response will hold [Boolean (isValid), Integer (familyLimit)]
+    ArrayList<Object> response = new ArrayList<>();
+    
+    try {
+        int subId = Integer.parseInt(subIdStr);
+        String query = "SELECT family_members FROM gonature_db_new.Subscriber WHERE sub_number = ?";
+        Connection conn = DBconnection.getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(query);
+        pstmt.setInt(1, subId);
+        ResultSet rs = pstmt.executeQuery();
         
-
-        try {
-
-            int subId = Integer.parseInt(subIdStr);
-
-            String query = "SELECT * FROM gonature_db_new.Subscriber WHERE sub_number = ?";
-
-            Connection conn = DBconnection.getConnection();
-
-            PreparedStatement pstmt = conn.prepareStatement(query);
-
-            pstmt.setInt(1, subId);
-
-            ResultSet rs = pstmt.executeQuery();
-
-            
-
-            if (rs.next()) {
-
-                isSubValid = true; 
-
-                System.out.println("Server: Subscriber " + subId + " verified successfully.");
-
-            } else {
-
-                System.out.println("Server: Subscriber verification failed for ID: " + subId);
-
-            }
-
-            rs.close();
-
-            pstmt.close();
-
-        } catch (NumberFormatException e) {
-
-            System.err.println("Server: Invalid Subscriber ID format.");
-
-        } catch (Exception e) {
-
-            System.err.println("Server: Database error during subscriber verification.");
-
-            e.printStackTrace();
-
+        if (rs.next()) {
+            response.add(true); // Subscriber exists
+            response.add(rs.getInt("family_members")); // Subscriber family limit
+            System.out.println("Server: Subscriber " + subId + " verified successfully.");
+        } else {
+            response.add(false);
+            response.add(0);
+            System.out.println("Server: Subscriber verification failed for ID: " + subId);
         }
-
-        
-
-        try { client.sendToClient(new Message(MessageType.VERIFY_SUBSCRIBER_RESPONSE, isSubValid)); } 
-
-        catch (Exception e) { e.printStackTrace(); }
-
+        rs.close();
+        pstmt.close();
+    } catch (NumberFormatException e) {
+        System.err.println("Server: Invalid Subscriber ID format.");
+        response.add(false);
+        response.add(0);
+    } catch (Exception e) {
+        System.err.println("Server: Database error during subscriber verification.");
+        e.printStackTrace();
+        response.add(false);
+        response.add(0);
     }
+    
+    try { 
+        client.sendToClient(new Message(MessageType.VERIFY_SUBSCRIBER_RESPONSE, response)); 
+    } catch (Exception e) { 
+        e.printStackTrace(); 
+    }
+}
 
 
 
@@ -957,11 +946,12 @@ public static void handleConfirmPayment(Message message, ConnectionToClient clie
 
         String visitorId = (String) paymentData.get(4); // Extracted traveler verification identification parameter
 
-
+        
 
         // Resolve Subscriber Number to the actual personal ID for consistent database logging
 
         if ("Subscriber".equals(visitorType) && (orderToUpdate == null || orderToUpdate.isEmpty())) {
+        	     		
 
             try {
 
@@ -1154,4 +1144,118 @@ public static void handleConfirmPayment(Message message, ConnectionToClient clie
         }
 
     }
+	/**
+  * Fetches all registered subscribers using explicit connect and release pool tracking.
+  */
+ public static void handleGetSubscribersList(Message message, ConnectionToClient client) {
+     ArrayList<Subscriber> subscribersList = new ArrayList<>();
+     String query = "SELECT sub_number, fname, lname, email, phone_number, credit_card_number, family_members FROM gonature_db_new.Subscriber";
+     
+     Connection conn = null;
+     PreparedStatement pstmt = null;
+     ResultSet rs = null;
+     
+     try {
+         conn = DBconnection.getConnection(); 
+         
+         pstmt = conn.prepareStatement(query);
+         rs = pstmt.executeQuery();
+         
+         while (rs.next()) {
+             Subscriber sub = new Subscriber(
+                 rs.getInt("sub_number"),
+                 rs.getString("fname"),
+                 rs.getString("lname"),
+                 rs.getString("email"),
+                 rs.getString("phone_number"),
+                 rs.getString("credit_card_number"),
+                 rs.getInt("family_members")
+             );
+             subscribersList.add(sub);
+         }
+         
+     } catch (Exception e) {
+         System.err.println("Server: Error fetching subscribers list.");
+         e.printStackTrace();
+     } finally {
+         // Safely close DB resources and release the connection back to the pool
+         if (rs != null) { try { rs.close(); } catch (Exception e) {} }
+         if (pstmt != null) { try { pstmt.close(); } catch (Exception e) {} }
+         if (conn != null) { 
+             try { 
+             	//DBconnection.release(conn);
+             	conn.close();
+                 //System.out.println("Server: Connection explicitly released back to pool.");
+             } catch (Exception e) {} 
+         }
+     }
+     
+     // Dispatch the response outside the DB allocation block
+     try {
+         client.sendToClient(new Message(MessageType.GET_SUBSCRIBERS_LIST_RESPONSE, subscribersList));
+     } catch (Exception e) {
+         e.printStackTrace();
+     }
+ }
+ 
+ /**
+  * Fetches all system workers rows from the database using explicit pool management.
+  * Maps database schema columns directly into common Workers entity models.
+  * * @param message The received network tracking message package.
+  * @param client  The specific communication thread execution reference for the response.
+  */
+ public static void handleGetWorkersList(Message message, ConnectionToClient client) {
+     ArrayList<Workers> workersList = new ArrayList<>();
+     String query = "SELECT fname, lname, email, role, park_name FROM gonature_db_new.Workers";
+     
+     Connection conn = null;
+     PreparedStatement pstmt = null;
+     ResultSet rs = null;
+     
+     try {
+         // 1. Borrow an active connection from your DB pool helper configuration
+         conn = DBconnection.getConnection();
+         
+         pstmt = conn.prepareStatement(query);
+         rs = pstmt.executeQuery();
+         
+         // 2. Iterate through records and populate the collection payload
+         while (rs.next()) {
+             Workers worker = new Workers(
+                 rs.getString("fname"),
+                 rs.getString("lname"),
+                 rs.getString("email"),
+                 rs.getString("role"),
+                 rs.getString("park_name")
+             );
+             workersList.add(worker);
+         }
+         System.out.println("Server: Retrieved " + workersList.size() + " worker rows from database schema.");
+         
+     } catch (Exception e) {
+         System.err.println("Server: Database failure executing workers table metadata collection query.");
+         e.printStackTrace();
+     } finally {
+         // 3. Clean up database tracking cursors and release resource connection back to pool
+         if (rs != null) { try { rs.close(); } catch (Exception e) {} }
+         if (pstmt != null) { try { pstmt.close(); } catch (Exception e) {} }
+         if (conn != null) { 
+             try { 
+                 //DBconnection.release(conn);
+                 conn.close();
+                 //System.out.println("Server: Database connection successfully released back to memory pool allocation.");
+             } catch (Exception e) {} 
+         }
+     }
+     
+     // 4. Transmit data package back to client outside of active pool connection blocks
+     try {
+         client.sendToClient(new Message(MessageType.GET_WORKERS_LIST_RESPONSE, workersList));
+     } catch (Exception e) {
+         System.err.println("Server: Critical error transmitting workers structural payload back to client connection.");
+         e.printStackTrace();
+     }
+ }
+ 
+ 
 }

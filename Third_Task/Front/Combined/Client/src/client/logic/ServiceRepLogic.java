@@ -1,6 +1,10 @@
 package client.logic;
 
+import java.util.ArrayList;
+
 import client.ClientUI;
+import common.Subscriber;
+import common.Workers;
 import common.Message;
 import common.MessageType;
 
@@ -33,6 +37,7 @@ public class ServiceRepLogic {
 
 	/**
 	 * Packages and sends a request to register a new Group Guide.
+	 * FIXED: Now accepts and packages the Guide ID as the first parameter.
 	 */
 	public Message requestGuideRegistration(int id, String fname, String lname, String email, String phone) {
 		Object[] params = new Object[] { id, fname, lname, email, phone };
@@ -40,4 +45,46 @@ public class ServiceRepLogic {
 		return (Message) ClientUI.clientChat.accept(msg);
 	}
 	
+	
+	/**
+     * Sends a request to the server to fetch all registered subscribers.
+     * @return ArrayList of Subscriber objects, or an empty list if the request fails.
+     */
+    public ArrayList<Subscriber> loadSubscribers() {
+        System.out.println("ServiceRepLogic: Requesting subscriber list from server.");
+        try {
+            Message request = new Message(MessageType.GET_SUBSCRIBERS_LIST, null);
+            Message response = (Message) ClientUI.clientChat.accept(request);
+
+            if (response != null && response.getType() == MessageType.GET_SUBSCRIBERS_LIST_RESPONSE) {
+                return (ArrayList<Subscriber>) response.getData();
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching subscribers list from server.");
+            e.printStackTrace();
+        }
+        return new ArrayList<>(); // Return empty list as fallback
+    }
+    
+    /**
+     * Sends a request to the server to fetch all system workers.
+     * @return ArrayList of Workers objects, or an empty list if the request fails.
+     */
+    public ArrayList<Workers> loadWorkers() {
+        System.out.println("ServiceRepLogic: Requesting workers list from server.");
+        try {
+            Message request = new Message(MessageType.GET_WORKERS_LIST, null);
+            Message response = (Message) ClientUI.clientChat.accept(request);
+
+            if (response != null && response.getType() == MessageType.GET_WORKERS_LIST_RESPONSE) {
+                return (ArrayList<Workers>) response.getData();
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching workers list from server.");
+            e.printStackTrace();
+        }
+        return new ArrayList<>(); // Return empty list as fallback
+    }
+    
+    
 }

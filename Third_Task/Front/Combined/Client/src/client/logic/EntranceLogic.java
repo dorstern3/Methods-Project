@@ -249,9 +249,9 @@ public class EntranceLogic {
     /**
      * Verifies if the provided identification string belongs to a valid, active subscriber in the system.
      * * @param subscriberId The Subscriber Number or ID to verify against the database.
-     * @return true if the subscriber is valid and found, false otherwise.
+     * @return An ArrayList containing [Boolean (exists), Integer (family_members)], or null if an error occurs.
      */
-    public boolean verifySubscriber(String subscriberId) {
+    public ArrayList<Object> verifySubscriber(String subscriberId) {
         System.out.println("EntranceLogic: Requesting Subscriber verification for ID: " + subscriberId);
         
         try {
@@ -259,13 +259,14 @@ public class EntranceLogic {
             Message response = (Message) ClientUI.clientChat.accept(request);
             
             if (response != null && response.getType() == MessageType.VERIFY_SUBSCRIBER_RESPONSE) {
-                return (boolean) response.getData();
+                // Return the full array list containing validation status and family limit
+                return (ArrayList<Object>) response.getData();
             }
         } catch (Exception e) {
             System.err.println("Error communicating with server during Subscriber Verification.");
             e.printStackTrace();
         }
         
-        return false; 
+        return null; 
     }
 }

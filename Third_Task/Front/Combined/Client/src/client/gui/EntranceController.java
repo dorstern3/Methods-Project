@@ -2,6 +2,8 @@ package client.gui;
 
 
 
+import java.util.ArrayList;
+
 import client.logic.CurUser;
 
 import client.logic.EntranceLogic;
@@ -267,6 +269,7 @@ public class EntranceController {
             
 
             switch (errorType) {
+            	
 
                 case "NOT_FOUND":
 
@@ -319,191 +322,115 @@ public class EntranceController {
 
 
     /**
-
      * Handles the validation and capacity check for casual (unplanned) visitors.
-
-     * Verifies specific ID requirements (e.g., Guide ID, Subscriber ID) and checks 
-
-     * if the park has enough available capacity for the requested amount of visitors.
-
-     * If space is available, it calculates the price and displays the invoice.
-
+     * Verifies specific ID requirements (e.g., Guide ID, Subscriber ID) and enforces
+     * subscriber family member limits. If space is available and rules are met, 
+     * it calculates the price and displays the invoice.
      * * @param event The ActionEvent triggered by clicking the "Check Capacity & Price" button.
-
      */
-
     @FXML
-
     public void onCheckCasualClicked(ActionEvent event) {
-
-    resetTransactionState();
-
+        resetTransactionState();
         hideInvoice();
-
         String type = visitorTypeCombo.getValue();
-
         String amountStr = casualAmountInput.getText().trim();
-
-        String casualId = casualIdInput.getText().trim(); // Fetch the ID once here
-
-
+        String casualId = casualIdInput.getText().trim(); 
 
         if (type == null || amountStr.isEmpty()) {
-
             showMessage("Please select visitor type and amount.", "red");
-
             return;
-
         }
-
-
 
         if (casualId.isEmpty()) {
-
             showMessage("Visitor ID / Subscriber Number is required.", "red");
-
             return;
-
         }
-
-
 
         // Basic validation: Ensure the ID contains only numbers
-
         if (!casualId.matches("[0-9]+")) {
-
             hideInvoice();
-
             showMessage("Error: ID must contain only numbers.", "red");
-
             return;
-
         }
 
+        // Parse amount early to use in validations
+        int amount;
+        try {
+            amount = Integer.parseInt(amountStr);
+            if (amount <= 0 || amount > 15) {
+                hideInvoice();
+                showMessage("Error: Amount must be between 1 and 15.", "red");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            showMessage("Please enter a valid number of visitors.", "red");
+            return;
+        }
 
+        if (amount > 1 && "Regular".equals(type)) {
+            hideInvoice();
+            showMessage("Regular invite is limited to one person.", "red");
+            return;
+        }
 
         // Enforcement validation checks based on visitor type
-
         if ("Subscriber".equals(type)) {
-
             if (casualId.length() != 4) {
-
                 hideInvoice();
-
                 showMessage("Error: Subscriber Number must be exactly 4 digits.", "red");
-
                 return;
-
             }
-
-            if (!entranceLogic.verifySubscriber(casualId)) {
-
+            
+            // Retrieve subscriber data from the logic layer
+            ArrayList<Object> subData = entranceLogic.verifySubscriber(casualId);
+            
+            if (subData == null || !(boolean) subData.get(0)) {
                 hideInvoice();
-
                 showMessage("Verification Failed: Subscriber ID not found.", "red");
-
                 return;
-
             }
-
             
-
+            // --- NEW ENFORCEMENT: Check Family Limit ---
+            int familyLimit = (int) subData.get(1);
+            if (amount > familyLimit) {
+                hideInvoice();
+                showMessage("Error: Subscriber plan allows only " + familyLimit + " members.", "red");
+                return;
+            }
+            
         } else if ("Group".equals(type)) {
-
             if (casualId.length() != 5) {
-
                 hideInvoice();
-
                 showMessage("Error: Guide ID must be exactly 5 digits.", "red");
-
                 return;
-
             }
-
             if (!entranceLogic.verifyGuide(casualId)) {
-
                 hideInvoice();
-
                 showMessage("Verification Failed: Invalid Guide ID.", "red");
-
                 return;
-
             }
-
         } else {
-
             // Regular visitor
-
             if (casualId.length() != 5) {
-
                 hideInvoice();
-
                 showMessage("Error: Visitor ID must be exactly 5 digits.", "red");
-
                 return;
-
             }
-
         }
 
-
-
-        try {
-
-            int amount = Integer.parseInt(amountStr);
-
-            if (amount <= 0 || amount > 15) {
-
-                hideInvoice();
-
-                showMessage("Error: Amount must be between 1 and 15.", "red");
-
-                return;
-
-            }
-
-            if (amount > 1 && "Regular".equals(type)) {
-
-                hideInvoice();
-
-                showMessage("Regular invite is limited to one person.", "red");
-
-                return;
-
-            }
-
+        // Proceed to capacity check
+        if (entranceLogic.checkCasualAvailability(amount, currentParkName)) {
+            currentTransactionAmount = amount;
+            currentTransactionOrderId = null; 
+            currentVisitorType = type; 
             
-
-            if (entranceLogic.checkCasualAvailability(amount, currentParkName)) {
-
-                currentTransactionAmount = amount;
-
-                currentTransactionOrderId = null; 
-
-                currentVisitorType = type; // Saving casual visitor type
-
-                
-
-                showMessage("Space available! Proceed to payment.", "green");
-
-                double calculatedPrice = entranceLogic.calculatePrice(type, amount, false);
-
-                showInvoice(String.format("%.2f NIS", calculatedPrice));
-
-            } else {
-
-                hideInvoice();
-
-                showMessage("Notice: The park is currently at maximum capacity.", "red");
-
-            }
-
-        } catch (NumberFormatException e) {
-
-            showMessage("Please enter a valid number of visitors.", "red");
-
+            showMessage("Space available! Proceed to payment.", "green");
+            double calculatedPrice = entranceLogic.calculatePrice(type, amount, false);
+            showInvoice(String.format("%.2f NIS", calculatedPrice));
+        } else {
+            hideInvoice();
+            showMessage("Notice: The park is currently at maximum capacity.", "red");
         }
-
     }
 
 

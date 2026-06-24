@@ -1,6 +1,6 @@
 INSERT INTO `parks` VALUES 
 ('Achziv', 10, 2, 0, 35, 0, 4),
-('Banias', 500, 50, 120, 39, 0, 4),
+('Banias', 500, 50, 0, 39, 0, 4),
 ('Caesarea', 1000, 100, 450, 45, 0.1, 4),
 ('Ein Gedi', 600, 60, 200, 28, 0.15, 4),
 ('Masada', 800, 80, 300, 50, 0, 4);
@@ -26,7 +26,7 @@ INSERT INTO `order` (`order_date`, `number_of_visitors`, `QR_code`, `id`, `date_
 ('2026-06-18', 4, 'QR-3521', 11111, '2026-06-14', '12:30:00', 'Pending confirmation', 'Subscriber', 'Caesarea'),
 ('2026-06-25', 1, 'QR-3522', 22222, '2026-06-12', '14:00:00', 'Confirmed', 'Subscriber', 'Ein Gedi'),
 ('2026-06-17', 15, 'QR-3523', 90001, '2026-06-10', '09:00:00', 'Entered', 'Group', 'Masada'),
-('2026-06-20', 3, 'QR-3525', 33333, '2026-06-16', '10:00:00', 'On waiting list', 'Subscriber', 'Achziv');
+('2026-06-20', 3, 'QR-3524', 33333, '2026-06-16', '10:00:00', 'On waiting list', 'Subscriber', 'Achziv');
 
 INSERT INTO `parameter_requests` (`park_name`, `worker_id`, `parameter_name`, `current_value`, `request_value`, `status`, `request_date`) VALUES 
 ('Banias', 1, 'max_capacity', 500, 550, 'Pending', '2026-06-16'),

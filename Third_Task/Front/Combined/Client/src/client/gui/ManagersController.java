@@ -44,6 +44,23 @@ public class ManagersController {
 
         Label mainTitle = new Label("Managers Screen");
         mainTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 18px;");
+     
+        Label myInfo = new Label(CurUser.getMyInfo());
+        myInfo.setStyle(
+        	    "-fx-background-color: #F8F9FA; " +      
+        	    "-fx-border-color: #E0E0E0; " +          
+        	    "-fx-border-width: 1px; " +              
+        	    "-fx-background-radius: 10px; " +        
+        	    "-fx-border-radius: 10px; " +            
+        	    "-fx-font-family: 'Segoe UI', sans-serif; " + 
+        	    "-fx-font-size: 13px; " +                
+        	    "-fx-text-fill: #333333; " +             
+        	    "-fx-line-spacing: 5px;"                 
+        	);
+        	myInfo.setPadding(new javafx.geometry.Insets(12, 16, 12, 16));
+        	myInfo.setAlignment(javafx.geometry.Pos.TOP_LEFT);
+        Tab infoTab = new Tab("My Info");
+        infoTab.setContent(myInfo);
         
         // --- Create the capacity label and a manual refresh button ---
         lblLiveCapacity = new Label("Current Park Occupancy: Loading...");
@@ -136,9 +153,9 @@ public class ManagersController {
         String userRole = client.logic.CurUser.getRole();
         
         if ("Park_manager".equals(userRole)) {
-            tabPane.getTabs().add(parkManagerTab);
+            tabPane.getTabs().addAll(parkManagerTab,infoTab); 
         } else if ("Dept_manager".equals(userRole)) {
-            tabPane.getTabs().add(deptManagerTab);
+            tabPane.getTabs().addAll(deptManagerTab,infoTab); 
         } else {
             tabPane.getTabs().addAll(parkManagerTab, deptManagerTab);
         }
@@ -213,7 +230,7 @@ public class ManagersController {
             String dbParamName = "";
             if (selectedUIParam.contains("Capacity")) dbParamName = "max_capacity";
             else if (selectedUIParam.contains("Gap")) dbParamName = "casual_gap";
-            else if (selectedUIParam.contains("Stay")) dbParamName = "estimated_stay_time";
+            else if (selectedUIParam.contains("Stay")) dbParamName = "estimated_staying_time";
 
            
             String currentPark = CurUser.getParkName();

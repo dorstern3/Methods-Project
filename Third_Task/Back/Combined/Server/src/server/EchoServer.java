@@ -129,6 +129,9 @@ public class EchoServer extends AbstractServer {
 				case VERIFY_SUBSCRIBER:
 					DBparks.handleVerifySubscriber(message, client);
 					break;
+				case GET_SUBSCRIBER_DETAILS:
+				    handleGetSubscriberDetails(message, client);
+				    break;
 				case EXIT_PARK:
 					DBparks.handleExitPark(message, client);
 					break;
@@ -209,6 +212,29 @@ public class EchoServer extends AbstractServer {
 					}
 					break;
 				}
+				case CHECK_ORDER_EXISTENCE: {
+				    String inputId = (String) message.getData();
+				    try {
+				        String travelerId = inputId;
+
+				        if (inputId != null && inputId.length() == 4) {
+				            travelerId = db.DBselect.getTravelerIdBySubNumber(inputId);
+				            if (travelerId == null) {
+				                client.sendToClient(new Message(MessageType.CHECK_ORDER_RESPONSE, false));
+				                break;
+				            }
+				        }
+
+				        boolean exists = db.DBselect.hasActiveOrder(travelerId);
+				        client.sendToClient(new Message(MessageType.CHECK_ORDER_RESPONSE, exists));
+				        
+				    } catch (Exception e) {
+				        System.err.println("Server Error during CHECK_ORDER_EXISTENCE: " + e.getMessage());
+				        e.printStackTrace();
+				        client.sendToClient(new Message(MessageType.ERROR, "Server error checking order."));
+				    }
+				    break;
+				}
 				case CHECK_AVAILABILITY: {
 					Order orderDetails = (Order) message.getData();
 					boolean isAvailable = DBselect.checkAvailability(orderDetails);
@@ -268,18 +294,26 @@ public class EchoServer extends AbstractServer {
 					break;
 				}
 				case FETCH_ORDER_DETAILS: {
-					ArrayList<Object> searchParams = (ArrayList<Object>) message.getData();
-					int orderNum = (int) searchParams.get(0);
-					String travelerIdStr = (String) searchParams.get(1);
+				    ArrayList<Object> searchParams = (ArrayList<Object>) message.getData();
+				    int orderNum = (int) searchParams.get(0);
+				    String travelerIdStr = (String) searchParams.get(1);
 
-					Order validatedOrder = db.DBselect.fetchOrderWithValidation(orderNum, travelerIdStr);
+				    try {
+				        if (travelerIdStr != null && travelerIdStr.length() == 4) {
+				            String convertedId = db.DBselect.getTravelerIdBySubNumber(travelerIdStr);
+				            if (convertedId != null) {
+				                travelerIdStr = convertedId;
+				            }
+				        }
 
-					try {
-						client.sendToClient(new Message(MessageType.FETCH_ORDER_RESULT, validatedOrder));
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					break;
+				        Order validatedOrder = db.DBselect.fetchOrderWithValidation(orderNum, travelerIdStr);
+				        client.sendToClient(new Message(MessageType.FETCH_ORDER_RESULT, validatedOrder));
+				        
+				    } catch (IOException e) {
+				        System.err.println("Server Error during FETCH_ORDER_DETAILS: " + e.getMessage());
+				        e.printStackTrace();
+				    }
+				    break;
 				}
 				case UPDATE_ORDER_STATUS: {
 					ArrayList<Object> updateData = (ArrayList<Object>) message.getData();
@@ -334,6 +368,18 @@ public class EchoServer extends AbstractServer {
 					client.sendToClient(new Message(MessageType.CLEAN_WAITING_LIST_RESULT, canceledCount));
 					break;
 				}
+				case UPDATE_SUBSCRIBER_DETAILS:{
+				    handleUpdateSubscriberDetails(message, client);
+				    break;
+				}
+				case GET_SUBSCRIBERS_LIST:{
+				    db.DBparks.handleGetSubscribersList(message, client);
+				    break;
+				}
+				case GET_WORKERS_LIST:{
+					db.DBparks.handleGetWorkersList(message, client);
+				    break;
+				}
 				default:
 					System.out.println("Server: Unknown message type received.");
 					break;
@@ -344,7 +390,7 @@ public class EchoServer extends AbstractServer {
 		}
 	}
 
-
+	
 	/**
 	 * Handles incoming login requests from employees. Validates credentials against
 	 * the database and returns employee data if successful.
@@ -464,6 +510,96 @@ public class EchoServer extends AbstractServer {
 			}
 		}
 	}
+	/**
+     * Fetches all profile details for a specific subscriber to populate the editor form.
+     * * @param message Message containing the subscriber number (String).
+     * @param client  The connection thread representing the client making the request.
+     */
+	public static void handleGetSubscriberDetails(Message message, ConnectionToClient client) {
+        String subNumber = (String) message.getData();
+        ArrayList<String> subscriberDetails = null;
+
+        String query = "SELECT id, fname, lname, email, phone_number, credit_card_number, family_members " +
+                       "FROM gonature_db_new.Subscriber WHERE sub_number = ?";
+        try {
+            java.sql.Connection conn = DBconnection.getConnection();
+            java.sql.PreparedStatement pstmt = conn.prepareStatement(query);
+            pstmt.setInt(1, Integer.parseInt(subNumber));
+            java.sql.ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                subscriberDetails = new ArrayList<>();
+                subscriberDetails.add(rs.getString("id"));
+                subscriberDetails.add(rs.getString("fname"));
+                subscriberDetails.add(rs.getString("lname"));
+                subscriberDetails.add(rs.getString("email"));
+                subscriberDetails.add(rs.getString("phone_number"));
+                
+                String cc = rs.getString("credit_card_number");
+                subscriberDetails.add(cc != null ? cc : "");
+                
+                subscriberDetails.add(String.valueOf(rs.getInt("family_members"))); // Index 6
+            }
+            rs.close();
+            pstmt.close();
+        } catch (Exception e) {
+            System.err.println("Server: Error fetching subscriber details for editor.");
+            e.printStackTrace();
+        }
+
+        try {
+            client.sendToClient(new Message(MessageType.GET_SUBSCRIBER_DETAILS_RESPONSE, subscriberDetails));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+	/**
+     * Updates subscriber details in the database based on their subscriber number.
+     * Prevents modifying strict fields like personal ID and subscriber number.
+     * * @param message Message containing an ArrayList: [0] sub_number (String), [1] fname (String), 
+     * [2] lname (String), [3] email (String), [4] phone (String), [5] creditCard (String).
+     * @param client  The connection thread representing the client making the request.
+     */
+	public static void handleUpdateSubscriberDetails(Message message, ConnectionToClient client) {
+        ArrayList<String> data = (ArrayList<String>) message.getData();
+        String subNumber = data.get(0);
+        String email = data.get(3);
+        String phone = data.get(4);
+        String creditCard = data.get(5);
+        String familyMembers = data.get(6); // Family limit fetched sequentially
+        
+        boolean success = false;
+        
+        String query = "UPDATE gonature_db_new.Subscriber SET email = ?, phone_number = ?, " +
+                       "credit_card_number = ?, family_members = ? WHERE sub_number = ?";
+        
+        try {
+            java.sql.Connection conn = DBconnection.getConnection();
+            java.sql.PreparedStatement pstmt = conn.prepareStatement(query);
+            pstmt.setString(1, email);
+            pstmt.setString(2, phone);
+            pstmt.setString(3, creditCard.isEmpty() ? null : creditCard);
+            pstmt.setInt(4, Integer.parseInt(familyMembers));
+            pstmt.setInt(5, Integer.parseInt(subNumber));
+            
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                success = true;
+                System.out.println("Server: Subscriber " + subNumber + " updated profile parameters successfully.");
+            }
+            pstmt.close();
+        } catch (Exception e) {
+            System.err.println("Server: Error updating subscriber parameters into schema tables.");
+            e.printStackTrace();
+        }
+        
+        try { 
+            client.sendToClient(new Message(MessageType.UPDATE_SUBSCRIBER_DETAILS_RESPONSE, success)); 
+        } catch (Exception e) { 
+            e.printStackTrace(); 
+        }
+    }
+	
 
 	// Notification as soon as the server starts listening for connections on the
 	// specified port

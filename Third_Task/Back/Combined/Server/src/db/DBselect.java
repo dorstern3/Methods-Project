@@ -327,4 +327,47 @@ public class DBselect {
 
 		return null;
 	}
+	/**
+	 * Checks if a traveler has an active order. Active means: Status is NOT
+	 * 'Canceled', and if status is 'Entered', it must have an exit_time (meaning
+	 * they left). * @param travelerId The ID of the traveler.
+	 * 
+	 * @return true if an active order exists, false otherwise.
+	 */
+	public static boolean hasActiveOrder(String travelerId) {
+		try {
+			Connection conn = DBconnection.getConnection();
+			String query = "SELECT COUNT(*) FROM gonature_db_new.order WHERE id = ? " + "AND status != 'Canceled' "
+					+ "AND NOT (status = 'Entered' AND exit_time IS NULL)";
+			PreparedStatement ps = conn.prepareStatement(query);
+			ps.setString(1, travelerId);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				return rs.getInt(1) > 0;
+			}
+		} catch (SQLException e) {
+			System.out.println("Error checking active order: " + e.getMessage());
+			e.printStackTrace();
+		}
+		return false;
+	}
+	/**
+	 * Translates a subscriber number to the corresponding traveler ID.
+	 * @param subNumber The subscriber number to translate.
+	 * @return The traveler ID as a string, or null if not found.
+	 */
+	public static String getTravelerIdBySubNumber(String subNumber) {
+	    try {
+	        Connection conn = DBconnection.getConnection();
+	        PreparedStatement ps = conn.prepareStatement("SELECT id FROM gonature_db_new.subscriber WHERE sub_number = ?");
+	        ps.setString(1, subNumber);
+	        ResultSet rs = ps.executeQuery();
+	        if (rs.next()) {
+	            return rs.getString("id");
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return null;
+	}
 }

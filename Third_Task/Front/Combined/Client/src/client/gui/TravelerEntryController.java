@@ -7,7 +7,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import common.Message;
 import common.MessageType;
+
+import java.util.ArrayList;
+
 import client.ClientUI;
+import client.logic.EntranceLogic;
+import client.logic.OrderLogic;
 import client.logic.ScreenSwitch;
 
 /**
@@ -34,6 +39,9 @@ public class TravelerEntryController {
 
 	@FXML
 	private Button btnEbtnExit;
+	
+	@FXML
+	private Button btnEditSubscriber;
 
 	/**
 	 * Handles the action when the "Back" button is clicked. Returns the user to the
@@ -57,7 +65,11 @@ public class TravelerEntryController {
 	void clickManageOrder(ActionEvent event) {
 		lblError.setText("");
 		String travelerId = txtTravelerId.getText();
-
+		OrderLogic orderLogic = new OrderLogic();
+	    if (!orderLogic.checkOrderExists(travelerId)) {
+	        lblError.setText("Error: Only travelers with an active order can access Manage Order.");
+	        return;
+	    }
 		if (travelerId == null || travelerId.trim().isEmpty()) {
 			lblError.setText("Please enter ID or Subscriber Number first!");
 			return;
@@ -152,7 +164,11 @@ public class TravelerEntryController {
 	public void onExitParkClicked(ActionEvent event) {
 		lblError.setText("");
 		String travelerId = txtTravelerId.getText();
-
+		OrderLogic orderLogic = new OrderLogic();
+	    if (!orderLogic.checkOrderExists(travelerId)) {
+	        lblError.setText("Error: Only travelers with an active order can access Exit Park.");
+	        return;
+	    }
 		if (travelerId == null || travelerId.trim().isEmpty()) {
 			lblError.setText("Please enter ID or Subscriber Number first!");
 			return;
@@ -179,4 +195,53 @@ public class TravelerEntryController {
 		client.gui.ExitParkVisitorController.currentTravelerId = travelerId;
 		ScreenSwitch.switchScreen("/client/gui/ExitParkVisitor.fxml", "Visitor Exit");
 	}
+
+	
+	/**
+     * Handles the click event for the "Edit/View Subscriber Details" button.
+     * Verifies that the entered subscriber number is valid and exists in the database
+     * before navigating the traveler to the subscriber profile editor screen.
+     * * @param event The ActionEvent triggered by clicking the edit/view details button.
+     */
+    @FXML
+    public void onEditSubscriberDetailsClicked(ActionEvent event) {
+        // Clear any previous error messages on the screen
+        lblError.setText("");
+        
+        // Fetch the input from the traveler text field
+        String travelerId = txtTravelerId.getText().trim();
+
+        // 1. Frontend Structural Validations
+        if (travelerId.isEmpty()) {
+            lblError.setText("Please enter your Subscriber Number to proceed.");
+            return;
+        }
+
+        if (!travelerId.matches("\\d+")) {
+            lblError.setText("Input must contain only numbers!");
+            return;
+        }
+
+        // Ensure it follows the subscriber number format (exactly 4 digits)
+        if (travelerId.length() != 4) {
+            lblError.setText("Error: Subscriber number must be exactly 4 digits.");
+            return;
+        }
+
+        // 2. Database Backend Validation via the EntranceLogic layer
+        client.logic.EntranceLogic entranceLogic = new client.logic.EntranceLogic();
+        ArrayList<Object> result = entranceLogic.verifySubscriber(travelerId);
+        
+        // CRITICAL BLOCK: If the result is null, or index 0 returns false, the subscriber does NOT exist!
+        if (result == null || result.isEmpty() || !(boolean) result.get(0)) {
+            lblError.setText("Access Denied: Subscriber Number not found in the system.");
+            return; // Stops execution immediately - will NOT switch screens!
+        }
+
+        // 3. Authenticated Context Saving: Pass the valid subscriber ID to the editor window
+        client.gui.SubscriberEditorController.currentSubNumber = travelerId;
+
+        // 4. Secure Screen Navigation: Switch only when identity is fully confirmed
+        ScreenSwitch.switchScreen("/client/gui/SubscriberEditor.fxml", "Edit Subscriber Profile");
+    }
 }

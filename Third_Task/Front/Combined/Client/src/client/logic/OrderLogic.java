@@ -149,6 +149,14 @@ public class OrderLogic {
 		Message response = (Message) client.ClientUI.clientChat.accept(msg);
 		return response != null && response.getType() == MessageType.LOGOUT_SUCCESS;
 	}
+	public boolean checkOrderExists(String travelerId) {
+	    Message msg = new Message(MessageType.CHECK_ORDER_EXISTENCE, travelerId);
+	    Message response = (Message) ClientUI.clientChat.accept(msg);
+	    if (response != null && response.getType() == MessageType.CHECK_ORDER_RESPONSE) {
+	        return (boolean) response.getData();
+	    }
+	    return false;
+	}
 
 	/**
 	 * Sends an order update request directly to the server. * @param order The
