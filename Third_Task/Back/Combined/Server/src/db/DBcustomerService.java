@@ -34,15 +34,14 @@ public class DBcustomerService {
 		// 2. Generate a random 4-digit subscriber number (1000-9999)
 		int generatedSubNum = new java.util.Random().nextInt(9000) + 1000;
 		boolean success = false;
-		String failureReason = null;
 
 		String query = "INSERT INTO gonature_db_new.subscriber (id, fname, lname, email, phone_number, credit_card_number, family_members, sub_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
 
-		// 3. Obtain the pre-established database connection references directly
-		Connection conn = DBconnection.getConnection(); 
-		
+		Connection conn = null; 
+		try {
+			conn = DBconnection.getConnection();
 		try (PreparedStatement pstmt = conn.prepareStatement(query)) {
-			// 4. Bind parameters to the prepared statement
+			// 3. Bind parameters to the prepared statement
 			pstmt.setInt(1, id);
 			pstmt.setString(2, fname);
 			pstmt.setString(3, lname);
@@ -52,27 +51,25 @@ public class DBcustomerService {
 			pstmt.setInt(7, familyMembers);
 			pstmt.setInt(8, generatedSubNum);
 
-			// 5. Execute the database insert operation
+			// 4. Execute the database insert operation
 			success = pstmt.executeUpdate() > 0;
 			if (success) {
 				System.out.println("Server: Family subscriber registered successfully. Sub Number: " + generatedSubNum);
 			}
-		} catch (SQLIntegrityConstraintViolationException e) {
-			// Catch specific database duplicate entry violations
-			System.err.println("Server: Family registration aborted - Duplicate entry constraint violation.");
-			failureReason = "DUPLICATE_ID";
-			e.printStackTrace();
+		}
 		} catch (Exception e) {
-			// Catch generic unexpected database faults
 			System.err.println("Server: Database error during family registration.");
-			failureReason = "SERVER_ERROR";
 			e.printStackTrace();
+		}finally {
+			if (conn != null) {
+				db.DBconnection.release(conn);
+			}
 		}
 
-		// 6. Dispatch the structured registration response payload back to the client
+		// 5. Dispatch the registration result back to the client
 		try {
 			Message response = success ? new Message(MessageType.REGISTRATION_SUCCESS, generatedSubNum)
-					: new Message(MessageType.REGISTRATION_FAILED, failureReason);
+					: new Message(MessageType.REGISTRATION_FAILED, null);
 			client.sendToClient(response);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -100,14 +97,13 @@ public class DBcustomerService {
 		int generatedSubNum = new java.util.Random().nextInt(9000) + 1000;
 		boolean success = false;
 		String failureReason = null;
-
 		String query = "INSERT INTO gonature_db_new.subscriber (id, fname, lname, email, phone_number, credit_card_number, family_members, sub_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
 
-		// 3. Obtain the pre-established database connection references directly
-		Connection conn = DBconnection.getConnection(); 
-		
+		Connection conn = null;
+		try {
+			conn = DBconnection.getConnection();
 		try (PreparedStatement pstmt = conn.prepareStatement(query)) {
-			// 4. Bind parameters to the prepared statement
+			// 3. Bind parameters to the prepared statement
 			pstmt.setInt(1, id);
 			pstmt.setString(2, fname);
 			pstmt.setString(3, lname);
@@ -117,24 +113,26 @@ public class DBcustomerService {
 			pstmt.setInt(7, familyMembers);
 			pstmt.setInt(8, generatedSubNum);
 
-			// 5. Execute the database insert operation
+			// 4. Execute the database insert operation
 			success = pstmt.executeUpdate() > 0;
 			if (success) {
 				System.out.println("Server: Single subscriber registered successfully. Sub Number: " + generatedSubNum);
 			}
-		} catch (SQLIntegrityConstraintViolationException e) {
+		}catch (SQLIntegrityConstraintViolationException e) {
 			// Catch specific database duplicate entry violations
 			System.err.println("Server: Single registration aborted - Duplicate entry constraint violation.");
 			failureReason = "DUPLICATE_ID";
 			e.printStackTrace();
-		} catch (Exception e) {
-			// Catch generic unexpected database faults
-			System.err.println("Server: Database error during single registration.");
-			failureReason = "SERVER_ERROR";
-			e.printStackTrace();
 		}
-
-		// 6. Dispatch the structured registration response payload back to the client
+		} catch (Exception e) {
+			System.err.println("Server: Database error during single registration.");
+			e.printStackTrace();
+		}finally {
+			if (conn != null) {
+				db.DBconnection.release(conn);
+			}
+		}
+		// 5. Dispatch the registration result back to the client
 		try {
 			Message response = success ? new Message(MessageType.REGISTRATION_SUCCESS, generatedSubNum)
 					: new Message(MessageType.REGISTRATION_FAILED, failureReason);
@@ -161,38 +159,39 @@ public class DBcustomerService {
 		String phone = (String) params[4];
 		boolean success = false;
 		String failureReason = null;
-
 		String query = "INSERT INTO gonature_db_new.Guide (guide_id, fname, lname, email, phone_number) VALUES (?, ?, ?, ?, ?);";
 
-		// 2. Obtain the pre-established database connection references directly
-		Connection conn = DBconnection.getConnection(); 
-		
+		Connection conn = null;
+		try {
+			conn = DBconnection.getConnection();
 		try (PreparedStatement pstmt = conn.prepareStatement(query)) {
-			// 3. Bind parameters to the prepared statement
+			// 2. Bind parameters to the prepared statement
 			pstmt.setInt(1, id);
 			pstmt.setString(2, fname);
 			pstmt.setString(3, lname);
 			pstmt.setString(4, email);
 			pstmt.setString(5, phone);
 
-			// 4. Execute the database insert operation
+			// 3. Execute the database insert operation
 			success = pstmt.executeUpdate() > 0;
 			if (success) {
 				System.out.println("Server: Group Guide registered successfully: " + fname + " " + lname);
 			}
-		} catch (SQLIntegrityConstraintViolationException e) {
+		}
+		}catch (SQLIntegrityConstraintViolationException e) {
 			// Catch specific database duplicate entry violations
 			System.err.println("Server: Guide registration aborted - Duplicate entry constraint violation.");
 			failureReason = "DUPLICATE_ID";
 			e.printStackTrace();
 		} catch (Exception e) {
-			// Catch generic unexpected database faults
 			System.err.println("Server: Database error during guide registration.");
-			failureReason = "SERVER_ERROR";
 			e.printStackTrace();
+		}finally {
+			if (conn != null) {
+				db.DBconnection.release(conn);
+			}
 		}
-
-		// 5. Dispatch the structured registration response payload back to the client
+		// 4. Dispatch the registration result back to the client
 		try {
 			Message response = success ? new Message(MessageType.REGISTRATION_SUCCESS, null)
 					: new Message(MessageType.REGISTRATION_FAILED, failureReason);

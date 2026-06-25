@@ -27,7 +27,9 @@ public class DBSimulation {
 		String selectQuery = "SELECT * FROM gonature_db_new.`order` "
 				+ "WHERE order_date = DATE_ADD(CURDATE(), INTERVAL 1 DAY) AND status = 'Booked'";
 
-		try (Connection conn = DBconnection.getConnection()) {
+		Connection conn = null;
+		try {
+			conn = DBconnection.getConnection();
 			try (PreparedStatement psSelect = conn.prepareStatement(selectQuery);
 					ResultSet rs = psSelect.executeQuery()) {
 				while (rs.next()) {
@@ -47,6 +49,10 @@ public class DBSimulation {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}finally {
+			if (conn != null) {
+				db.DBconnection.release(conn);
+			}
 		}
 		return ordersToRemind;
 	}
@@ -64,10 +70,12 @@ public class DBSimulation {
 
 		String findNextInWaitlist = "SELECT * FROM gonature_db_new.`order` WHERE status = 'On waiting list' AND park_name = ? AND order_date = ? AND entry_time = ? ORDER BY date_of_placing_order ASC LIMIT 1";
 		String promoteNextQuery = "UPDATE gonature_db_new.`order` SET status = 'Waiting list unconfirmed' WHERE order_number = ?";
-
-		try (Connection conn = DBconnection.getConnection();
-				PreparedStatement psFind = conn.prepareStatement(findTimeoutsQuery);
-				ResultSet rs = psFind.executeQuery()) {
+		Connection conn = null;
+		try {
+			conn = DBconnection.getConnection();
+			
+			try (PreparedStatement psFind = conn.prepareStatement(findTimeoutsQuery);
+					ResultSet rs = psFind.executeQuery()) {
 
 			while (rs.next()) {
 				int orderNum = rs.getInt("order_number");
@@ -107,8 +115,13 @@ public class DBSimulation {
 					}
 				}
 			}
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}finally {
+			if (conn != null) {
+				db.DBconnection.release(conn);
+			}
 		}
 		return logs;
 	}
@@ -124,27 +137,37 @@ public class DBSimulation {
 		ArrayList<String[]> ordersToCancel = new ArrayList<>();
 
 		String findTimeoutsQuery = "SELECT order_number, email, phone_number FROM gonature_db_new.`order` WHERE status = 'Pending confirmation'";
+		Connection mainConn = null;
+		
+		try {
+			mainConn = DBconnection.getConnection();
+			
+			try (PreparedStatement psFind = mainConn.prepareStatement(findTimeoutsQuery);
+					ResultSet rs = psFind.executeQuery()) {
 
-		try (Connection conn = DBconnection.getConnection();
-				PreparedStatement psFind = conn.prepareStatement(findTimeoutsQuery);
-				ResultSet rs = psFind.executeQuery()) {
-
-			while (rs.next()) {
-				ordersToCancel.add(new String[] { String.valueOf(rs.getInt("order_number")), rs.getString("email"),
-						rs.getString("phone_number") });
+				while (rs.next()) {
+					ordersToCancel.add(new String[] { String.valueOf(rs.getInt("order_number")), rs.getString("email"),
+							rs.getString("phone_number") });
+				}
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}finally {
+			if (mainConn != null) {
+				db.DBconnection.release(mainConn);
+			}
 		}
-
 		for (String[] orderData : ordersToCancel) {
 			int orderNum = Integer.parseInt(orderData[0]);
 			String email = orderData[1];
 			String phone = orderData[2];
-
-			try (Connection conn = DBconnection.getConnection();
-					PreparedStatement psCancel = conn.prepareStatement(
-							"UPDATE gonature_db_new.`order` SET status = 'Canceled' WHERE order_number = ?")) {
+			Connection conn = null; 
+			try {
+				conn = DBconnection.getConnection(); 
+				
+				try (PreparedStatement psCancel = conn.prepareStatement(
+						"UPDATE gonature_db_new.`order` SET status = 'Canceled' WHERE order_number = ?")) {
+							
 				psCancel.setInt(1, orderNum);
 				psCancel.executeUpdate();
 
@@ -155,9 +178,14 @@ public class DBSimulation {
 				String msg = DBselect.checkWaitingList(orderNum);
 				if (msg != null)
 					logs.add(msg);
-
+				}
 			} catch (SQLException e) {
 				e.printStackTrace();
+			}
+			finally {
+				if (conn != null) {
+					db.DBconnection.release(conn);
+				}
 			}
 		}
 		return logs;

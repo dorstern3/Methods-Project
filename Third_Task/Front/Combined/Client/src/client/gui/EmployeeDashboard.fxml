@@ -7,38 +7,80 @@
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="507.0" prefWidth="538.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.DashboardController">
+<AnchorPane prefHeight="550.0" prefWidth="663.0" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.DashboardController">
    <children>
-      <TabPane layoutX="-5.0" layoutY="8.0" prefHeight="498.0" prefWidth="538.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      
+      <TabPane tabClosingPolicy="UNAVAILABLE" style="-fx-tab-min-width: 120px; -fx-tab-min-height: 35px; -fx-font-weight: bold;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <tabs>
+          
           <Tab text="Actions">
             <content>
-              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+              <AnchorPane style="-fx-background-color: #f4f4f4;">
                      <children>
-                        <VBox alignment="CENTER" layoutX="168.0" layoutY="102.0" prefHeight="275.0" prefWidth="203.0" spacing="20.0">
+                        <VBox alignment="CENTER" spacing="25.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
-                              <Button fx:id="ExitForm" alignment="CENTER" mnemonicParsing="false" onAction="#handleNavigation" prefHeight="30.0" prefWidth="300.0" text="Park exit" />
-                              <Button fx:id="EntranceForm" alignment="CENTER" mnemonicParsing="false" onAction="#handleNavigation" prefHeight="30.0" prefWidth="300.0" text="Park Entrance" />
-                              <Button mnemonicParsing="false" onAction="#logoutbtn" text="Logout" />
+                              
+                              <VBox alignment="CENTER" maxWidth="420.0" spacing="15.0" style="-fx-background-color: #ffffff; -fx-padding: 30; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);">
+                                 <children>
+                                    
+                                    <Label text="Employee Actions" textFill="#2e7d32">
+                                       <font><Font name="System Bold" size="20.0" /></font>
+                                       <VBox.margin><Insets bottom="10.0" /></VBox.margin>
+                                    </Label>
+                                    
+                                    <Button fx:id="EntranceForm" alignment="CENTER" mnemonicParsing="false" onAction="#handleNavigation" prefHeight="45.0" maxWidth="1.7976931348623157E308" style="-fx-background-color: #2e7d32; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="Park Entrance">
+                                       <font><Font size="14.0" /></font>
+                                    </Button>
+                                    
+                                    <Button fx:id="ExitForm" alignment="CENTER" mnemonicParsing="false" onAction="#handleNavigation" prefHeight="45.0" maxWidth="1.7976931348623157E308" style="-fx-background-color: #757575; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="Park Exit">
+                                       <font><Font size="14.0" /></font>
+                                    </Button>
+                                    
+                                    <VBox maxHeight="1.0" minHeight="1.0" prefHeight="1.0" style="-fx-background-color: #e0e0e0; -fx-opacity: 0.6;"><VBox.margin><Insets top="10.0" bottom="5.0"/></VBox.margin></VBox>
+                                    
+                                    <Button mnemonicParsing="false" onAction="#logoutbtn" prefHeight="32.0" prefWidth="120.0" style="-fx-background-color: #e0e0e0; -fx-text-fill: #c62828; -fx-font-weight: bold; -fx-background-radius: 4; -fx-cursor: hand;" text="Logout" />
+                                    
+                                 </children>
+                              </VBox>
+                              
                            </children>
-                           <padding>
-                              <Insets bottom="10.0" top="10.0" />
-                           </padding>
                         </VBox>
                      </children>
                   </AnchorPane>
             </content>
           </Tab>
-          <Tab text="My info">
+          
+          <Tab text="My Info">
             <content>
-              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+              <AnchorPane style="-fx-background-color: #f4f4f4;">
                      <children>
-                        <Label fx:id="workerInfo" prefHeight="148.0" prefWidth="215.0" />
+                        <VBox alignment="CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              
+                              <VBox alignment="TOP_CENTER" maxWidth="420.0" spacing="15.0" style="-fx-background-color: #ffffff; -fx-padding: 30; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);">
+                                 <children>
+                                    
+                                    <Label text="Worker Profile" textFill="#757575">
+                                       <font><Font name="System Bold" size="20.0" /></font>
+                                       <VBox.margin><Insets bottom="10.0" /></VBox.margin>
+                                    </Label>
+                                    
+                                    <Label fx:id="workerInfo" alignment="CENTER" prefHeight="150.0" prefWidth="360.0" style="-fx-background-color: #fafafa; -fx-border-color: #e0e0e0; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 15; -fx-font-size: 14px; -fx-text-fill: #333333;" text="Loading worker info..." wrapText="true">
+                                       <font><Font name="System" size="14.0" /></font>
+                                    </Label>
+                                    
+                                 </children>
+                              </VBox>
+                              
+                           </children>
+                        </VBox>
                      </children>
                   </AnchorPane>
             </content>
           </Tab>
+          
         </tabs>
       </TabPane>
    </children>

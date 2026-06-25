@@ -26,7 +26,7 @@ public class ServiceRepController {
 
     @FXML 
     private VBox mainContainer;
-    
+    @FXML private Button logoutBtn;
     private TextField famFname, famLname, famId, famPhone, famEmail, famMembers;
     private TextField sFname, sLname, sId, sPhone, sEmail;
     private TextField gFname, gLname, gId, gPhone, gEmail;
@@ -46,20 +46,9 @@ public class ServiceRepController {
         mainContainer.setAlignment(Pos.TOP_LEFT);
 
         Label title = new Label("Service Representative Panel");
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
         
         Label myInfo = new Label(CurUser.getMyInfo());
-        myInfo.setStyle(
-                "-fx-background-color: #F8F9FA; " +      
-                "-fx-border-color: #E0E0E0; " +          
-                "-fx-border-width: 1px; " +              
-                "-fx-background-radius: 10px; " +        
-                "-fx-border-radius: 10px; " +            
-                "-fx-font-family: 'Segoe UI', sans-serif; " + 
-                "-fx-font-size: 13px; " +                
-                "-fx-text-fill: #333333; " +             
-                "-fx-line-spacing: 5px;"                 
-            );
+
         myInfo.setPadding(new javafx.geometry.Insets(12, 16, 12, 16));
         myInfo.setAlignment(javafx.geometry.Pos.TOP_LEFT);
             
@@ -80,7 +69,6 @@ public class ServiceRepController {
         ComboBox<String> viewSelector = new ComboBox<>();
         viewSelector.getItems().addAll("Subscribers", "Workers");
         viewSelector.setValue("Subscribers"); 
-        viewSelector.setStyle("-fx-font-size: 13px; -fx-background-radius: 5px;");
 
         TableView<Subscriber> subscriberTable = new TableView<>(); 
         TableColumn<Subscriber, String> subFname  = createColumn("First name", "fname", 120);
@@ -220,7 +208,24 @@ public class ServiceRepController {
 
         groupVBox.getChildren().addAll(groupGrid, groupSubmitBtn);
         groupTab.setContent(groupVBox);
+        title.getStyleClass().add("screen-title");
+        myInfo.getStyleClass().add("worker-info-box");
+        tabPane.getStyleClass().add("tab-pane");
+        logoutBtn.getStyleClass().add("btn-secondary");
+        
+        // Styling Form Cards (GridPanes)
+        familyGrid.getStyleClass().add("form-card");
+        singleGrid.getStyleClass().add("form-card");
+        groupGrid.getStyleClass().add("form-card");
 
+        // Registration Form Buttons
+        familySubmitBtn.getStyleClass().add("btn-primary");
+        singleSubmitBtn.getStyleClass().add("btn-primary");
+        groupSubmitBtn.getStyleClass().add("btn-primary");
+
+        // Tables Styling
+        subscriberTable.getStyleClass().add("table-view");
+        workersTable.getStyleClass().add("table-view");
         tabPane.getTabs().addAll(familyTab, singleTab, groupTab, totalInfoTab, infoTab); 
         mainContainer.getChildren().addAll(title, tabPane);
     }
@@ -361,16 +366,15 @@ public class ServiceRepController {
         );
 
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
-            int subNum = (int) response.getData();
-            showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Single Subscription Registered!\nSub Number: " + subNum);
-            sFname.clear(); sLname.clear(); sId.clear(); sPhone.clear(); sEmail.clear();
+            showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Group Guide Registered Successfully!");
+            gFname.clear(); gLname.clear(); gId.clear(); gPhone.clear(); gEmail.clear();
         } else {
             // Check if the server provided a specific error reason string due to database constraint violation
             String errorReason = (response != null && response.getData() != null) ? (String) response.getData() : "";
             
             if ("DUPLICATE_ID".equals(errorReason)) {
                 showAlert(Alert.AlertType.ERROR, "Registration Failed", 
-                    "Operation Aborted: This National ID Number is already registered to an active subscriber in the database!");
+                    "Operation Aborted: This Guide ID Number is already registered to an active group guide in the database!");
             } else {
                 showAlert(Alert.AlertType.ERROR, "Registration Failed", 
                     "Server Error: Internal database constraint failure or network drop encountered.");
@@ -427,16 +431,7 @@ public class ServiceRepController {
             showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Group Guide Registered Successfully!");
             gFname.clear(); gLname.clear(); gId.clear(); gPhone.clear(); gEmail.clear();
         } else {
-            // Check if the server provided a specific error reason string due to database constraint violation
-            String errorReason = (response != null && response.getData() != null) ? (String) response.getData() : "";
-            
-            if ("DUPLICATE_ID".equals(errorReason)) {
-                showAlert(Alert.AlertType.ERROR, "Registration Failed", 
-                    "Operation Aborted: This Guide ID Number is already registered to an active group guide in the database!");
-            } else {
-                showAlert(Alert.AlertType.ERROR, "Registration Failed", 
-                    "Server Error: Internal database constraint failure or network drop encountered.");
-            }
+            showAlert(Alert.AlertType.ERROR, "Registration Failed", "Server rejected guide registration.");
         }
     }
 

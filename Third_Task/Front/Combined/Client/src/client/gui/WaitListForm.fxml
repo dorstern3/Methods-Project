@@ -1,28 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="217.0" prefWidth="603.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.WaitListFormController">
+<AnchorPane prefHeight="550.0" prefWidth="663.0" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.WaitListFormController">
    <children>
-      <Label layoutX="57.0" layoutY="51.0" text="We are sorry, the park is full at the requested time." textAlignment="CENTER">
-         <font>
-            <Font size="22.0" />
-         </font>
-      </Label>
-      <Button fx:id="btnWaitList" layoutX="138.0" layoutY="109.0" mnemonicParsing="false" onAction="#clickWaitList" prefHeight="41.0" prefWidth="137.0" text="Enter Waiting List">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Button>
-      <Button fx:id="btnAltDate" layoutX="313.0" layoutY="109.0" mnemonicParsing="false" onAction="#clickAltDate" prefHeight="41.0" prefWidth="195.0" text="Choose Alternative Date">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Button>
-      <Button fx:id="btnCancel" layoutX="537.0" layoutY="177.0" mnemonicParsing="false" onAction="#clickCancel" text="Cancel" />
+      <VBox alignment="CENTER" spacing="20.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            
+            <VBox alignment="TOP_CENTER" maxWidth="520.0" spacing="25.0" style="-fx-background-color: #ffffff; -fx-padding: 35; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 4);">
+               <children>
+                  
+                  <VBox alignment="CENTER" spacing="8.0">
+                     <children>
+                        <Label text="Park is Fully Booked" textFill="#c62828">
+                           <font>
+                              <Font name="System Bold" size="24.0" />
+                           </font>
+                        </Label>
+                        <Label text="We are sorry, the park has reached maximum capacity context at the requested time slot." textAlignment="CENTER" textFill="#555555" wrapText="true">
+                           <font>
+                              <Font size="13.0" />
+                           </font>
+                        </Label>
+                     </children>
+                  </VBox>
+                  
+                  <HBox alignment="CENTER" spacing="20.0">
+                     <children>
+                        
+                        <Button fx:id="btnWaitList" mnemonicParsing="false" onAction="#clickWaitList" prefHeight="42.0" prefWidth="180.0" style="-fx-background-color: #2e7d32; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="Enter Waiting List">
+                           <font><Font size="13.0" /></font>
+                        </Button>
+                        
+                        <Button fx:id="btnAltDate" mnemonicParsing="false" onAction="#clickAltDate" prefHeight="42.0" prefWidth="210.0" style="-fx-background-color: #757575; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="Choose Alternative Date">
+                           <font><Font size="13.0" /></font>
+                        </Button>
+                        
+                     </children>
+                  </HBox>
+                  
+                  <VBox maxHeight="1.0" minHeight="1.0" prefHeight="1.0" style="-fx-background-color: #e0e0e0; -fx-opacity: 0.6;" />
+                  
+                  <Button fx:id="btnCancel" mnemonicParsing="false" onAction="#clickCancel" prefHeight="32.0" prefWidth="90.0" style="-fx-background-color: #e0e0e0; -fx-text-fill: #444444; -fx-font-weight: bold; -fx-background-radius: 4; -fx-cursor: hand;" text="Cancel" />
+                  
+               </children>
+            </VBox>
+            
+         </children>
+      </VBox>
    </children>
 </AnchorPane>

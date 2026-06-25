@@ -15,93 +15,102 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="TOP_CENTER" prefHeight="550.0" prefWidth="663.0" spacing="15.0" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.NewOrderFormController">
+<AnchorPane prefHeight="550.0" prefWidth="663.0" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.NewOrderFormController">
    <children>
-      
-      <VBox alignment="CENTER" spacing="5.0" style="-fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);">
-         <padding>
-            <Insets bottom="15.0" top="15.0" />
-         </padding>
+      <VBox alignment="CENTER" spacing="15.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="20.0">
          <children>
-            <Label text="GoNature - New Reservation" textFill="#2e7d32">
-               <font>
-                  <Font name="System Bold" size="24.0" />
-               </font>
-            </Label>
-            <Label text="Book an official scheduled visit sequence context window" textFill="#555555">
-               <font>
-                  <Font size="14.0" />
-               </font>
-            </Label>
+            
+            <VBox maxWidth="540.0" spacing="20.0" style="-fx-background-color: #ffffff; -fx-padding: 30; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 4);">
+               <children>
+                  
+                  <VBox spacing="4.0">
+                     <children>
+                        <Label text="New Reservation" textFill="#2e7d32">
+                           <font>
+                              <Font name="System Bold" size="24.0" />
+                           </font>
+                        </Label>
+                        <Label text="Fill out the details below to secure your park visit slot" textFill="#777777">
+                           <font>
+                              <Font size="13.0" />
+                           </font>
+                        </Label>
+                     </children>
+                  </VBox>
+                  
+                  <VBox maxHeight="1.0" minHeight="1.0" prefHeight="1.0" style="-fx-background-color: #eecfbf; -fx-opacity: 0.4;" />
+                  
+                  <Label fx:id="lblError" alignment="CENTER" maxWidth="480.0" textFill="RED" wrapText="true">
+                     <font>
+                        <Font name="System Bold" size="12.0" />
+                     </font>
+                  </Label>
+      
+                  <GridPane hgap="15.0" vgap="12.0">
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="180.0" minWidth="10.0" prefWidth="150.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="330.0" minWidth="10.0" prefWidth="330.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <children>
+                        
+                        <Label text="Park Name:" textFill="#444444" GridPane.rowIndex="0">
+                           <font><Font name="System Bold" size="13.0" /></font>
+                        </Label>
+                        <ComboBox fx:id="comboPark" maxWidth="1.7976931348623157E308" prefHeight="32.0" promptText="Select Park" style="-fx-background-radius: 6;" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                        
+                        <Label text="Visit Date:" textFill="#444444" GridPane.rowIndex="1">
+                           <font><Font name="System Bold" size="13.0" /></font>
+                        </Label>
+                        <DatePicker fx:id="dateVisit" maxWidth="1.7976931348623157E308" prefHeight="32.0" style="-fx-background-radius: 6;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        
+                        <Label text="Visit Time:" textFill="#444444" GridPane.rowIndex="2">
+                           <font><Font name="System Bold" size="13.0" /></font>
+                        </Label>
+                        <ComboBox fx:id="comboTime" maxWidth="1.7976931348623157E308" prefHeight="32.0" promptText="Select Time Slot" style="-fx-background-radius: 6;" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        
+                        <Label text="Number of Visitors:" textFill="#444444" GridPane.rowIndex="3">
+                           <font><Font name="System Bold" size="13.0" /></font>
+                        </Label>
+                        <TextField fx:id="txtVisitors" prefHeight="32.0" text="1" style="-fx-background-radius: 6; -fx-background-color: #fafafa; -fx-border-color: #e0e0e0; -fx-border-radius: 6;" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                        
+                        <CheckBox fx:id="cbGroupOrder" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-text-fill: #444444; -fx-cursor: hand;" text="Organized Group (Guide)" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                        
+                        <Label text="Email Address:" textFill="#444444" GridPane.rowIndex="5">
+                           <font><Font name="System Bold" size="13.0" /></font>
+                        </Label>
+                        <TextField fx:id="txtEmail" prefHeight="32.0" promptText="Enter client email address" style="-fx-background-radius: 6; -fx-background-color: #fafafa; -fx-border-color: #e0e0e0; -fx-border-radius: 6;" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                        
+                        <Label text="Phone Number:" textFill="#444444" GridPane.rowIndex="6">
+                           <font><Font name="System Bold" size="13.0" /></font>
+                        </Label>
+                        <TextField fx:id="txtPhone" prefHeight="32.0" promptText="Enter client phone number" style="-fx-background-radius: 6; -fx-background-color: #fafafa; -fx-border-color: #e0e0e0; -fx-border-radius: 6;" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                        
+                     </children>
+                  </GridPane>
+                  
+                  <HBox alignment="CENTER_RIGHT" spacing="15.0">
+                     <children>
+                        <Button mnemonicParsing="false" onAction="#clickBack" prefHeight="35.0" prefWidth="130.0" style="-fx-background-color: #757575; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="Back to Menu" />
+                        <Button fx:id="btnBook" mnemonicParsing="false" onAction="#clickBookVisit" prefHeight="35.0" prefWidth="130.0" style="-fx-background-color: #2e7d32; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="Book Visit" />
+                     </children>
+                     <padding>
+                        <Insets top="10.0" />
+                     </padding>
+                  </HBox>
+                  
+               </children>
+            </VBox>
+            
          </children>
       </VBox>
-      
-      <Label fx:id="lblError" alignment="CENTER" maxWidth="500.0" textFill="RED" wrapText="true">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Label>
-
-      <GridPane alignment="CENTER" hgap="15.0" maxWidth="520.0" style="-fx-background-color: #ffffff; -fx-padding: 25; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2);" vgap="12.0">
-        <columnConstraints>
-          <ColumnConstraints hgrow="SOMETIMES" maxWidth="200.0" minWidth="10.0" prefWidth="160.0" />
-          <ColumnConstraints hgrow="SOMETIMES" maxWidth="310.0" minWidth="10.0" prefWidth="310.0" />
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
-          <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
-          <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
-          <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
-          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-          <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
-          <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
-        </rowConstraints>
-         <children>
-            
-            <Label text="Park Name:" GridPane.rowIndex="0">
-               <font><Font name="System Bold" size="13.0" /></font>
-            </Label>
-            <ComboBox fx:id="comboPark" maxWidth="1.7976931348623157E308" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-            
-            <Label text="Visit Date:" GridPane.rowIndex="1">
-               <font><Font name="System Bold" size="13.0" /></font>
-            </Label>
-            <DatePicker fx:id="dateVisit" maxWidth="1.7976931348623157E308" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            
-            <Label text="Visit Time:" GridPane.rowIndex="2">
-               <font><Font name="System Bold" size="13.0" /></font>
-            </Label>
-            <ComboBox fx:id="comboTime" maxWidth="1.7976931348623157E308" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            
-            <Label text="Number of Visitors:" GridPane.rowIndex="3">
-               <font><Font name="System Bold" size="13.0" /></font>
-            </Label>
-            <TextField fx:id="txtVisitors" prefHeight="30.0" text="1" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-            
-            <CheckBox fx:id="cbGroupOrder" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-text-fill: #444444;" text="Organized Group (Guide)" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-            
-            <Label text="Email Address:" GridPane.rowIndex="5">
-               <font><Font name="System Bold" size="13.0" /></font>
-            </Label>
-            <TextField fx:id="txtEmail" prefHeight="30.0" promptText="Enter client email address" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-            
-            <Label text="Phone Number:" GridPane.rowIndex="6">
-               <font><Font name="System Bold" size="13.0" /></font>
-            </Label>
-            <TextField fx:id="txtPhone" prefHeight="30.0" promptText="Enter client phone number" GridPane.columnIndex="1" GridPane.rowIndex="6" />
-            
-         </children>
-      </GridPane>
-      
-      <HBox alignment="CENTER" spacing="120.0">
-         <children>
-            <Button mnemonicParsing="false" onAction="#clickBack" prefHeight="35.0" prefWidth="140.0" style="-fx-background-color: #757575; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-cursor: hand;" text="Back to Menu" />
-            <Button fx:id="btnBook" mnemonicParsing="false" onAction="#clickBookVisit" prefHeight="35.0" prefWidth="140.0" style="-fx-background-color: #2e7d32; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-cursor: hand;" text="Book Visit" />
-         </children>
-         <padding>
-            <Insets top="10.0" />
-         </padding>
-      </HBox>
-      
    </children>
-</VBox>
+</AnchorPane>

@@ -1,0 +1,172 @@
+/* ==========================================================================
+   GoNature Global Application Stylesheet
+   ========================================================================== */
+
+/* Main Containers Background */
+.main-container {
+    -fx-background-color: #f4f4f4;
+}
+
+/* Titles and Headers */
+.screen-title {
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 24px;
+    -fx-text-fill: #2e7d32;
+}
+
+.section-title {
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-text-fill: #2e7d32;
+}
+
+.bold-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #555555;
+}
+
+/* Base Cards and Form Grids */
+.form-card {
+    -fx-background-color: #ffffff;
+    -fx-padding: 25px;
+    -fx-background-radius: 12px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 12, 0, 0, 4);
+}
+
+/* Top Live Occupancy Banner */
+.occupancy-banner {
+    -fx-background-color: #ffffff;
+    -fx-padding: 12px 20px;
+    -fx-background-radius: 8px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2);
+}
+
+/* Info Box Container (Worker Profiles) */
+.worker-info-box {
+    -fx-background-color: #FAFAFA;
+    -fx-border-color: #E0E0E0;
+    -fx-border-width: 1px;
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333333;
+    -fx-line-spacing: 6px;
+}
+
+/* ==========================================================================
+   JavaFX Controls Custom Styling
+   ========================================================================== */
+
+/* TabPane and Tabs Layout */
+.tab-pane {
+    -fx-tab-min-width: 140px;
+    -fx-tab-min-height: 35px;
+}
+
+.tab-pane .tab-header-area .tab {
+    -fx-background-color: #e0e0e0;
+    -fx-background-radius: 6px 6px 0px 0px;
+    -fx-padding: 0 15px;
+}
+
+.tab-pane .tab-header-area .tab .tab-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #555555;
+    -fx-font-size: 13px;
+}
+
+.tab-pane .tab-header-area .tab:selected {
+    -fx-background-color: #ffffff;
+}
+
+.tab-pane .tab-header-area .tab:selected .tab-label {
+    -fx-text-fill: #2e7d32;
+}
+
+.tab-pane .tab-content-area {
+    -fx-background-color: #f4f4f4;
+}
+
+/* TextFields and ComboBoxes */
+.text-field {
+    -fx-pref-height: 32px;
+    -fx-background-radius: 6px;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 6px;
+    -fx-background-color: #fafafa;
+}
+
+.text-field:focused {
+    -fx-border-color: #2e7d32;
+    -fx-background-color: #ffffff;
+}
+
+.combo-box {
+    -fx-pref-height: 32px;
+    -fx-background-radius: 6px;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 6px;
+}
+
+/* Tables and ListViews Layout */
+.table-view, .list-view {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 8px;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 8px;
+    -fx-padding: 5px;
+}
+
+.table-view .column-header {
+    -fx-background-color: #fafafa;
+    -fx-font-weight: bold;
+    -fx-text-fill: #444444;
+}
+
+/* ==========================================================================
+   Buttons Framework
+   ========================================================================== */
+
+/* Primary Action Buttons (Green Success Layout) */
+.btn-primary {
+    -fx-background-color: #2e7d32;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 6px;
+    -fx-padding: 10px 20px;
+}
+
+/* Secondary Actions (Dark Gray Neutral Layout) */
+.btn-secondary {
+    -fx-background-color: #757575;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 6px;
+    -fx-padding: 10px 20px;
+}
+
+/* Dangerous Actions (Red Alert Layout) */
+.btn-danger {
+    -fx-background-color: #c62828;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 6px;
+    -fx-padding: 10px 20px;
+}
+
+/* Navigation / Back System Buttons */
+.btn-nav-back {
+    -fx-background-color: #b0bec5;
+    -fx-text-fill: #37474f;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px 20px;
+}

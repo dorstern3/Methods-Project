@@ -1,34 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.Cursor?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.RoleSelectionController">
+<AnchorPane prefHeight="550.0" prefWidth="663.0" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.RoleSelectionController">
    <children>
-      <Label layoutX="174.0" layoutY="67.0" text="Welcome to GoNature" textAlignment="CENTER">
-         <font>
-            <Font name="System Bold" size="24.0" />
-         </font>
-      </Label>
-      <Button fx:id="btnTraveler" layoutX="225.0" layoutY="175.0" mnemonicParsing="false" onAction="#clickTraveler" prefHeight="50.0" prefWidth="150.0" text="Traveler" textAlignment="CENTER">
-         <font>
-            <Font name="System Bold" size="18.0" />
-         </font>
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-      </Button>
-      <Button fx:id="btnEmployee" layoutX="225.0" layoutY="256.0" mnemonicParsing="false" onAction="#clickEmployee" prefHeight="50.0" prefWidth="150.0" text="Employee" textAlignment="CENTER">
-         <font>
-            <Font name="System Bold" size="18.0" />
-         </font>
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-      </Button>
-      <Button fx:id="btnSimulation" layoutX="14.0" layoutY="361.0" mnemonicParsing="false" onAction="#openSimulationDashboard" text="Simulation" />
+      <VBox alignment="TOP_CENTER" spacing="40.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            
+            <VBox alignment="CENTER" spacing="5.0" style="-fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);">
+               <padding>
+                  <Insets bottom="20.0" top="20.0" />
+               </padding>
+               <children>
+                  <Label text="Welcome to GoNature" textFill="#2e7d32">
+                     <font>
+                        <Font name="System Bold" size="26.0" />
+                     </font>
+                  </Label>
+                  <Label text="Please select your entry role context sequence" textFill="#555555">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
+            
+            <VBox alignment="CENTER" maxWidth="400.0" prefHeight="322.0" prefWidth="400.0" spacing="20.0" style="-fx-background-color: #ffffff; -fx-padding: 35; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2);">
+               <children>
+                  
+                  <Button fx:id="btnTraveler" focusTraversable="false" mnemonicParsing="false" onAction="#clickTraveler" prefHeight="45.0" prefWidth="250.0" style="-fx-background-color: #2e7d32; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-cursor: hand;" text="Traveler">
+                     <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                  </Button>
+                  
+                  <Button fx:id="btnEmployee" focusTraversable="false" mnemonicParsing="false" onAction="#clickEmployee" prefHeight="45.0" prefWidth="250.0" style="-fx-background-color: #757575; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-cursor: hand;" text="Employee">
+                     <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                  </Button>
+                  
+               </children>
+               <VBox.margin>
+                  <Insets top="20.0" />
+               </VBox.margin>
+            </VBox>
+         </children>
+      </VBox>
+      
+      <Button fx:id="btnSimulation" focusTraversable="false" layoutX="14.0" layoutY="511.0" mnemonicParsing="false" onAction="#openSimulationDashboard" style="-fx-background-color: #e0e0e0; -fx-text-fill: #444444; -fx-font-weight: bold; -fx-cursor: hand;" text="Simulation" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="14.0" />
    </children>
 </AnchorPane>

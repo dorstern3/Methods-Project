@@ -1,43 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Accordion?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.SimulationController">
+<AnchorPane prefHeight="550.0" prefWidth="663.0" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.gui.SimulationController">
    <children>
-      <Label layoutX="130.0" layoutY="40.0" text="System Simulation Dashboard">
-         <font>
-            <Font name="System Bold" size="24.0" />
-         </font>
-      </Label>
-      <Button fx:id="btnSendReminders" layoutX="200.0" layoutY="142.0" mnemonicParsing="false" onAction="#handleSendReminders" prefHeight="30.0" prefWidth="200.0" text="Send Next Day Reminders" textAlignment="CENTER">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Button>
-      <Button fx:id="btnCheckWaitlist" layoutX="200.0" layoutY="200.0" mnemonicParsing="false" onAction="#handleWaitlistTimeout" prefHeight="30.0" prefWidth="200.0" text="Check Waitlist Timeout" textAlignment="CENTER">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Button>
-      <Button fx:id="btnCheckConfirmation" layoutX="200.0" layoutY="257.0" mnemonicParsing="false" onAction="#handleConfirmationTimeout" prefHeight="30.0" prefWidth="200.0" text="Check Confirmation Timeout" textAlignment="CENTER">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Button>
-      <Button fx:id="btnBack" layoutX="27.0" layoutY="352.0" mnemonicParsing="false" onAction="#clickBack" text="Back">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Button>
-      <Accordion />
-      <Button fx:id="btnCleanWaitingList" layoutX="200.0" layoutY="313.0" mnemonicParsing="false" onAction="#clickCleanWaitingList" prefHeight="30.0" prefWidth="200.0" text="Clean Waiting List for today">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Button>
+      <VBox alignment="TOP_CENTER" spacing="25.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            
+            <VBox alignment="CENTER" spacing="5.0" style="-fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);">
+               <padding>
+                  <Insets bottom="15.0" top="15.0" />
+               </padding>
+               <children>
+                  <Label text="System Simulation Dashboard" textFill="#2e7d32">
+                     <font>
+                        <Font name="System Bold" size="24.0" />
+                     </font>
+                  </Label>
+                  <Label text="Trigger automated background processing routines context" textFill="#555555">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
+            
+            <GridPane hgap="25.0" maxWidth="567.0" prefHeight="264.0" prefWidth="567.0" style="-fx-background-color: #ffffff; -fx-padding: 30; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2);" vgap="20.0">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="240.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="240.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="65.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="65.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <VBox.margin>
+                  <Insets top="10.0" />
+               </VBox.margin>
+               <children>
+                  
+                  <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                     <children>
+                        <Button fx:id="btnSendReminders" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleSendReminders" prefHeight="38.0" style="-fx-background-color: #757575; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-cursor: hand;" text="Send Next Day Reminders" />
+                        <Label style="-fx-font-size: 11px;" text="Notify visitors scheduled for tomorrow" textFill="#777777" />
+                     </children>
+                  </VBox>
+                  
+                  <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                     <children>
+                        <Button fx:id="btnCheckWaitlist" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleWaitlistTimeout" prefHeight="38.0" style="-fx-background-color: #757575; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-cursor: hand;" text="Check Waitlist Timeout" />
+                        <Label style="-fx-font-size: 11px;" text="Process expired waitlist allocations" textFill="#777777" />
+                     </children>
+                  </VBox>
+                  
+                  <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                     <children>
+                        <Button fx:id="btnCheckConfirmation" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleConfirmationTimeout" prefHeight="38.0" style="-fx-background-color: #757575; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-cursor: hand;" text="Check Confirmation Timeout" />
+                        <Label style="-fx-font-size: 11px;" text="Cancel unconfirmed reservations (2 hour limit)" textFill="#777777" />
+                     </children>
+                  </VBox>
+                  
+                  <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                     <children>
+                        <Button fx:id="btnCleanWaitingList" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#clickCleanWaitingList" prefHeight="38.0" style="-fx-background-color: #2e7d32; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-cursor: hand;" text="Clean Waiting List For Today" />
+                        <Label style="-fx-font-size: 11px;" text="Flush inactive daily queue boundaries" textFill="#777777" />
+                     </children>
+                  </VBox>
+                  
+               </children>
+            </GridPane>
+            
+            <Button fx:id="btnBack" mnemonicParsing="false" onAction="#clickBack" prefHeight="35.0" prefWidth="90.0" style="-fx-background-color: #757575; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-cursor: hand;" text="Back">
+               <VBox.margin>
+                  <Insets right="430.0" top="15.0" />
+               </VBox.margin>
+            </Button>
+            
+         </children>
+      </VBox>
    </children>
 </AnchorPane>

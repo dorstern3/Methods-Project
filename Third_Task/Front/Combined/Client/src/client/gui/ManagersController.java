@@ -43,36 +43,32 @@ public class ManagersController {
         mainContainer.setAlignment(Pos.TOP_CENTER);
 
         Label mainTitle = new Label("Managers Screen");
-        mainTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 18px;");
+        mainTitle.getStyleClass().add("screen-title");
      
         Label myInfo = new Label(CurUser.getMyInfo());
-        myInfo.setStyle(
-        	    "-fx-background-color: #F8F9FA; " +      
-        	    "-fx-border-color: #E0E0E0; " +          
-        	    "-fx-border-width: 1px; " +              
-        	    "-fx-background-radius: 10px; " +        
-        	    "-fx-border-radius: 10px; " +            
-        	    "-fx-font-family: 'Segoe UI', sans-serif; " + 
-        	    "-fx-font-size: 13px; " +                
-        	    "-fx-text-fill: #333333; " +             
-        	    "-fx-line-spacing: 5px;"                 
-        	);
-        	myInfo.setPadding(new javafx.geometry.Insets(12, 16, 12, 16));
-        	myInfo.setAlignment(javafx.geometry.Pos.TOP_LEFT);
+        myInfo.getStyleClass().add("worker-info-box");
+        myInfo.setPadding(new javafx.geometry.Insets(20, 25, 20, 25));
+        myInfo.setAlignment(javafx.geometry.Pos.TOP_LEFT);
+        myInfo.setPrefWidth(420);
+        
+    	VBox infoContainer = new VBox(myInfo);
+        infoContainer.setPadding(new Insets(20));
+        infoContainer.setStyle("-fx-background-color: #ffffff;");
+        
         Tab infoTab = new Tab("My Info");
-        infoTab.setContent(myInfo);
+        infoTab.setContent(infoContainer);
         
         // --- Create the capacity label and a manual refresh button ---
         lblLiveCapacity = new Label("Current Park Occupancy: Loading...");
-        lblLiveCapacity.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2e7d32;");
+        lblLiveCapacity.getStyleClass().add("bold-label");
 
         Button btnRefreshCapacity = new Button("🔄 Refresh");
-        btnRefreshCapacity.setStyle("-fx-cursor: hand;");
+        btnRefreshCapacity.getStyleClass().add("btn-secondary");
         btnRefreshCapacity.setOnAction(e -> updateLiveCapacity());
 
         
         parkSelectorComboBox = new ComboBox<>();
-        
+        parkSelectorComboBox.getStyleClass().add("combo-box");
         
         try {
             Message getParksRequest = new Message(MessageType.GET_PARKS, null);
@@ -106,15 +102,18 @@ public class ManagersController {
        
         HBox capacityContainer = new HBox(15);
         capacityContainer.setAlignment(Pos.CENTER);
-        
+        capacityContainer.getStyleClass().add("occupancy-banner");
         
         if ("Dept_manager".equals(CurUser.getRole())) {
+        	Label selectParkLabel = new Label("Select Park:");
             capacityContainer.getChildren().addAll(new Label("Select Park:"), parkSelectorComboBox, lblLiveCapacity, btnRefreshCapacity);
+            selectParkLabel.getStyleClass().add("bold-label");
         } else {
             capacityContainer.getChildren().addAll(lblLiveCapacity, btnRefreshCapacity);
         }
 
         TabPane tabPane = new TabPane();
+        tabPane.getStyleClass().add("tab-pane");
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         Tab parkManagerTab = new Tab("Park Manager");
@@ -126,6 +125,10 @@ public class ManagersController {
         Button btnProduceReports = new Button("Generate Reports");
         Button btnPromotions = new Button("Promotions");
 
+        btnRequestParams.getStyleClass().add("btn-primary");
+        btnProduceReports.getStyleClass().add("btn-secondary");
+        btnPromotions.getStyleClass().add("btn-secondary");
+        
         btnRequestParams.setMaxWidth(Double.MAX_VALUE);
         btnProduceReports.setMaxWidth(Double.MAX_VALUE);
         btnPromotions.setMaxWidth(Double.MAX_VALUE);
@@ -142,6 +145,10 @@ public class ManagersController {
         Button btnDeptReports = new Button("Generate Reports");
         Button btnDeptPromotions = new Button("Promotions");
 
+        btnManageRequests.getStyleClass().add("btn-primary");
+        btnDeptReports.getStyleClass().add("btn-secondary");
+        btnDeptPromotions.getStyleClass().add("btn-secondary");
+        
         btnManageRequests.setMaxWidth(Double.MAX_VALUE);
         btnDeptReports.setMaxWidth(Double.MAX_VALUE);
         btnDeptPromotions.setMaxWidth(Double.MAX_VALUE);
@@ -161,12 +168,9 @@ public class ManagersController {
         }
           
         Button btnBackToLogin = new Button("Back");
-        btnBackToLogin.setStyle("-fx-cursor: hand; -fx-font-weight: bold;");
+        btnBackToLogin.getStyleClass().add("btn-nav-back");
         btnBackToLogin.setOnAction(e -> {
-            
             ((javafx.scene.Node)e.getSource()).getScene().getWindow().hide();
-            
-            
             client.logic.CurUser.logout();
         });
 
@@ -187,19 +191,19 @@ public class ManagersController {
     
 
     // Displays the interface for park managers to submit a parameter change request
-    // Displays the interface for park managers to submit a parameter change request
     private void switchToParkManagerRequestScreen() {
         mainContainer.getChildren().clear();
         mainContainer.setAlignment(Pos.TOP_LEFT);
 
         Label title = new Label("Submit Parameter Change Request");
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        title.getStyleClass().add("section-title");
 
         GridPane grid = new GridPane();
         grid.setVgap(10);
         grid.setHgap(10);
 
         ComboBox<String> paramComboBox = new ComboBox<>();
+        paramComboBox.getStyleClass().add("combo-box");
         paramComboBox.getItems().addAll(
                 "Maximum Visitors Capacity",
                 "Order Gap for Casual Visitors",
@@ -208,7 +212,8 @@ public class ManagersController {
         paramComboBox.setPromptText("Select parameter to change");
 
         TextField valTxtField = new TextField();
-
+        valTxtField.getStyleClass().add("text-field");
+        
         grid.add(new Label("Requested Parameter:"), 0, 0);
         grid.add(paramComboBox, 1, 0);
 
@@ -217,7 +222,9 @@ public class ManagersController {
 
         HBox actionButtons = new HBox(10);
         Button submitBtn = new Button("Send Request for Department Manager Approval");
+        submitBtn.getStyleClass().add("btn-primary");
         Button backBtn = new Button("Back");
+        backBtn.getStyleClass().add("btn-secondary");
         backBtn.setOnAction(e -> showMainDashboard());
 
         submitBtn.setOnAction(e -> {
@@ -301,9 +308,11 @@ public class ManagersController {
         mainContainer.setAlignment(Pos.TOP_LEFT);
 
         Label title = new Label("Manage Pending Requests Approval");
+        title.getStyleClass().add("section-title");
         title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
         
         ListView<ParameterRequest> requestsList = new ListView<>();
+        requestsList.getStyleClass().add("list-view");
         requestsList.setPrefHeight(200); requestsList.setPrefWidth(500);
 
         requestsList.setCellFactory(lv -> new ListCell<ParameterRequest>() {
@@ -338,11 +347,14 @@ public class ManagersController {
         HBox actionButtons = new HBox(10);
         Button approveBtn = new Button("Approve Request");
         approveBtn.setStyle("-fx-background-color: lightgreen; -fx-font-weight: bold;");
+        approveBtn.getStyleClass().add("btn-primary");
         
         Button rejectBtn = new Button("Reject Request");
         rejectBtn.setStyle("-fx-background-color: #ffcccc; -fx-font-weight: bold;");
-
+        rejectBtn.getStyleClass().add("btn-danger");
+        
         Button backBtn = new Button("Back");
+        backBtn.getStyleClass().add("btn-nav-back");
         backBtn.setOnAction(e -> showMainDashboard());
 
       
@@ -371,6 +383,7 @@ public class ManagersController {
         });
 
         Button refreshRequestsBtn = new Button("Refresh List");
+        refreshRequestsBtn.getStyleClass().add("btn-secondary");
         refreshRequestsBtn.setOnAction(e -> {
             Message refreshResponse = logic.requestPendingRequests();
             if (refreshResponse != null && refreshResponse.getType() == MessageType.GET_PENDING_REQUESTS_RESPONSE) {
@@ -390,9 +403,10 @@ public class ManagersController {
         mainContainer.setAlignment(Pos.TOP_LEFT);
 
         Label title = new Label("Promotions Management");
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
+        title.getStyleClass().add("section-title");
 
         GridPane grid = new GridPane();
+        grid.getStyleClass().add("form-card");
         grid.setVgap(8);
         grid.setHgap(10);
 
@@ -407,11 +421,14 @@ public class ManagersController {
         grid.add(discountField, 1, 1);
 
         Button btnSubmitPromo = new Button("Submit Promotion");
+        btnSubmitPromo.getStyleClass().add("btn-primary");
 
         Label listTitle = new Label("Coupons List:");
-        listTitle.setStyle("-fx-font-weight: bold;");
+        listTitle.getStyleClass().add("bold-label");
+        //listTitle.setStyle("-fx-font-weight: bold;");
         
         ListView<String> promoList = new ListView<>();
+        promoList.getStyleClass().add("list-view");
         promoList.setPrefHeight(120);
 
         btnSubmitPromo.setOnAction(e -> {
@@ -463,6 +480,7 @@ public class ManagersController {
         });
 
         Button backBtn = new Button("Back");
+        backBtn.getStyleClass().add("btn-secondary");
         backBtn.setOnAction(e -> showMainDashboard());
 
         mainContainer.getChildren().addAll(title, grid, btnSubmitPromo, new Separator(), listTitle, promoList, backBtn);
