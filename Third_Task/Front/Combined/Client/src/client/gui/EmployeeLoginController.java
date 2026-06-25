@@ -14,10 +14,12 @@ import javafx.scene.control.TextField;
 
 /**
  * Controller for the Employee Login screen.
- * Handles employee authentication and navigation back to the role selection screen.
+ * Facilitates credentials collection, interaction with authentication logic,
+ * and role-based routing for park employees.
  */
 public class EmployeeLoginController {
 	
+	/** Business logic controller handling authentication tasks. */
 	LoginLogic loginLogic;
 	
     @FXML
@@ -31,26 +33,30 @@ public class EmployeeLoginController {
 
     @FXML
     private TextField txtUsername;
+    
     @FXML private Label errorMessage;
     
-    public void initialize() {loginLogic = new LoginLogic();}
     /**
-     * Handles the Back button click.
-     * Navigates the user back to the Role Selection screen.
-     * 
-     * @param event the action event triggered by clicking the Back button
-     */
+	 * Initializes the controller component and prepares the business logic layer.
+	 */
+    public void initialize() {
+    	loginLogic = new LoginLogic();
+    }
+
+    /**
+	 * Navigates the user back to the primary Role Selection landing screen.
+	 * * @param event the action event triggered by clicking the back button
+	 */
     @FXML
     void clickBack(ActionEvent event) {
         ScreenSwitch.switchScreen("/client/gui/RoleSelection.fxml", "Role Selection");
     }
 
     /**
-     * Handles the Login button click.
-     * Retrieves the entered username and password for authentication.
-     * 
-     * @param event the action event triggered by clicking the Login button
-     */
+	 * Extracts credentials input, performs server authentication, and performs
+	 * structural screen routing based on the authorized employee role.
+	 * * @param event the action event triggered by clicking the login button
+	 */
     @FXML
     void clickLogin(ActionEvent event) {
         String username = txtUsername.getText();

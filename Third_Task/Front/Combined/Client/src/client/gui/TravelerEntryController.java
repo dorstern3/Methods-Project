@@ -44,10 +44,46 @@ public class TravelerEntryController {
 	private Button btnEditSubscriber;
 
 	/**
+	 * Shared helper method to handle structural validation of the input field.
+	 * * @param travelerId The extracted raw string from the input text field.
+	 * @param mustBeSubscriber Only true if the specific action strictly requires a 4-digit subscriber code.
+	 * @return true if the structure is completely valid, false otherwise.
+	 */
+	private boolean validateInputStructure(String travelerId, boolean mustBeSubscriber) {
+		if (travelerId == null || travelerId.trim().isEmpty()) {
+			if (mustBeSubscriber) {
+				lblError.setText("Please enter your Subscriber Number to proceed.");
+			} else {
+				lblError.setText("Please enter ID or Subscriber Number first!");
+			}
+			return false;
+		}
+
+		if (!travelerId.matches("\\d+")) {
+			lblError.setText("Input must contain only numbers!");
+			return false;
+		}
+
+		int length = travelerId.length();
+		if (mustBeSubscriber) {
+			if (length != 4) {
+				lblError.setText("Error: Subscriber number must be exactly 4 digits.");
+				return false;
+			}
+		} else {
+			if (length != 4 && length != 5) {
+				lblError.setText("Subscriber number must be exactly 4 digits, ID must be exactly 5 digits.");
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Handles the action when the "Back" button is clicked. Returns the user to the
 	 * initial role selection screen.
-	 * 
-	 * @param event The action event triggered by clicking the back button.
+	 * * @param event The action event triggered by clicking the back button.
 	 */
 	@FXML
 	void clickBack(ActionEvent event) {
@@ -58,8 +94,7 @@ public class TravelerEntryController {
 	 * Handles the action when the "Manage Order" button is clicked. Validates the
 	 * traveler ID input and authenticates with the server. If successful, navigates
 	 * the user to the manage order form.
-	 * 
-	 * @param event The action event triggered by clicking the manage order button.
+	 * * @param event The action event triggered by clicking the manage order button.
 	 */
 	@FXML
 	void clickManageOrder(ActionEvent event) {
@@ -67,27 +102,18 @@ public class TravelerEntryController {
 		String travelerId = txtTravelerId.getText();
 		OrderLogic orderLogic = new OrderLogic();
 		
+		// 1. Business Logic Check
+		if (!orderLogic.checkOrderExists(travelerId)) {
+			lblError.setText("Error: Only travelers with an active order can access Manage Order.");
+			return;
+		}
 		
-	    if (!orderLogic.checkManageableOrderExists(travelerId)) {
-	        lblError.setText("Error: Only travelers with an active upcoming order can access Manage Order.");
-	        return;
-	    }
-		if (travelerId == null || travelerId.trim().isEmpty()) {
-			lblError.setText("Please enter ID or Subscriber Number first!");
+		// 2. Structural Input Check
+		if (!validateInputStructure(travelerId, false)) {
 			return;
 		}
 
-		if (!travelerId.matches("\\d+")) {
-			lblError.setText("Input must contain only numbers!");
-			return;
-		}
-
-		int length = travelerId.length();
-		if (length != 4 && length != 5) {
-			lblError.setText("Subscriber number must be exactly 4 digits, ID must be exactly 5 digits.");
-			return;
-		}
-
+		// 3. Server Authentication
 		client.logic.TravelerLogic logic = new client.logic.TravelerLogic();
 		String loginResult = logic.loginTraveler(travelerId);
 
@@ -105,30 +131,20 @@ public class TravelerEntryController {
 	 * Handles the action when the "New Order" button is clicked. Validates the
 	 * traveler ID and queries the server to determine the specific traveler type
 	 * (Regular, Guide, or Subscriber) before proceeding to the booking form.
-	 * 
-	 * @param event The action event triggered by clicking the new order button.
+	 * * @param event The action event triggered by clicking the new order button.
 	 */
 	@FXML
 	void clickNewOrder(ActionEvent event) {
 		lblError.setText("");
 		String travelerId = txtTravelerId.getText();
 
-		if (travelerId == null || travelerId.trim().isEmpty()) {
-			lblError.setText("Please enter ID or Subscriber Number!");
-			return;
-		}
-
-		if (!travelerId.matches("\\d+")) {
-			lblError.setText("Input must contain only numbers!");
-			return;
-		}
-		int length = travelerId.length();
-		if (length != 4 && length != 5) {
-			lblError.setText("Subscriber number must be exactly 4 digits, ID must be exactly 5 digits.");
+		// 1. Structural Input Check
+		if (!validateInputStructure(travelerId, false)) {
 			return;
 		}
 		System.out.println("Frontend validation passed for ID: " + travelerId);
 
+		// 2. Server Identification
 		client.logic.TravelerLogic logic = new client.logic.TravelerLogic();
 		String dbResult = logic.identifyTraveler(travelerId);
 
@@ -142,14 +158,6 @@ public class TravelerEntryController {
 			client.gui.NewOrderFormController.currentTravelerInfo = dbResult;
 			client.gui.NewOrderFormController.currentTravelerId = travelerId;
 
-			if (dbResult.startsWith("Subscriber:")) {
-				System.out.println("Moving to Order Screen as a Subscriber...");
-			} else if (dbResult.startsWith("Guide:")) {
-				System.out.println("Moving to Order Screen as a Guide...");
-			} else {
-				System.out.println("Moving to Order Screen as a Regular Traveler...");
-			}
-
 			ScreenSwitch.switchScreen("/client/gui/NewOrderForm.fxml", "New Order");
 		} else {
 			lblError.setText("Error identifying traveler. Try again.");
@@ -159,8 +167,7 @@ public class TravelerEntryController {
 	/**
 	 * Handles the action when the "Exit Park" button is clicked. Validates the
 	 * traveler ID and navigates the user to the visitor exit screen.
-	 * 
-	 * @param event The action event triggered by clicking the exit park button.
+	 * * @param event The action event triggered by clicking the exit park button.
 	 */
 	@FXML
 	public void onExitParkClicked(ActionEvent event) {
@@ -168,25 +175,18 @@ public class TravelerEntryController {
 		String travelerId = txtTravelerId.getText();
 		OrderLogic orderLogic = new OrderLogic();
 		
-		// FIXED: Call the current inside-park validator
-	    if (!orderLogic.checkActiveCheckInExists(travelerId)) {
-	        lblError.setText("Error: Only travelers currently inside the park can access Exit Park.");
-	        return;
-	    }
-		if (travelerId == null || travelerId.trim().isEmpty()) {
-			lblError.setText("Please enter ID or Subscriber Number first!");
+		// 1. Business Logic Check
+		if (!orderLogic.checkActiveCheckInExists(travelerId)) {
+			lblError.setText("Error: Only travelers currently inside the park can access Exit Park.");
+			return;
+		}
+		
+		// 2. Structural Input Check
+		if (!validateInputStructure(travelerId, false)) {
 			return;
 		}
 
-		if (!travelerId.matches("\\d+")) {
-			lblError.setText("Input must contain only numbers!");
-			return;
-		}
-		int length = travelerId.length();
-		if (length != 4 && length != 5) {
-			lblError.setText("Subscriber number must be exactly 4 digits, ID must be exactly 5 digits.");
-			return;
-		}
+		// 3. Server Authentication
 		client.logic.TravelerLogic logic = new client.logic.TravelerLogic();
 		String loginResult = logic.loginTraveler(travelerId);
 
@@ -200,52 +200,32 @@ public class TravelerEntryController {
 		ScreenSwitch.switchScreen("/client/gui/ExitParkVisitor.fxml", "Visitor Exit");
 	}
 
-	
 	/**
-     * Handles the click event for the "Edit/View Subscriber Details" button.
-     * Verifies that the entered subscriber number is valid and exists in the database
-     * before navigating the traveler to the subscriber profile editor screen.
-     * * @param event The ActionEvent triggered by clicking the edit/view details button.
-     */
-    @FXML
-    public void onEditSubscriberDetailsClicked(ActionEvent event) {
-        // Clear any previous error messages on the screen
-        lblError.setText("");
-        
-        // Fetch the input from the traveler text field
-        String travelerId = txtTravelerId.getText().trim();
+	 * Handles the click event for the "Edit/View Subscriber Details" button.
+	 * Verifies that the entered subscriber number is valid and exists in the database
+	 * before navigating the traveler to the subscriber profile editor screen.
+	 * * @param event The ActionEvent triggered by clicking the edit/view details button.
+	 */
+	@FXML
+	public void onEditSubscriberDetailsClicked(ActionEvent event) {
+		lblError.setText("");
+		String travelerId = txtTravelerId.getText().trim();
 
-        // 1. Frontend Structural Validations
-        if (travelerId.isEmpty()) {
-            lblError.setText("Please enter your Subscriber Number to proceed.");
-            return;
-        }
+		// 1. Structural Input Check (Strictly must be a 4-digit subscriber)
+		if (!validateInputStructure(travelerId, true)) {
+			return;
+		}
 
-        if (!travelerId.matches("\\d+")) {
-            lblError.setText("Input must contain only numbers!");
-            return;
-        }
+		// 2. Database Backend Validation via the EntranceLogic layer
+		client.logic.EntranceLogic entranceLogic = new client.logic.EntranceLogic();
+		ArrayList<Object> result = entranceLogic.verifySubscriber(travelerId);
+		
+		if (result == null || result.isEmpty() || !(boolean) result.get(0)) {
+			lblError.setText("Access Denied: Subscriber Number not found in the system.");
+			return; 
+		}
 
-        // Ensure it follows the subscriber number format (exactly 4 digits)
-        if (travelerId.length() != 4) {
-            lblError.setText("Error: Subscriber number must be exactly 4 digits.");
-            return;
-        }
-
-        // 2. Database Backend Validation via the EntranceLogic layer
-        client.logic.EntranceLogic entranceLogic = new client.logic.EntranceLogic();
-        ArrayList<Object> result = entranceLogic.verifySubscriber(travelerId);
-        
-        // CRITICAL BLOCK: If the result is null, or index 0 returns false, the subscriber does NOT exist!
-        if (result == null || result.isEmpty() || !(boolean) result.get(0)) {
-            lblError.setText("Access Denied: Subscriber Number not found in the system.");
-            return; // Stops execution immediately - will NOT switch screens!
-        }
-
-        // 3. Authenticated Context Saving: Pass the valid subscriber ID to the editor window
-        client.gui.SubscriberEditorController.currentSubNumber = travelerId;
-
-        // 4. Secure Screen Navigation: Switch only when identity is fully confirmed
-        ScreenSwitch.switchScreen("/client/gui/SubscriberEditor.fxml", "Edit Subscriber Profile");
-    }
+		client.gui.SubscriberEditorController.currentSubNumber = travelerId;
+		ScreenSwitch.switchScreen("/client/gui/SubscriberEditor.fxml", "Edit Subscriber Profile");
+	}
 }

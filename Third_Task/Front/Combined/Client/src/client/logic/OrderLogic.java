@@ -2,7 +2,6 @@ package client.logic;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 
 import client.ClientUI;
 import common.Message;
@@ -32,12 +31,9 @@ public class OrderLogic {
 
 	/**
 	 * Checks if a specific park has available capacity for a newly requested order.
-	 * Communicates with the server to perform the capacity validation. * @param
-	 * newOrder The order details containing park name, date, time, and number of
-	 * visitors to check.
-	 * 
-	 * @return true if there is sufficient capacity available for the order, false
-	 *         otherwise.
+	 * Communicates with the server to perform the capacity validation.
+	 * * @param newOrder The order details containing park name, date, time, and number of visitors to check.
+	 * @return true if there is sufficient capacity available for the order, false otherwise.
 	 */
 	public boolean checkAvailability(Order newOrder) {
 		Message msg = new Message(MessageType.CHECK_AVAILABILITY, newOrder);
@@ -50,11 +46,9 @@ public class OrderLogic {
 
 	/**
 	 * Submits a new confirmed order to be saved in the database via the server.
-	 * * @param newOrder The order object containing all required details to be
-	 * saved.
-	 * 
+	 * * @param newOrder The order object containing all required details to be saved.
 	 * @return A generated String representing the QR code for the order if the
-	 *         operation is successful, or null if the saving process fails.
+	 * operation is successful, or null if the saving process fails.
 	 */
 	public String saveNewOrder(Order newOrder) {
 		Message saveMsg = new Message(MessageType.SAVE_NEW_ORDER, newOrder);
@@ -67,11 +61,9 @@ public class OrderLogic {
 
 	/**
 	 * Registers a pending order into the park's waiting list via the server. This
-	 * method is called when the park is full at the requested time. * @param order
-	 * The pending order object to be added to the waiting list.
-	 * 
-	 * @return true if the order was successfully added to the waiting list, false
-	 *         otherwise.
+	 * method is called when the park is full at the requested time.
+	 * * @param order The pending order object to be added to the waiting list.
+	 * @return true if the order was successfully added to the waiting list, false otherwise.
 	 */
 	public boolean enterWaitingList(Order order) {
 		Message msg = new Message(MessageType.ENTER_WAITING_LIST, order);
@@ -84,14 +76,11 @@ public class OrderLogic {
 
 	/**
 	 * Retrieves the details of a specific order from the server database, ensuring
-	 * that the traveler requesting the details is authorized to view them. * @param
-	 * orderNumber The unique identifier number of the requested order.
-	 * 
-	 * @param travelerId The ID of the traveler attempting to fetch the order
-	 *                   details.
+	 * that the traveler requesting the details is authorized to view them.
+	 * * @param orderNumber The unique identifier number of the requested order.
+	 * @param travelerId The ID of the traveler attempting to fetch the order details.
 	 * @return The requested Order object if it is found and the traveler is
-	 *         authorized, or null if the order does not exist or authorization
-	 *         fails.
+	 * authorized, or null if the order does not exist or authorization fails.
 	 */
 	public Order fetchOrderDetails(int orderNumber, String travelerId) {
 		ArrayList<Object> searchParams = new ArrayList<>();
@@ -110,14 +99,11 @@ public class OrderLogic {
 	/**
 	 * Updates the status of an existing order (e.g., from 'Booked' to 'Canceled' or
 	 * 'Confirmed'). Communicates the change to the server to persist the update in
-	 * the database. * @param orderNumber The unique identifier of the order to be
-	 * updated.
-	 * 
+	 * the database.
+	 * * @param orderNumber The unique identifier of the order to be updated.
 	 * @param newStatus The new status string to be applied to the order.
-	 * @return An Object array where: - Index 0 is a boolean indicating the success
-	 *         of the update operation. - Index 1 is a String containing an optional
-	 *         notification message (e.g., if a waiting list slot was triggered due
-	 *         to cancellation).
+	 * @return An Object array where Index 0 is a boolean success indicator, and 
+	 * Index 1 is an optional waiting list notification message string.
 	 */
 	public Object[] updateOrderStatus(int orderNumber, String newStatus) {
 		ArrayList<Object> updateData = new ArrayList<>();
@@ -140,20 +126,25 @@ public class OrderLogic {
 	/**
 	 * Performs a logout operation for the current traveler by notifying the server.
 	 * * @param travelerId The ID of the traveler attempting to log out.
-	 * 
-	 * @return true if the logout request was processed successfully by the server,
-	 *         false otherwise.
+	 * @return true if the logout request was processed successfully by the server, false otherwise.
 	 */
 	public boolean logoutTraveler(String travelerId) {
 		Message msg = new Message(MessageType.TRAVELER_LOGOUT, travelerId);
-		Message response = (Message) client.ClientUI.clientChat.accept(msg);
-		return response != null && response.getType() == MessageType.LOGOUT_SUCCESS;
+		Message response = (Message) ClientUI.clientChat.accept(msg);
+		if (response != null && response.getType() == MessageType.LOGOUT_SUCCESS) {
+			return true;
+		}
+		return false;
 	}
+	
 	/**
-	 * Checks if a traveler has a future active order that can be managed.
+	 * Checks the server database to verify if an active unfulfilled order exists for 
+	 * the given traveler ID or subscriber number.
+	 * * @param travelerId The identification or subscriber number of the traveler.
+	 * @return true if an active order structure exists in the system, false otherwise.
 	 */
-	public boolean checkManageableOrderExists(String travelerId) {
-		Message msg = new Message(MessageType.CHECK_ORDER_EXISTENCE, travelerId); // Or a custom type if preferred
+	public boolean checkOrderExists(String travelerId) {
+		Message msg = new Message(MessageType.CHECK_ORDER_EXISTENCE, travelerId);
 		Message response = (Message) ClientUI.clientChat.accept(msg);
 		if (response != null && response.getType() == MessageType.CHECK_ORDER_RESPONSE) {
 			return (boolean) response.getData();
@@ -162,23 +153,24 @@ public class OrderLogic {
 	}
 
 	/**
-	 * Checks if a traveler is currently inside the park and can exit.
+	 * Checks if a traveler is currently checked into a park (status 'Entered') 
+	 * and has not recorded an exit time yet.
+	 * * @param travelerId The identification or subscriber number of the traveler.
+	 * @return true if the traveler is currently active inside the park, false otherwise.
 	 */
 	public boolean checkActiveCheckInExists(String travelerId) {
-		Message msg = new Message(MessageType.CHECK_ORDER_EXISTENCE, "CHECK_EXIT:" + travelerId); 
+		Message msg = new Message(MessageType.CHECK_ORDER_EXISTENCE_FOR_EXIT, travelerId); 
 		Message response = (Message) ClientUI.clientChat.accept(msg);
-		if (response != null && response.getType() == MessageType.CHECK_ORDER_RESPONSE) {
+		if (response != null && response.getType() == MessageType.CHECK_ORDER_RESPONSE_FOR_EXIT) {
 			return (boolean) response.getData();
 		}
 		return false;
 	}
 
 	/**
-	 * Sends an order update request directly to the server. * @param order The
-	 * updated Order object containing the changes.
-	 * 
-	 * @return A String representing the server's response or status regarding the
-	 *         update.
+	 * Sends an order update request directly to the server.
+	 * * @param order The updated Order object containing the changes.
+	 * @return A String representing the server's response or status regarding the update.
 	 */
 	public String sendOrderUpdate(Order order) {
 		Object response = ClientUI.clientChat.accept(order);
@@ -186,18 +178,21 @@ public class OrderLogic {
 	}
 
 	/**
-	 * Requests a complete list of all available orders from the server. * @return
-	 * An ArrayList containing all Order objects fetched from the server.
+	 * Requests the list of active park names dynamically from the server database.
+	 * * @return An ArrayList of park names, or an empty list if the request fails.
 	 */
 	@SuppressWarnings("unchecked")
-	public ArrayList<Order> getAllOrders() {
-		Object response = ClientUI.clientChat.accept("101");
-		return (ArrayList<Order>) response;
+	public ArrayList<String> fetchParkNames() {
+		Message msg = new Message(MessageType.GET_PARKS, null);
+		Message reply = (Message) ClientUI.clientChat.accept(msg);
+		if (reply != null && reply.getType() == MessageType.GET_PARKS_RESPONSE) {
+			return (ArrayList<String>) reply.getData();
+		}
+		return new ArrayList<>(); 
 	}
 
 	/**
-	 * Disconnects the client from the server gracefully, closing the active network
-	 * connection.
+	 * Disconnects the client from the server gracefully, closing the active network connection.
 	 */
 	public void disconnect() {
 		try {
@@ -206,18 +201,4 @@ public class OrderLogic {
 			e.printStackTrace();
 		}
 	}
-	/**
-     * Requests the list of active park names dynamically from the server database.
-     * @return An ArrayList of park names, or an empty list if the request fails.
-     */
-    @SuppressWarnings("unchecked")
-    public ArrayList<String> fetchParkNames() {
-        Message msg = new Message(MessageType.GET_PARKS, null);
-        Message reply = (Message) client.ClientUI.clientChat.accept(msg);
-        
-        if (reply != null && reply.getType() == MessageType.GET_PARKS_RESPONSE) {
-            return (ArrayList<String>) reply.getData();
-        }
-        return new ArrayList<>(); // Return empty list as a safe fallback on network failure
-    }
 }

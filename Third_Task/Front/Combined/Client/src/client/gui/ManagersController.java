@@ -20,21 +20,30 @@ import common.MessageType;
 import common.ParameterRequest;
 import client.logic.CurUser;
 
+/**
+ * Controller for the Managers dashboard.
+ * Manages park occupancy monitoring, parameter change requests, 
+ * approval workflows for department managers, and promotions.
+ */
 public class ManagersController {
 
-    // --- Field for occupancy tracking ---
     private Label lblLiveCapacity;
     private ComboBox<String> parkSelectorComboBox;
     
     @FXML private VBox mainContainer;
     private ManagersLogic logic;
 
+    /**
+     * Initializes the controller, sets up business logic, and loads the dashboard.
+     */
     public void initialize() {
     	logic = new ManagersLogic();
         showMainDashboard();
     }
 
-    // Initializes the main window, establishes database connection, and builds the primary dashboard
+    /**
+     * Builds and displays the main dashboard UI elements.
+     */
     private void showMainDashboard(){
         mainContainer.getChildren().clear();
     	
@@ -156,7 +165,6 @@ public class ManagersController {
         deptButtonsContainer.getChildren().addAll(btnManageRequests, btnDeptReports, btnDeptPromotions);
         deptManagerTab.setContent(deptButtonsContainer);
 
-        // Filtering the display of tabs according to the role of the employee connected from the static department
         String userRole = client.logic.CurUser.getRole();
         
         if ("Park_manager".equals(userRole)) {
@@ -185,12 +193,13 @@ public class ManagersController {
         btnDeptPromotions.setOnAction(e -> switchToSharedPromotionsScreen());
         btnDeptReports.setOnAction(e -> ScreenSwitch.switchScreen("/client/gui/Reports.fxml", "Reports"));
         
-        // Fetch the initial capacity once when the screen loads
         updateLiveCapacity(); 
     }
     
 
-    // Displays the interface for park managers to submit a parameter change request
+    /**
+     * Builds and displays the parameter change request form.
+     */
     private void switchToParkManagerRequestScreen() {
         mainContainer.getChildren().clear();
         mainContainer.setAlignment(Pos.TOP_LEFT);
@@ -231,13 +240,11 @@ public class ManagersController {
             String selectedUIParam = paramComboBox.getValue();
             String newValueStr = valTxtField.getText();
 
-            // 1. Validation: Ensure all form input fields are populated
             if (selectedUIParam == null || newValueStr == null || newValueStr.trim().isEmpty()) {
                 showAlert(Alert.AlertType.WARNING, "Missing Fields", "Please fill all fields before submitting!");
                 return;
             }
 
-            // 2. Validation: Ensure the value contains digits only to prevent NumberFormatException
             if (!newValueStr.trim().matches("\\d+")) {
                 showAlert(Alert.AlertType.ERROR, "Invalid Input", "The requested new value must contain numbers/digits only!");
                 return; 
@@ -257,10 +264,8 @@ public class ManagersController {
 
             int parsedValue = Integer.parseInt(newValueStr.trim());
 
-            // 3. Dynamic Business Rule Validation: Enforce 10% max capacity limit for Order Gap parameters
             if ("casual_gap".equals(dbParamName)) {
                 try {
-                    // Fetch real-time capacity parameters directly via the active connection messaging pipeline
                     Message capRequest = new Message(MessageType.GET_PARK_OCCUPANCY, currentPark);
                     Message capResponse = (Message) client.ClientUI.clientChat.accept(capRequest);
 
@@ -268,14 +273,13 @@ public class ManagersController {
                         int[] capacityData = (int[]) capResponse.getData();
                         int maxCapacity = capacityData[1]; // Get max_capacity from index 1
                         
-                        // Calculate the absolute 10% maximum boundary
                         int maxAllowedGap = (int) (maxCapacity * 0.10);
 
                         if (parsedValue > maxAllowedGap) {
                             showAlert(Alert.AlertType.ERROR, "Business Rule Violation", 
                                 String.format("The requested Gap (%d) exceeds the allowed 10%% threshold of the park's max capacity (%d).\nMaximum allowed value is: %d", 
                                 parsedValue, maxCapacity, maxAllowedGap));
-                            return; // Stop execution to prevent dispatching invalid database updates
+                            return; 
                         }
                     } else {
                         showAlert(Alert.AlertType.WARNING, "Configuration Warning", "Could not verify park capacity limits from server. Request aborted.");
@@ -288,7 +292,6 @@ public class ManagersController {
                 }
             }
 
-            // 4. Transmission Pipeline: Dispatch the request parameters to the managers logic layer
             Message response = logic.sendParameterRequest(currentPark, currentWorkerId, dbParamName, 500, parsedValue);
             if (response != null && response.getType() == MessageType.REQUEST_SUBMIT_SUCCESS) {
                 showAlert(Alert.AlertType.INFORMATION, "Success", "Parameter change request submitted successfully!");
@@ -302,7 +305,9 @@ public class ManagersController {
         mainContainer.getChildren().addAll(title, grid, actionButtons);
     }
 
-    // Displays the pending requests queue allowing the department manager to approve or reject them
+    /**
+     * Builds and displays the approval queue for the department manager.
+     */
     private void switchToDeptManagerApprovalScreen() {
     	mainContainer.getChildren().clear();
         mainContainer.setAlignment(Pos.TOP_LEFT);

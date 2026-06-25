@@ -7,15 +7,23 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
+/**
+ * Controller for the server connection screen.
+ */
 public class ConnectionController {
-	
+	/** TextField for user input of the server's IP address. */
 	@FXML private TextField ipField;
+	/** TextField for user input of the server's port number. */
 	@FXML private TextField portField;
+	/** Label to display the current connection status to the user. */
 	@FXML private Label status;
 	
+	/**
+	 * Connects to the server using the entered IP and port,
+	 * then switches to the Role Selection screen.
+	 */
 	public void connectToServer() {
 		try {
-			// Open connection to the server
 			String ip = ipField.getText();
 			int port = Integer.parseInt(portField.getText());
 			ClientUI.clientChat = new ClientController(ip, port);

@@ -13,8 +13,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
 /**
- * Controller for the Manage Order screen. Handles the operations of searching,
- * confirming, and canceling existing visitor orders.
+ * Controller for the Manage Order screen. 
+ * Handles searching, confirming, and canceling existing visitor orders.
  */
 public class ManageOrderController {
 
@@ -42,11 +42,11 @@ public class ManageOrderController {
 	private Order currentOrder;
 	private OrderLogic orderLogic;
 
+	/** The ID of the currently logged-in traveler, used for authorization. */
 	public static String currentTravelerId = "";
 
 	/**
-	 * Initializes the controller. Sets the initial state of the action buttons
-	 * (Confirm/Cancel) to disabled and instantiates the OrderLogic layer.
+	 * Initializes the controller. Sets the initial state of action buttons to disabled.
 	 */
 	@FXML
 	public void initialize() {
@@ -55,12 +55,11 @@ public class ManageOrderController {
 		orderLogic = new OrderLogic();
 	}
 
+	
 	/**
-	 * Handles the search action for a specific order number. Fetches the order
-	 * details from the database and updates the UI accordingly. Enables or disables
-	 * the action buttons based on the current order status. 
-	 * @param event The
-	 * action event triggered by clicking the Search button.
+	 * Handles the search action for an order number. 
+	 * Fetches order details and updates the UI accordingly.
+	 * @param event The action event triggered by the search button.
 	 */
 	@FXML
 	void clickSearchOrder(ActionEvent event) {
@@ -104,10 +103,8 @@ public class ManageOrderController {
 
 
 	/**
-	 * Handles the order confirmation process. Updates the status of the current
-	 * order from 'Pending confirmation' to 'Confirmed', or from 'Waiting list
-	 * unconfirmed' to 'Booked'.
-	 * 
+	 * Handles the order confirmation process. 
+	 * Updates the status of the order based on its current state.
 	 * @param event The action event triggered by clicking the Confirm button.
 	 */
 	@FXML
@@ -149,9 +146,8 @@ public class ManageOrderController {
 	}
 
 	/**
-	 * Handles the order cancellation process. Updates the status of the current
-	 * order to 'Canceled'. If a spot becomes available, it triggers a simulated
-	 * notification (SMS/Email) to the next traveler on the waiting list. 
+	 * Handles the order cancellation process.
+	 * Updates the status to 'Canceled' and triggers notification if a spot is freed.
 	 * @param event The action event triggered by clicking the Cancel button.
 	 */
 	@FXML
@@ -186,8 +182,7 @@ public class ManageOrderController {
 	}
 
 	/**
-	 * Handles the back navigation action. Logs out the current traveler from the
-	 * system and returns to the Traveler main menu. 
+	 * Navigates back to the main Traveler Menu.
 	 * @param event The action event triggered by clicking the Back button.
 	 */
 	@FXML

@@ -376,35 +376,36 @@ public class DBselect {
 	}
 	
 	/**
-	 * Checks if a traveler has an active upcoming or existing order that can be managed.
-	 * Strictly excludes realized (Entered) or canceled states.
+	 * Checks if a traveler has an active order. Active means: Status is NOT
+	 * 'Canceled', and if status is 'Entered', it must have an exit_time (meaning
+	 * they left). 
+	 * @param travelerId The ID of the traveler.
+	 * 
+	 * @return true if an active order exists, false otherwise.
 	 */
-	public static boolean hasManageableOrder(String travelerId) {
-	    // Exclude ONLY 'Canceled' and 'Entered' statuses
-	    String query = "SELECT COUNT(*) FROM gonature_db_new.order WHERE id = ? " 
-	            + "AND status NOT IN ('Canceled', 'Entered')";
-	    
-	    Connection conn = null;
+	public static boolean hasActiveOrder(String travelerId) {
+		Connection conn = null;
 	    PreparedStatement ps = null; 
-	    
-	    try {
+
+		try {
 	    	conn = DBconnection.getConnection();
+			
+			String query = "SELECT COUNT(*) FROM gonature_db_new.order WHERE id = ? " + "AND status != 'Canceled' "
+					+ "AND status != 'Entered' ";
 	        ps = conn.prepareStatement(query);
-	        ps.setString(1, travelerId);
-	        
-	        try (ResultSet rs = ps.executeQuery()) {
-	            if (rs.next()) {
-	                return rs.getInt(1) > 0;
-	            }
-	        }
-	    } catch (SQLException e) {
-	        System.out.println("Error checking manageable order: " + e.getMessage());
-	        e.printStackTrace();
-	    }finally {
+			ps.setString(1, travelerId);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				return rs.getInt(1) > 0;
+			}
+		} catch (SQLException e) {
+			System.out.println("Error checking active order: " + e.getMessage());
+			e.printStackTrace();
+		}finally {
 			if (ps != null) { try { ps.close(); } catch (SQLException e) { e.printStackTrace(); } }
-			if (conn != null) { db.DBconnection.release(conn);}
+			if (conn != null) { db.DBconnection.release(conn); }
 		}
-	    return false;
+		return false;
 	}
 	/**
 	 * Checks if a traveler is currently inside the park (Entered) and has not exited yet.

@@ -18,11 +18,11 @@ import common.Order;
 
 /**
  * Controller for the Alternative Dates selection form. Displays available
- * alternative time slots and manages order updates for travelers when their
- * originally requested time is fully booked.
+ * alternative time slots and manages order updates for travelers.
  */
 public class AlternativeDatesFormController {
 
+	/** The original order details requested by the traveler. */
 	public static Order originalOrderDetails;
 
 	@FXML
@@ -43,9 +43,7 @@ public class AlternativeDatesFormController {
 	private ObservableList<AvailableSlot> availableSlotsList = FXCollections.observableArrayList();
 
 	/**
-	 * Initializes the controller class. This method is automatically called after
-	 * the fxml file has been loaded. It sets up the table columns and fetches the
-	 * alternative available dates from the server.
+	 * Initializes the table columns and fetches alternative available dates from the server.
 	 */
 	@FXML
 	public void initialize() {
@@ -71,11 +69,8 @@ public class AlternativeDatesFormController {
 	}
 
 	/**
-	 * Handles the book action for a selected alternative slot. Updates the original
-	 * order details with the new selected date and time, saves it to the database,
-	 * and displays a simulation of an SMS/Email confirmation. 
-	 * @param event The
-	 * action event triggered by clicking the book button.
+	 * Handles the booking action for the selected alternative time slot.
+	 * * @param event the action event triggered by clicking the book button
 	 */
 	@FXML
 	void clickBook(ActionEvent event) {
@@ -121,9 +116,8 @@ public class AlternativeDatesFormController {
 	}
 
 	/**
-	 * Cancels the current selection process and returns the user to the 
-	 * Waitlist/Alternative Dates selection screen.
-	 * @param event The action event triggered by clicking the cancel button.
+	 * Cancels the selection process and returns to the waiting list view.
+	 * * @param event the action event triggered by clicking the cancel button
 	 */
 	@FXML
 	void clickCancel(ActionEvent event) {

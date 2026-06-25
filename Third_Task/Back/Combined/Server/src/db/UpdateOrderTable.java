@@ -216,7 +216,7 @@ public class UpdateOrderTable {
 	/**
 	 * Cleans up the waiting list for the current day. Any order scheduled for today
 	 * that is still 'On waiting list' will be automatically changed to 'Canceled'.
-	 * * @return The number of rows updated, or -1 if an error occurred.
+	 * @return The number of rows updated, or -1 if an error occurred.
 	 */
 	public static int cleanWaitingListForToday() {
 		Connection conn = null;

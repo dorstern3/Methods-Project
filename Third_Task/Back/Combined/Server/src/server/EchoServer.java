@@ -220,18 +220,50 @@ public class EchoServer extends AbstractServer {
 					}
 					break;
 				}
-				case CHECK_ORDER_EXISTENCE:{
-				    String data = (String) message.getData();
-				    boolean exists;
-				    
-				    if (data.startsWith("CHECK_EXIT:")) {
-				        String realId = data.replace("CHECK_EXIT:", "");
-				        exists = db.DBselect.isCurrentlyInsidePark(realId); 
-				    } else {
-				        exists = db.DBselect.hasManageableOrder(data); 
+				case CHECK_ORDER_EXISTENCE: {
+				    String inputId = (String) message.getData();
+				    try {
+				        String travelerId = inputId;
+
+				        if (inputId != null && inputId.length() == 4) {
+				            travelerId = db.DBselect.getTravelerIdBySubNumber(inputId);
+				            if (travelerId == null) {
+				                client.sendToClient(new Message(MessageType.CHECK_ORDER_RESPONSE, false));
+				                break;
+				            }
+				        }
+
+				        boolean exists = db.DBselect.hasActiveOrder(travelerId);
+				        client.sendToClient(new Message(MessageType.CHECK_ORDER_RESPONSE, exists));
+				        
+				    } catch (Exception e) {
+				        System.err.println("Server Error during CHECK_ORDER_EXISTENCE: " + e.getMessage());
+				        e.printStackTrace();
+				        client.sendToClient(new Message(MessageType.ERROR, "Server error checking order."));
 				    }
-				    
-				    client.sendToClient(new Message(MessageType.CHECK_ORDER_RESPONSE, exists));
+				    break;
+				}
+				case CHECK_ORDER_EXISTENCE_FOR_EXIT:{
+					String inputId = (String) message.getData();
+				    try {
+				        String travelerId = inputId;
+
+				        if (inputId != null && inputId.length() == 4) {
+				            travelerId = db.DBselect.getTravelerIdBySubNumber(inputId);
+				            if (travelerId == null) {
+				                client.sendToClient(new Message(MessageType.CHECK_ORDER_RESPONSE_FOR_EXIT, false));
+				                break;
+				            }
+				        }
+
+				        boolean exists = db.DBselect.isCurrentlyInsidePark(travelerId);
+				        client.sendToClient(new Message(MessageType.CHECK_ORDER_RESPONSE_FOR_EXIT, exists));
+				        
+				    } catch (Exception e) {
+				        System.err.println("Server Error during CHECK_ORDER_EXISTENCE_FOR_EXIT: " + e.getMessage());
+				        e.printStackTrace();
+				        client.sendToClient(new Message(MessageType.ERROR, "Server error checking order."));
+				    }
 				    break;
 				}
 				case CHECK_AVAILABILITY: {
