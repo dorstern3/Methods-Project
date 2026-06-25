@@ -13,7 +13,7 @@ import ocsf.server.ConnectionToClient;
  * Manages the registration processes for new Family Subscribers, Single Subscribers, and Group Guides.
  */
 public class DBcustomerService {
-
+ 
 	/**
 	 * Processes the registration of a new family subscriber into the database.
 	 * Generates a unique 4-digit subscriber number and inserts the provided details.
@@ -26,10 +26,11 @@ public class DBcustomerService {
 		Object[] params = (Object[]) message.getData();
 		int id = (int) params[0];
 		String fname = (String) params[1];
-		String lname = (String) params[2];
+		String lname = (String) params[2]; 
 		String email = (String) params[3];
 		String phone = (String) params[4];
 		int familyMembers = (int) params[5];
+		String creditCard = (String) params[6];
 
 		// 2. Generate a random 4-digit subscriber number (1000-9999)
 		int generatedSubNum = new java.util.Random().nextInt(9000) + 1000;
@@ -47,7 +48,7 @@ public class DBcustomerService {
 			pstmt.setString(3, lname);
 			pstmt.setString(4, email);
 			pstmt.setString(5, phone);
-			pstmt.setNull(6, java.sql.Types.VARCHAR); // Credit card is not provided at this stage
+			pstmt.setString(6, creditCard); 
 			pstmt.setInt(7, familyMembers);
 			pstmt.setInt(8, generatedSubNum);
 
@@ -92,6 +93,7 @@ public class DBcustomerService {
 		String email = (String) params[3];
 		String phone = (String) params[4];
 		int familyMembers = (int) params[5];
+		String creditCard = (String) params[6];
 
 		// 2. Generate a random 4-digit subscriber number (1000-9999)
 		int generatedSubNum = new java.util.Random().nextInt(9000) + 1000;
@@ -109,7 +111,7 @@ public class DBcustomerService {
 			pstmt.setString(3, lname);
 			pstmt.setString(4, email);
 			pstmt.setString(5, phone);
-			pstmt.setNull(6, java.sql.Types.VARCHAR);
+			pstmt.setString(6, creditCard);
 			pstmt.setInt(7, familyMembers);
 			pstmt.setInt(8, generatedSubNum);
 

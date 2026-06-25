@@ -23,7 +23,7 @@ public class UpdateOrderTable {
 	 */
 	public static boolean saveToWaitingList(Order orderData) {
 		Connection conn = null;
-		try {
+		try { 
 			conn = DBconnection.getConnection();
 			PreparedStatement stmt = conn.prepareStatement(
 					"INSERT INTO gonature_db_new.order (park_name, order_date, entry_time, number_of_visitors, email, phone_number, id, type_of_visitor, status, date_of_placing_order) "

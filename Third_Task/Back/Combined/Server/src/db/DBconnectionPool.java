@@ -17,7 +17,7 @@ public class DBconnectionPool {
     private final int maxSize;
 
     private final Connection[] pool;
-    private int head = 0;
+    private int head = 0; 
     private int tail = 0;
     private int currentSize = 0;
 

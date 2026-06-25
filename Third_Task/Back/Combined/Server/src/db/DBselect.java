@@ -17,7 +17,7 @@ import common.Order;
  */
 public class DBselect {
 
-	/**
+	/** 
 	 * Identifies the traveler type (Subscriber, Guide, or Regular) by their ID or
 	 * subscriber number.
 	 * 

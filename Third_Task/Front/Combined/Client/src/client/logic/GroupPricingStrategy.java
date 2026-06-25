@@ -4,7 +4,7 @@ package client.logic;
  * Pricing strategy implementation for organized groups.
  * Applies specific business rules and discounts based on whether the group's visit 
  * was pre-booked or is a casual drop-in.
- * * Business Rules:
+ *  Business Rules:
  * - Pre-booked Group: Receives a 25% discount on the base ticket price, and the group guide enters for free.
  * - Casual Group: Receives a 10% discount on the base ticket price, and the group guide must pay.
  */
@@ -12,7 +12,7 @@ public class GroupPricingStrategy implements PricingStrategy {
     
     /**
      * Calculates the final entrance price for an organized group.
-     * * @param visitors    The total number of people in the group (including the guide).
+     * @param visitors    The total number of people in the group (including the guide).
      * @param basePrice   The standard full price for a single ticket.
      * @param isPreBooked A boolean flag indicating if the group ordered their tickets in advance (true) or arrived casually (false).
      * @return The total calculated price for the entire group as a double.

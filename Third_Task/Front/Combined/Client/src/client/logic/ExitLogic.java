@@ -19,7 +19,7 @@ public class ExitLogic {
     /**
      * Registers a visitor's exit from the park by communicating with the server.
      * Packages the order ID, traveler ID, and the current park name into a network message.
-     * * @param orderId    The unique Order ID or scanned QR Code string of the exiting visitor.
+     * @param orderId    The unique Order ID or scanned QR Code string of the exiting visitor.
      * @param travelerId The identification string of the specific traveler (e.g., ID or Subscriber Number). 
      * This can be passed as null if the exit is performed by an authorized park employee.
      * @return true if the server successfully registered the exit and updated the database, false otherwise.

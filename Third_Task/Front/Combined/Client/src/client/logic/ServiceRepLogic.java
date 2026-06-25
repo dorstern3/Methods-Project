@@ -19,8 +19,8 @@ public class ServiceRepLogic {
     /**
      * Packages and sends a request to register a new Family Subscriber.
      */
-    public Message requestFamilyRegistration(int id, String fname, String lname, String email, String phone, int familyMembers) {
-        Object[] params = new Object[] { id, fname, lname, email, phone, familyMembers };
+    public Message requestFamilyRegistration(int id, String fname, String lname, String email, String phone, int familyMembers , String creditCard) {
+        Object[] params = new Object[] { id, fname, lname, email, phone, familyMembers,creditCard };
         Message msg = new Message(MessageType.REGISTER_FAMILY_SUBSCRIBER, params);
         return (Message) ClientUI.clientChat.accept(msg);
     }
@@ -29,8 +29,8 @@ public class ServiceRepLogic {
      * Packages and sends a request to register a new Single Subscriber.
      * Explicitly sets the familyMembers count to 1.
      */
-    public Message requestSingleRegistration(int id, String fname, String lname, String email, String phone) {
-        Object[] params = new Object[] { id, fname, lname, email, phone, 1 }; 
+    public Message requestSingleRegistration(int id, String fname, String lname, String email, String phone, String creditCard) {
+        Object[] params = new Object[] { id, fname, lname, email, phone, 1 ,creditCard}; 
         Message msg = new Message(MessageType.REGISTER_SINGLE_SUBSCRIBER, params);
         return (Message) ClientUI.clientChat.accept(msg);
     }

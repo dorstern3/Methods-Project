@@ -3,6 +3,10 @@ package common;
 import java.io.Serializable;
 import java.sql.Timestamp;
 
+/**
+ * Represents a parameter change request from a park manager.
+ * Requires approval from the department manager.
+ */
 public class ParameterRequest implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -15,7 +19,9 @@ public class ParameterRequest implements Serializable {
     private String status; 
     private Timestamp requestDate;
 
-    // Fully initializes a parameter request with all database fields
+    /**
+     * Constructor for existing requests fetched from the database.
+     */
     public ParameterRequest(int requestId, String parkName, int workerId, String parameterName, 
                             int currentValue, int requestedValue, String status, Timestamp requestDate) {
         this.requestId = requestId;
@@ -28,7 +34,9 @@ public class ParameterRequest implements Serializable {
         this.requestDate = requestDate;
     }
 
-    // Initializes a new parameter request with core fields before database insertion
+    /**
+     * Constructor for new requests before saving to the database.
+     */
     public ParameterRequest(String parkName, int workerId, String parameterName, int currentValue, int requestedValue) {
         this.parkName = parkName;
         this.workerId = workerId;
@@ -37,51 +45,51 @@ public class ParameterRequest implements Serializable {
         this.requestedValue = requestedValue;
     }
 
-    // Returns the unique request identifier
+    /** @return The request ID. */
     public int getRequestId() { return requestId; }
     
-    // Returns the name of the associated park
+    /** @return The park name. */
     public String getParkName() { return parkName; }
     
-    // Returns the identifier of the worker who made the request
+    /** @return The manager's worker ID. */
     public int getWorkerId() { return workerId; }
     
-    // Returns the name of the parameter to be changed
+    /** @return The name of the parameter. */
     public String getParameterName() { return parameterName; }
     
-    // Returns the current value of the parameter
+    /** @return The current configuration value. */
     public int getCurrentValue() { return currentValue; }
     
-    // Returns the newly requested value for the parameter
+    /** @return The new requested value. */
     public int getRequestedValue() { return requestedValue; }
     
-    // Returns the approval status of the request
+    /** @return The request status (Pending/Approved/Rejected). */
     public String getStatus() { return status; }
     
-    // Returns the timestamp when the request was created
+    /** @return The creation date and time. */
     public Timestamp getRequestDate() { return requestDate; }
 
-    // Sets the unique request identifier
+    /** @param requestId The request ID to set. */
     public void setRequestId(int requestId) { this.requestId = requestId; }
     
-    // Sets the name of the associated park
+    /** @param parkName The park name to set. */
     public void setParkName(String parkName) { this.parkName = parkName; }
     
-    // Sets the identifier of the worker making the request
+    /** @param workerId The worker ID to set. */
     public void setWorkerId(int workerId) { this.workerId = workerId; }
     
-    // Sets the name of the parameter to be changed
+    /** @param parameterName The parameter name to set. */
     public void setParameterName(String parameterName) { this.parameterName = parameterName; }
     
-    // Sets the current value of the parameter
+    /** @param currentValue The current value to set. */
     public void setCurrentValue(int currentValue) { this.currentValue = currentValue; }
     
-    // Sets the newly requested value for the parameter
+    /** @param requestedValue The requested value to set. */
     public void setRequestedValue(int requestedValue) { this.requestedValue = requestedValue; }
     
-    // Sets the approval status of the request
+    /** @param status The status to set. */
     public void setStatus(String status) { this.status = status; }
     
-    // Sets the timestamp when the request was created
+    /** @param requestDate The request date to set. */
     public void setRequestDate(Timestamp requestDate) { this.requestDate = requestDate; }
 }

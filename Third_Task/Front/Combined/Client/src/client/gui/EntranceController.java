@@ -410,55 +410,73 @@ public class EntranceController {
 	 */
 	@FXML
 	public void onRefreshCapacityClicked(ActionEvent event) {
-
-		updateLiveCapacity();
-
+	    updateLiveCapacity();
 	}
 
 	/**
-	 * 
 	 * Sends a request to the server to fetch the current live occupancy and maximum
-	 * capacity of the park. 
-	 * Updates the UI labels dynamically 
+	 * capacity of the park.
+	 * * Runs the network request on a background thread to prevent UI freezing.
+	 * * Updates the UI labels dynamically based on capacity limits using the JavaFX
+	 * Application Thread.
 	 */
 	private void updateLiveCapacity() {
-		if (lblLiveCapacity == null) {
-			return;
-		}
+	    if (lblLiveCapacity == null) {
+	        return;
+	    }
 
-		// Creating a new background Thread to prevent UI freezing while waiting for the
-		// server response
+	    String parkName = CurUser.getParkName();
 
-		new Thread(() -> {
-			try {
-				String parkName = CurUser.getParkName();
-				if (parkName == null || parkName.isEmpty()) {
-					parkName = "Banias"; // Fallback
-				}
-				common.Message request = new common.Message(common.MessageType.GET_PARK_OCCUPANCY, parkName);
-				common.Message response = (common.Message) client.ClientUI.clientChat.accept(request);
-				if (response != null && response.getType() == common.MessageType.GET_PARK_OCCUPANCY_RESPONSE) {
-					int[] capacityData = (int[]) response.getData();
-					int current = capacityData[0];
-					int max = capacityData[1];
-					final String finalParkName = parkName;
-					javafx.application.Platform.runLater(() -> {
-						lblLiveCapacity.setText(
-								String.format("Current Park Occupancy (%s): %d / %d", finalParkName, current, max));
-						if (current >= max) {
-							lblLiveCapacity.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: red;");
-						} else {
-							lblLiveCapacity
-									.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2e7d32;");
-						}
-					});
-				}
+	    // Guard Clause: If the park name was not properly initialized during login, abort immediately
+	    if (parkName == null || parkName.isEmpty()) {
+	        System.err.println("Critical Error: updateLiveCapacity failed because CurUser has no park assigned.");
+	        showErrorOnUI("Error: No park associated with this user.");
+	        return;
+	    }
 
-			} catch (Exception e) {
-				System.err.println("Client Controller: Failed to fetch capacity updates.");
-				e.printStackTrace();
-			}
-		}).start();
+	    // Creating a background thread to prevent the UI from freezing while waiting for the server
+	    new Thread(() -> {
+	        try {
+	            common.Message request = new common.Message(common.MessageType.GET_PARK_OCCUPANCY, parkName);
+	            common.Message response = (common.Message) client.ClientUI.clientChat.accept(request);
+
+	            if (response != null && response.getType() == common.MessageType.GET_PARK_OCCUPANCY_RESPONSE) {
+	                int[] capacityData = (int[]) response.getData();
+	                int current = capacityData[0];
+	                int max = capacityData[1];
+
+	                // Platform.runLater ensures UI updates run safely on the JavaFX Application Thread
+	                javafx.application.Platform.runLater(() -> {
+	                    lblLiveCapacity.setText(String.format("Current Park Occupancy (%s): %d / %d", parkName, current, max));
+
+	                    if (current >= max) {
+	                        lblLiveCapacity.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #d32f2f;"); // Red
+	                    } else {
+	                        lblLiveCapacity.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2e7d32;"); // Green
+	                    }
+	                });
+	            } else {
+	                // Handles cases where the server returns a null or unexpected response type
+	                System.err.println("Client Controller: Server returned invalid response for park occupancy.");
+	                showErrorOnUI("Failed to fetch data from server.");
+	            }
+
+	        } catch (Exception e) {
+	            System.err.println("Client Controller: Network error while fetching capacity updates.");
+	            e.printStackTrace();
+	            showErrorOnUI("Network error occurred.");
+	        }
+	    }).start();
+	}
+
+	/**
+	 * Helper method to safely update the UI text and styling when an error occurs.
+	 */
+	private void showErrorOnUI(String errorMessage) {
+	    javafx.application.Platform.runLater(() -> {
+	        lblLiveCapacity.setText(errorMessage);
+	        lblLiveCapacity.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #d32f2f;");
+	    });
 	}
 
 	/**

@@ -13,8 +13,8 @@ public class DBconnection {
     private static DBconnectionPool connectionPool = null;
 
     // Static rank that will hold the connection of the individual server
-    private static Connection conn = null;
-
+    private static Connection conn = null; 
+ 
     
     /**
      * Initializes the custom database connection pool with the provided user password.

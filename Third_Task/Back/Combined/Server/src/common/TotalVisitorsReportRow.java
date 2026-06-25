@@ -2,6 +2,10 @@ package common;
 
 import java.io.Serializable;
 
+/**
+ * Represents a single row in the Total Visitors Report.
+ * Used to track daily visitor headcounts split by regular/subscribers and groups.
+ */
 public class TotalVisitorsReportRow implements Serializable{
 
 	private static final long serialVersionUID = 1L;

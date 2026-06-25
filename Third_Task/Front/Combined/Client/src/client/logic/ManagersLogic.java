@@ -37,7 +37,13 @@ public class ManagersLogic {
         Message msg = new Message(MessageType.UPDATE_PARAMETER_REQUEST_STATUS, request);
         return (Message) ClientUI.clientChat.accept(msg);
     }
-    
+    /**
+     * Sends a promotion update request to the server to activate a new discount value for a specific park.
+     * Packages the park name and the discount value into an object array.
+     * @param parkName      The name of the target park where the promotion should be applied.
+     * @param discountValue The promotional discount rate as a decimal (e.g., 0.2 for 20%).
+     * @return              The confirmation Message object returned by the server layer.
+     */
     public Message sendPromotionUpdate(String parkName, double discountValue) {
         Object[] params = new Object[] { parkName, discountValue };
         Message msg = new Message(MessageType.ACTIVATE_PROMOTION, params);

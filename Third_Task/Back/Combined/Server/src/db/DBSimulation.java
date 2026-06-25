@@ -13,8 +13,8 @@ import common.Order;
  * with the database to simulate time-based business scenarios such as automated
  * reminders and order cancellations.
  */
-public class DBSimulation {
-
+public class DBSimulation { 
+ 
 	/**
 	 * Fetches all orders scheduled for tomorrow that are currently in 'Booked'
 	 * state, and updates their status to 'Pending confirmation' as part of the

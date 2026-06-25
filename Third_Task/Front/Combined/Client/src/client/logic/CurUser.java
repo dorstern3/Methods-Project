@@ -7,7 +7,6 @@ import common.MessageType;
 /**
  * Global session class to hold the currently authenticated user.
  * Built as a simple static utility class for ease of use across screens.
- * @author Adi
  */
 public class CurUser {
     
@@ -75,5 +74,4 @@ public class CurUser {
     			"Role: "+ role + "\n" 
     			+ (("Dept_manager").equals(role) ? "Parks: All\n" : "My park: "+ parkName + "\n");
     }
-    // End
 }

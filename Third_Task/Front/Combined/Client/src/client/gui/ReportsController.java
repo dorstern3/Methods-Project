@@ -28,8 +28,6 @@ import javafx.scene.layout.AnchorPane;
  * Controller class for managing the reports view in the application.
  * Handles the generation and display of dynamic charts and tables based on the user's role
  * (Park Manager or Department Manager).
- * * @author Adi
- * @version 1.0
  */
 public class ReportsController {
 	

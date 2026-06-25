@@ -8,7 +8,7 @@ public class ConnectedClient {
     private SimpleStringProperty host;
     private SimpleStringProperty status;
     private String port; 
-
+ 
     public ConnectedClient(String ip, String host, String status, String port) {
         this.ip = new SimpleStringProperty(ip);
         this.host = new SimpleStringProperty(host);

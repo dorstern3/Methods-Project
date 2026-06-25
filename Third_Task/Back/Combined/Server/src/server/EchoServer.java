@@ -35,7 +35,7 @@ public class EchoServer extends AbstractServer {
 	private ServerGUI gui;
 
 	private final Set<String> loggedInUsers = ConcurrentHashMap.newKeySet();
-	private final Set<String> activeTravelers = ConcurrentHashMap.newKeySet();
+	private final Set<String> activeTravelers = ConcurrentHashMap.newKeySet(); 
 
 	/**
 	 * Initializes the server on the specified port.

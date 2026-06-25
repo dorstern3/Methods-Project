@@ -6,42 +6,128 @@ package common;
  * responses correctly via serialized message structures.
  */
 public enum MessageType {
-	GET_FULL_PRICE, GET_FULL_PRICE_RESPONSE,
+	/** Request to fetch the base full ticket price for a specific park. */
+	GET_FULL_PRICE, 
+	/** Response containing the fetched full ticket price data. */
+	GET_FULL_PRICE_RESPONSE,
 
-	CHECK_PROMOTIONS, CHECK_PROMOTIONS_RESPONSE,
+	/** Request to check for any active promotional discounts for a park. */
+	CHECK_PROMOTIONS, 
+	/** Response containing the active promotional discount rate value. */
+	CHECK_PROMOTIONS_RESPONSE,
 
-	VALIDATE_ORDER, VALIDATE_ORDER_RESPONSE,
+	/** Request to validate a pre-booked order using an ID or QR code. */
+	VALIDATE_ORDER, 
+	/** Response containing validated order details or error code configurations. */
+	VALIDATE_ORDER_RESPONSE,
 
-	CHECK_CAPACITY, CHECK_CAPACITY_RESPONSE,
+	/** Request to evaluate park capacity for admitting casual drop-in visitors. */
+	CHECK_CAPACITY, 
+	/** Response indicating whether there is sufficient available capacity. */
+	CHECK_CAPACITY_RESPONSE,
 
-	CONFIRM_PAYMENT, CONFIRM_PAYMENT_RESPONSE,
+	/** Request to confirm a payment transaction and register a visitor entry. */
+	CONFIRM_PAYMENT, 
+	/** Response containing the database tracking order key identifier string. */
+	CONFIRM_PAYMENT_RESPONSE,
 
-	VERIFY_GUIDE, VERIFY_GUIDE_RESPONSE,
+	/** Request to verify if a given ID belongs to a certified group guide. */
+	VERIFY_GUIDE, 
+	/** Response indicating whether the group guide is valid and certified. */
+	VERIFY_GUIDE_RESPONSE,
 
-	VERIFY_SUBSCRIBER, VERIFY_SUBSCRIBER_RESPONSE,
+	/** Request to verify if a given subscriber number exists in the system. */
+	VERIFY_SUBSCRIBER, 
+	/** Response containing subscriber verification status and family limits. */
+	VERIFY_SUBSCRIBER_RESPONSE,
 
-	EXIT_PARK, EXIT_PARK_RESPONSE,
+	/** Request to register a visitor's departure exit from a park. */
+	EXIT_PARK, 
+	/** Response confirming whether the departure exit was successfully processed. */
+	EXIT_PARK_RESPONSE,
 
-	GET_VISITOR_REPORT, GET_VISITOR_REPORT_RESPONSE,
+	/** Request to generate an average stay duration report for a specific park. */
+	GET_VISITOR_REPORT, 
+	/** Response containing data blocks tracking average stay durations. */
+	GET_VISITOR_REPORT_RESPONSE,
 
-	GET_CANCELLATION_REPORT, GET_CANCELLATION_REPORT_RESPONSE,
+	/** Request to generate a cancellation and no-show metrics report for a park. */
+	GET_CANCELLATION_REPORT, 
+	/** Response containing the aggregated daily cancellation report data rows. */
+	GET_CANCELLATION_REPORT_RESPONSE,
 
-	GET_PARKS_CANCELLATION_REPORT, GET_PARKS_CANCELLATION_REPORT_RESPONSE,
+	/** Request by the department manager to fetch global cancellation statistics across all parks. */
+	GET_PARKS_CANCELLATION_REPORT, 
+	/** Response containing global cancellation report matrices segmented by individual parks. */
+	GET_PARKS_CANCELLATION_REPORT_RESPONSE,
 
-	GET_TOTAL_VISITOR_REPORT, GET_TOTAL_VISITOR_REPORT_RESPONSE,
+	/** Request to generate a daily total visitors summary report for a park. */
+	GET_TOTAL_VISITOR_REPORT, 
+	/** Response containing the segmented daily total visitor headcount report rows. */
+	GET_TOTAL_VISITOR_REPORT_RESPONSE,
 
-	GET_OCCUPANCY_REPORT, GET_OCCUPANCY_REPORT_RESPONSE,
+	/** Request to generate an occupancy report mapping days when a park was not full. */
+	GET_OCCUPANCY_REPORT, 
+	/** Response containing daily park occupancy levels and capacity percentages. */
+	GET_OCCUPANCY_REPORT_RESPONSE,
 
-	GET_PARKS, GET_PARKS_RESPONSE,
+	/** Request to retrieve the list of all registered park names from the database. */
+	GET_PARKS, 
+	/** Response containing the collection list of all registered park name strings. */
+	GET_PARKS_RESPONSE,
 
-	REGISTER_FAMILY_SUBSCRIBER, REGISTER_SINGLE_SUBSCRIBER, REGISTER_GUIDE, REGISTRATION_SUCCESS, REGISTRATION_FAILED,
+	/** Request to register a new family subscriber classification row in the system. */
+	REGISTER_FAMILY_SUBSCRIBER, 
+	/** Request to register a new single subscriber classification row in the system. */
+	REGISTER_SINGLE_SUBSCRIBER, 
+	/** Request to register a new certified group guide profile row in the system. */
+	REGISTER_GUIDE, 
+	/** Indicates that a subscriber or guide registration operation succeeded. */
+	REGISTRATION_SUCCESS, 
+	/** Indicates that a subscriber or guide registration operation failed. */
+	REGISTRATION_FAILED,
 
-	SUBMIT_PARAMETER_REQUEST, GET_PENDING_PARAMETER_REQUESTS, UPDATE_PARAMETER_REQUEST_STATUS, REQUEST_SUBMIT_SUCCESS,
-	PROMOTION_ACTIVATED_SUCCESS, UPDATE_REQUEST_SUCCESS, GET_PENDING_REQUESTS_RESPONSE, ACTIVATE_PROMOTION,
-	PROMOTION_ACTIVATED_FAILED, UPDATE_REQUEST_FAILED, REQUEST_SUBMIT_FAILED, GET_PARK_OCCUPANCY,
+	/** Request submitted by a park manager to alter system capacity or structural settings. */
+	SUBMIT_PARAMETER_REQUEST, 
+	/** Request by a department manager to retrieve all open parameter modifications. */
+	GET_PENDING_PARAMETER_REQUESTS, 
+	/** Request to approve or reject a pending parameter configuration adjustment. */
+	UPDATE_PARAMETER_REQUEST_STATUS, 
+	/** Indicates that a new parameter modification request was successfully stored. */
+	REQUEST_SUBMIT_SUCCESS,
+	/** Indicates that a promotional markdown discount was successfully applied. */
+	PROMOTION_ACTIVATED_SUCCESS, 
+	/** Indicates that a parameter adjustment status transaction was committed. */
+	UPDATE_REQUEST_SUCCESS, 
+	/** Response containing the collection list of all currently pending parameter requests. */
+	GET_PENDING_REQUESTS_RESPONSE, 
+	/** Request submitted by a park manager to deploy an active promotional markdown. */
+	ACTIVATE_PROMOTION,
+	/** Indicates that a promotional markdown deployment failed to commit. */
+	PROMOTION_ACTIVATED_FAILED, 
+	/** Indicates that a parameter status modification transaction failed. */
+	UPDATE_REQUEST_FAILED, 
+	/** Indicates that a parameter request submission failed. */
+	REQUEST_SUBMIT_FAILED, 
+	/** Request to retrieve the dynamic real-time occupancy and maximum capacity of a park. */
+	GET_PARK_OCCUPANCY,
+	/** Response containing the live occupancy headcounts and maximum capacity numbers. */
 	GET_PARK_OCCUPANCY_RESPONSE,
 
-	LOGIN_REQUEST, LOGIN_SUCCESS, LOGIN_FAILED, LOGOUT_REQUEST, LOGOUT_SUCCESS, TRAVELER_LOGOUT, TRAVELER_LOGIN,
+	/** Request to authenticate an employee attempting to access a dashboard view. */
+	LOGIN_REQUEST, 
+	/** Indicates successful worker credential validation, returning profile data blocks. */
+	LOGIN_SUCCESS, 
+	/** Indicates failed credential validation or a duplicate login session collision. */
+	LOGIN_FAILED, 
+	/** Request to terminate an active employee session context cleanly. */
+	LOGOUT_REQUEST, 
+	/** Response confirming that an employee session has been cleared orderly. */
+	LOGOUT_SUCCESS, 
+	/** Request to terminate an active traveler session context cleanly. */
+	TRAVELER_LOGOUT, 
+	/** Request to authenticate and initialize a traveler session context. */
+	TRAVELER_LOGIN,
 
 	/** Request to identify a traveler by ID. */
 	IDENTIFY_TRAVELER,
@@ -96,16 +182,41 @@ public enum MessageType {
 	CLEAN_WAITING_LIST,
 	
 	/** Response containing the number of waiting list entries that were successfully canceled. */
-	CLEAN_WAITING_LIST_RESULT, UPDATE_SUBSCRIBER_DETAILS_RESPONSE, UPDATE_SUBSCRIBER_DETAILS, 
+	CLEAN_WAITING_LIST_RESULT, 
 	
+	/** Response confirming whether subscriber data modifications were committed. */
+	UPDATE_SUBSCRIBER_DETAILS_RESPONSE, 
+	
+	/** Request to modify profile parameters for an active subscriber record. */
+	UPDATE_SUBSCRIBER_DETAILS, 
+	
+	/** Request to fetch the active editable profile parameters of a subscriber. */
 	GET_SUBSCRIBER_DETAILS, 
+	
+	/** Response containing the compiled profile details list for a subscriber. */
 	GET_SUBSCRIBER_DETAILS_RESPONSE,
-	CHECK_ORDER_EXISTENCE, CHECK_ORDER_RESPONSE,
-	CHECK_ORDER_EXISTENCE_FOR_EXIT, CHECK_ORDER_RESPONSE_FOR_EXIT,
+	
+	/** Request to check if a traveler has any manageable pending or upcoming orders. */
+	CHECK_ORDER_EXISTENCE, 
+	
+	/** Response indicating whether any manageable active orders exist for the traveler. */
+	CHECK_ORDER_RESPONSE,
+	
+	/** Request to check if a traveler is currently inside a park and has not yet exited. */
+	CHECK_ORDER_EXISTENCE_FOR_EXIT, 
+	
+	/** Response confirming whether an active 'Entered' order status exists for the traveler. */
+	CHECK_ORDER_RESPONSE_FOR_EXIT,
 
+	/** Request to fetch all subscriber rows logged within the database tables. */
 	GET_SUBSCRIBERS_LIST,
+	
+	/** Response containing the comprehensive collection list of all subscriber entities. */
 	GET_SUBSCRIBERS_LIST_RESPONSE,
+	
+	/** Request to fetch all worker rows logged within the database tables. */
 	GET_WORKERS_LIST,
+	
+	/** Response containing the comprehensive collection list of all worker entities. */
 	GET_WORKERS_LIST_RESPONSE,
-
 }

@@ -16,6 +16,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * Graphical user interface for monitoring and activating the GoNature server.
+ * Displays connected clients and manages database pool initialization.
+ */
 public class ServerGUI extends Application {
     private EchoServer server;
     private TableView<ConnectedClient> table = new TableView<>();
@@ -25,8 +29,12 @@ public class ServerGUI extends Application {
     private Button connectBtn = new Button("Connect Server");
     private Label statusLabel = new Label("Status: Server Offline");
     
+    /**
+     * Main method to launch the JavaFX application.
+     * * @param args Command line arguments.
+     */
     public static void main(String[] args) {
-        launch(args);
+        launch(args);  
     }
 
     // Defining the columns in the table and connecting them to the corresponding fields in the customer object
@@ -75,7 +83,10 @@ public class ServerGUI extends Application {
         });
         primaryStage.show();
     }
-    
+    /**
+     * Handles the server activation when the connect button is clicked.
+     * Validates the password input, initializes the DB pool, and starts the OCSF server.
+     */
     private void handleServerActivation() {
         String dbPassword = passwordInput.getText();
        
@@ -103,7 +114,13 @@ public class ServerGUI extends Application {
         }
     }
     
-
+    /**
+     * Updates the connected clients table when a client connects or disconnects.
+     * * @param ip     The IP address of the client.
+     * @param host   The host name of the client.
+     * @param status The connection status (Connected/Disconnected).
+     * @param port   The port number used by the client connection.
+     */
     // Update function that receives data from the server and updates the table according to a client connection or disconnection
     public void updateClientDetails(String ip, String host, String status, String port) {
         Platform.runLater(() -> {

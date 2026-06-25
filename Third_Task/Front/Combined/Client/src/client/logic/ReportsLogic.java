@@ -16,8 +16,6 @@ import common.TotalVisitorsReportRow;
  * Logic layer class for processing and managing report data on the client side.
  * This class handles communication requests for various business reports,
  * processes client-side analytics, and communicates with the server.
- * * @author Adi
- * @version 1.0
  */
 public class ReportsLogic {
 	

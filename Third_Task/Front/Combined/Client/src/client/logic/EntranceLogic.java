@@ -63,7 +63,7 @@ public class EntranceLogic {
 
     /**
      * Checks the server for any active promotions or additional discounts for the park.
-     * * @param parkId The name of the park to check.
+     *  @param parkId The name of the park to check.
      * @return The active discount as a decimal (e.g., 0.1 for 10%), or 0.0 if none exists or the connection fails.
      */
     private double checkActivePromotions(String parkId) {
@@ -89,7 +89,7 @@ public class EntranceLogic {
     
     /**
      * Calculates the final ticket price using the Strategy Pattern and applies active promotions.
-     * * @param visitorType  The visitor classification type selected from the UI (e.g., "Group", "Subscriber").
+     * @param visitorType  The visitor classification type selected from the UI (e.g., "Group", "Subscriber").
      * @param amount       The total number of visitors in the current transaction.
      * @param isPreBooked  Boolean flag indicating if the visit was pre-booked (true) or is a casual drop-in (false).
      * @return The final calculated total price as a double.
@@ -121,7 +121,7 @@ public class EntranceLogic {
     /**
      * Validates a pre-booked order by cross-referencing the ID/QR Code with the database.
      * Checks constraints such as date, scheduled time, and confirmation status.
-     * * @param orderId The Order ID or QR code to validate.
+     * @param orderId The Order ID or QR code to validate.
      * @return An Object array containing [visitorsAmount, visitorType] upon successful validation.
      * If validation fails, returns a String containing the specific error code (e.g., "NOT_FOUND").
      */
@@ -158,7 +158,7 @@ public class EntranceLogic {
     /**
      * Evaluates if the specific park has enough available capacity to accommodate casual visitors.
      * Takes into account the park's maximum capacity and the reserved casual gap.
-     * * @param amount   The number of casual visitors wishing to enter.
+     * @param amount   The number of casual visitors wishing to enter.
      * @param parkName The explicit name of the destination park.
      * @return true if there is enough space to admit the visitors, false if the park is near or at maximum capacity.
      */
@@ -225,7 +225,7 @@ public class EntranceLogic {
     
     /**
      * Verifies if the provided identification string belongs to a certified and registered group guide.
-     * * @param guideId The Guide ID string to verify against the database.
+     * @param guideId The Guide ID string to verify against the database.
      * @return true if the guide exists and is certified, false otherwise.
      */
     public boolean verifyGuide(String guideId) {
@@ -248,7 +248,7 @@ public class EntranceLogic {
     
     /**
      * Verifies if the provided identification string belongs to a valid, active subscriber in the system.
-     * * @param subscriberId The Subscriber Number or ID to verify against the database.
+     * @param subscriberId The Subscriber Number or ID to verify against the database.
      * @return An ArrayList containing [Boolean (exists), Integer (family_members)], or null if an error occurs.
      */
     public ArrayList<Object> verifySubscriber(String subscriberId) {

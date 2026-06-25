@@ -20,7 +20,7 @@ import ocsf.server.ConnectionToClient;
 
 public class DBparks {
 
-	/**
+	/** 
 	 * Fetches the names of all registered parks from the database.
 	 */
 	public static ArrayList<String> getParksFromDB() {

@@ -27,8 +27,8 @@ public class ServiceRepController {
     @FXML 
     private VBox mainContainer;
     @FXML private Button logoutBtn;
-    private TextField famFname, famLname, famId, famPhone, famEmail, famMembers;
-    private TextField sFname, sLname, sId, sPhone, sEmail;
+    private TextField famFname, famLname, famId, famPhone, famEmail, famMembers, fCreditCard;
+    private TextField sFname, sLname, sId, sPhone, sEmail , sCreditCard;
     private TextField gFname, gLname, gId, gPhone, gEmail;
     private ServiceRepLogic logic;
 
@@ -125,7 +125,7 @@ public class ServiceRepController {
         famPhone = new TextField();
         famEmail = new TextField();
         famMembers = new TextField();
-
+        fCreditCard = new TextField();
         familyGrid.add(new Label("First Name:"), 0, 0);
         familyGrid.add(famFname, 1, 0);
         familyGrid.add(new Label("Last Name:"), 0, 1);
@@ -138,7 +138,9 @@ public class ServiceRepController {
         familyGrid.add(famEmail, 1, 4);
         familyGrid.add(new Label("Family Members Amount:"), 0, 5);
         familyGrid.add(famMembers, 1, 5);
-
+        familyGrid.add(new Label("Credit Card:"), 0, 6);
+        familyGrid.add(fCreditCard ,1, 6);
+        
         Button familySubmitBtn = new Button("Register to System");
         familySubmitBtn.setOnAction(e -> handleFamilyRegister());
 
@@ -159,7 +161,7 @@ public class ServiceRepController {
         sId = new TextField();
         sPhone = new TextField();
         sEmail = new TextField();
-
+        sCreditCard = new TextField();
         singleGrid.add(new Label("First Name:"), 0, 0);
         singleGrid.add(sFname, 1, 0);
         singleGrid.add(new Label("Last Name:"), 0, 1);
@@ -170,7 +172,9 @@ public class ServiceRepController {
         singleGrid.add(sPhone, 1, 3);
         singleGrid.add(new Label("Email:"), 0, 4);
         singleGrid.add(sEmail, 1, 4);
-
+        singleGrid.add(new Label("Credit Card:"), 0, 5);
+        singleGrid.add(sCreditCard , 1, 5);
+        
         Button singleSubmitBtn = new Button("Register to System");
         singleSubmitBtn.setOnAction(e -> handleSingleRegister());
             
@@ -253,7 +257,8 @@ public class ServiceRepController {
         String phoneText = famPhone.getText().trim();
         String emailText = famEmail.getText().trim();
         String membersText = famMembers.getText().trim();
-
+        String creditCardText = fCreditCard.getText().trim();
+        
         // 1. Validation: Reject completely empty parameters
         if (firstName.isEmpty() || lastName.isEmpty() || idText.isEmpty() || 
             phoneText.isEmpty() || emailText.isEmpty() || membersText.isEmpty()) {
@@ -290,6 +295,11 @@ public class ServiceRepController {
             showAlert(Alert.AlertType.ERROR, "Invalid Format", "Family headcount must be a positive numeric value.");
             return;
         }
+        // 7. Validation: Identity specifications configuration
+        if (creditCardText.length() > 12 || !creditCardText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Card Number", "Card Number must be under 13 digits long!");
+            return;
+        }
 
         int parsedMembers = Integer.parseInt(membersText);
         if (parsedMembers < 1 || parsedMembers > 15) {
@@ -297,22 +307,22 @@ public class ServiceRepController {
             return; 
         }
 
-        // 7. Data Pipeline Dispatching Phase
+        // 8. Data Pipeline Dispatching Phase
         Message response = logic.requestFamilyRegistration(
-            Integer.parseInt(idText), firstName, lastName, emailText, phoneText, parsedMembers
+            Integer.parseInt(idText), firstName, lastName, emailText, phoneText, parsedMembers , creditCardText
         );
 
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
             int subNum = (int) response.getData();
             showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Family Subscription Registered!\nSub Number: " + subNum);
-            famFname.clear(); famLname.clear(); famId.clear(); famPhone.clear(); famEmail.clear(); famMembers.clear();
+            famFname.clear(); famLname.clear(); famId.clear(); famPhone.clear(); famEmail.clear(); famMembers.clear(); fCreditCard.clear();
         } else {
             // Check if the server provided a specific error reason string due to database constraint violation
             String errorReason = (response != null && response.getData() != null) ? (String) response.getData() : "";
             
             if ("DUPLICATE_ID".equals(errorReason)) {
                 showAlert(Alert.AlertType.ERROR, "Registration Failed", 
-                    "Operation Aborted: This National ID Number is already registered to an active subscriber in the database!");
+                    "Operation Aborted: This ID Number is already registered in the database!");
             } else {
                 showAlert(Alert.AlertType.ERROR, "Registration Failed", 
                     "Server Error: Internal database constraint failure or network drop encountered.");
@@ -329,7 +339,8 @@ public class ServiceRepController {
         String idText = sId.getText().trim();
         String phoneText = sPhone.getText().trim();
         String emailText = sEmail.getText().trim();
-
+        String creditCardText = sCreditCard.getText().trim();
+        
         // 1. Validation: Block empty variables
         if (firstName.isEmpty() || lastName.isEmpty() || idText.isEmpty() || phoneText.isEmpty() || emailText.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill all required fields inside Single Subscription!");
@@ -359,22 +370,27 @@ public class ServiceRepController {
             showAlert(Alert.AlertType.ERROR, "Invalid Mobile Number", "Mobile number must contain numeric digits only!");
             return;
         }
-
-        // 6. Data Pipeline Transmission Phase
+        // 6. Validation: Identity specifications configuration
+        if (creditCardText.length() > 12 || !creditCardText.matches("\\d+")) {
+            showAlert(Alert.AlertType.ERROR, "Invalid Card Number", "Card Number must be under 13 digits long!");
+            return;
+        }
+        // 7. Data Pipeline Transmission Phase
         Message response = logic.requestSingleRegistration(
-            Integer.parseInt(idText), firstName, lastName, emailText, phoneText
+            Integer.parseInt(idText), firstName, lastName, emailText, phoneText , creditCardText
         );
 
         if (response != null && response.getType() == MessageType.REGISTRATION_SUCCESS) {
-            showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Group Guide Registered Successfully!");
-            gFname.clear(); gLname.clear(); gId.clear(); gPhone.clear(); gEmail.clear();
+        		int subNum = (int) response.getData();
+        		showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Single Subscription Registered Successfully!\nSub Number: " + subNum);
+        		sFname.clear(); sLname.clear(); sId.clear(); sPhone.clear(); sEmail.clear(); sCreditCard.clear();
         } else {
             // Check if the server provided a specific error reason string due to database constraint violation
             String errorReason = (response != null && response.getData() != null) ? (String) response.getData() : "";
             
             if ("DUPLICATE_ID".equals(errorReason)) {
                 showAlert(Alert.AlertType.ERROR, "Registration Failed", 
-                    "Operation Aborted: This Guide ID Number is already registered to an active group guide in the database!");
+                    "Operation Aborted: This ID Number is already registered in the database!");
             } else {
                 showAlert(Alert.AlertType.ERROR, "Registration Failed", 
                     "Server Error: Internal database constraint failure or network drop encountered.");

@@ -12,7 +12,7 @@ import common.ParameterRequest;
 import ocsf.server.ConnectionToClient;
 
 public class DBmanagers {
-	
+	 
 	public static void handleSubmitParameterRequest(Message message, ConnectionToClient client) {
 		ParameterRequest req = (ParameterRequest) message.getData();
 		boolean success = false;
@@ -24,7 +24,7 @@ public class DBmanagers {
 		try {
 			conn = DBconnection.getConnection();
 			pstmt = conn.prepareStatement(query);
-			pstmt.setString(1, req.getParkName());
+			pstmt.setString(1, req.getParkName()); 
 			pstmt.setInt(2, req.getWorkerId());
 			pstmt.setString(3, req.getParameterName());
 			pstmt.setInt(4, req.getCurrentValue());

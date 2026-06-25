@@ -21,9 +21,9 @@ import common.ParameterRequest;
 import client.logic.CurUser;
 
 /**
- * Controller for the Managers dashboard.
- * Manages park occupancy monitoring, parameter change requests, 
- * approval workflows for department managers, and promotions.
+ * Controller class for the Managers Dashboard UI.
+ * Handles real-time park occupancy monitoring, parameter modification requests, 
+ * promotion management, and approval workflows for both Park and Department Managers.
  */
 public class ManagersController {
 
@@ -34,7 +34,8 @@ public class ManagersController {
     private ManagersLogic logic;
 
     /**
-     * Initializes the controller, sets up business logic, and loads the dashboard.
+     * Initializes the controller by instantiating the business logic layer
+     * and rendering the main dashboard components.
      */
     public void initialize() {
     	logic = new ManagersLogic();
@@ -42,7 +43,9 @@ public class ManagersController {
     }
 
     /**
-     * Builds and displays the main dashboard UI elements.
+     * Dynamically builds and displays the main dashboard view.
+     * Configures layout containers, fetches the active parks list from the server, 
+     * and sets up accessible navigation tabs based on the logged-in user's role.
      */
     private void showMainDashboard(){
         mainContainer.getChildren().clear();
@@ -196,9 +199,10 @@ public class ManagersController {
         updateLiveCapacity(); 
     }
     
-
     /**
-     * Builds and displays the parameter change request form.
+     * Builds and displays the parameter modification request form for Park Managers.
+     * Includes client-side input validation, restriction checks for 'Order Gap' values 
+     * against a 10% maximum capacity business threshold, and server transmission.
      */
     private void switchToParkManagerRequestScreen() {
         mainContainer.getChildren().clear();
@@ -306,7 +310,9 @@ public class ManagersController {
     }
 
     /**
-     * Builds and displays the approval queue for the department manager.
+     * Builds and displays the approval panel for Department Managers.
+     * Fetches pending parameter changes from the server, customizes list cells based 
+     * on request states, and manages handlers for approval or rejection.
      */
     private void switchToDeptManagerApprovalScreen() {
     	mainContainer.getChildren().clear();
@@ -402,7 +408,11 @@ public class ManagersController {
         mainContainer.getChildren().addAll(title, new Label("Pending Parameter Requests (From DB):"), requestsList, actionButtons);
     }
 
- /// Displays the promotions management form and updates the park discount parameter in the database
+    /**
+     * Builds and displays the promotions management screen.
+     * Parses and validates promotion discount inputs (0-100% boundary checks) 
+     * before activating coupons across selected park scopes via database updates.
+     */
     private void switchToSharedPromotionsScreen() {
         mainContainer.getChildren().clear();
         mainContainer.setAlignment(Pos.TOP_LEFT);
@@ -463,6 +473,9 @@ public class ManagersController {
             double dbDiscountValue = discountPercent / 100.0;
             
             String currentPark = CurUser.getParkName();
+            if(CurUser.getRole().equals("Dept_manager")) {
+                currentPark = parkSelectorComboBox.getValue();
+            }
             if (currentPark == null || currentPark.isEmpty()) {
                 currentPark = "Banias";
             }
@@ -491,7 +504,13 @@ public class ManagersController {
         mainContainer.getChildren().addAll(title, grid, btnSubmitPromo, new Separator(), listTitle, promoList, backBtn);
     }
 
-    
+    /**
+     * Opens a standard JavaFX Alert dialog box.
+     *
+     * @param type    The type of the alert (Error, Warning, Info).
+     * @param title   The text shown in the alert window title.
+     * @param message The main message text inside the alert.
+     */
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -501,8 +520,9 @@ public class ManagersController {
     }
     
     /**
-     * Dispatches a manual request query to the server context to grab real-time occupancy fields.
-     * Updates the text and color properties dynamically without disrupting layout sequences.
+     * Fetches the live capacity parameters for the selected park from the server.
+     * Resolves the park name from the combo box selection or the logged-in user context,
+     * and updates the UI text and colors based on the current occupancy.
      */
     private void updateLiveCapacity() {
         if (lblLiveCapacity == null) {
