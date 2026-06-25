@@ -54,11 +54,10 @@ public class ExitParkEmployeeController {
             return;
         }
 
-        // 2. Validate input format: Allow alphanumeric characters for Order IDs and QR Codes.
-        // Removed the previous strict numeric-only check to support alphanumeric QR strings.
-        if (!inputId.matches("[a-zA-Z0-9]+")) {
+     // 2. Validate input format: Allow alphanumeric characters and hyphens for QR Codes (e.g., QR-3525).
+        if (!inputId.matches("[a-zA-Z0-9\\-]+")) {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Invalid format! Input must contain letters or numbers only.");
+            statusLabel.setText("Invalid format! Input must contain letters, numbers, or dashes only.");
             return;
         }
         

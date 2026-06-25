@@ -31,19 +31,15 @@ public class DBreports {
                        "  AND o.order_date BETWEEN ? AND ? " + 
                        "GROUP BY o.order_date " +
                        "ORDER BY o.order_date ASC;";
-        Connection conn = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
 
-		try {
-			conn = DBconnection.getConnection();
-			ps = conn.prepareStatement(query);
+        try (Connection conn = DBconnection.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(query)) {
             
             ps.setString(1, parkName);
             ps.setString(2, startDate); 
             ps.setString(3, endDate);
             
-            rs = ps.executeQuery();
+            try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String date = rs.getString("order_date");
                     int regular = rs.getInt("regular_sum");
@@ -51,14 +47,10 @@ public class DBreports {
                     
                     reportList.add(new TotalVisitorsReportRow(date, regular, group));
                 }
-           
+            }
         } catch (SQLException e) {
             e.printStackTrace();
-        }finally {
-			if (rs != null) { try { rs.close(); } catch (SQLException e) { e.printStackTrace(); } }
-			if (ps != null) { try { ps.close(); } catch (SQLException e) { e.printStackTrace(); } }
-			if (conn != null) { db.DBconnection.release(conn); }
-		}
+        }
 		
         return reportList;
     }
@@ -90,13 +82,9 @@ public class DBreports {
                 "GROUP BY dr.visit_date, p.max_capacity " +
                 "HAVING total_daily_visitors < IFNULL(p.max_capacity, 999999) " +
                 "ORDER BY dr.visit_date ASC;";
-    	Connection conn = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			conn = DBconnection.getConnection();
-			ps = conn.prepareStatement(query);
+    	
+    	try (Connection conn = DBconnection.getConnection(); 
+                PreparedStatement ps = conn.prepareStatement(query)) {
                
     			ps.setString(1, startDate);
     			ps.setString(2, endDate);
@@ -104,7 +92,7 @@ public class DBreports {
     			ps.setString(4, parkName);
     		 
                
-               rs = ps.executeQuery();
+               try (ResultSet rs = ps.executeQuery()) {
                    while (rs.next()) {
                        String date = rs.getString("visit_date");
                        int totalDailyVisitors = rs.getInt("total_daily_visitors");
@@ -112,13 +100,10 @@ public class DBreports {
                        
                        reportList.add(new OccupancyReportRow(date,  totalDailyVisitors, capacityPrecentage));
                    }
+               }
            } catch (SQLException e) {
                e.printStackTrace();
-           }finally {
-   			if (rs != null) { try { rs.close(); } catch (SQLException e) { e.printStackTrace(); } }
-   			if (ps != null) { try { ps.close(); } catch (SQLException e) { e.printStackTrace(); } }
-   			if (conn != null) { db.DBconnection.release(conn); }
-   		}
+           }
     	return reportList;
     }
     
@@ -150,19 +135,15 @@ public class DBreports {
                 "    AND o.exit_time IS NOT NULL " +
                 "GROUP BY hours.slot " +
                 "ORDER BY hours.slot ASC;";
-    	Connection conn = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			conn = DBconnection.getConnection();
-			ps = conn.prepareStatement(query);
+    	
+    	try (Connection conn = DBconnection.getConnection(); 
+                PreparedStatement ps = conn.prepareStatement(query)) {
                
                ps.setString(1, parkName);
                ps.setString(2, startDate); 
                ps.setString(3, endDate);
                
-               rs = ps.executeQuery();
+               try (ResultSet rs = ps.executeQuery()) {
                    while (rs.next()) {
                        String hour = rs.getString("time_slot");
                        double avgSingles = rs.getDouble("avg_singles");
@@ -170,13 +151,10 @@ public class DBreports {
                        
                        data.put(hour, new Double[]{avgSingles , avgGroup});
                    }
+               }
            } catch (SQLException e) {
                e.printStackTrace();
-           }finally {
-   			if (rs != null) { try { rs.close(); } catch (SQLException e) { e.printStackTrace(); } }
-   			if (ps != null) { try { ps.close(); } catch (SQLException e) { e.printStackTrace(); } }
-   			if (conn != null) { db.DBconnection.release(conn); }
-   		}
+           }
     	return data;
     }
     
@@ -208,20 +186,14 @@ public class DBreports {
                 "    AND o.order_date BETWEEN ? AND ? " +
                 "GROUP BY days.day_name, days.day_num " +
                 "ORDER BY days.day_num ASC;";
-    	
-    	Connection conn = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			conn = DBconnection.getConnection();
-			ps = conn.prepareStatement(query);
+    	try (Connection conn = DBconnection.getConnection(); 
+                PreparedStatement ps = conn.prepareStatement(query)) {
                
                ps.setString(1, parkName);
                ps.setString(2, startDate); 
                ps.setString(3, endDate);
                
-               rs = ps.executeQuery();
+               try (ResultSet rs = ps.executeQuery()) {
                    while (rs.next()) {
                        String day = rs.getString("day_of_week");
                        int canceledCount = rs.getInt("canceled_count");
@@ -231,13 +203,10 @@ public class DBreports {
                        
                        reportList.add(new CancellationReportRow(day,  canceledCount, noshowCount,avgCanceledPerDay));
                    }
+               }
            } catch (SQLException e) {
                e.printStackTrace();
-           }finally {
-   			if (rs != null) { try { rs.close(); } catch (SQLException e) { e.printStackTrace(); } }
-   			if (ps != null) { try { ps.close(); } catch (SQLException e) { e.printStackTrace(); } }
-   			if (conn != null) { db.DBconnection.release(conn); }
-   		}
+           }
     	return reportList;
     }
     
@@ -254,18 +223,12 @@ public class DBreports {
     				  "FROM `Parks` p " + "LEFT JOIN `Order` o ON o.park_name = p.park_name " + "AND o.order_date BETWEEN ? AND ? " +
     				  "GROUP BY p.park_name "+
     				  "ORDER BY p.park_name ASC;";
-    	
-    	Connection conn = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			conn = DBconnection.getConnection();
-			ps = conn.prepareStatement(query);
+    	try (Connection conn = DBconnection.getConnection(); 
+                PreparedStatement ps = conn.prepareStatement(query)) {
                ps.setString(1, startDate); 
                ps.setString(2, endDate);
                
-               rs = ps.executeQuery();
+               try (ResultSet rs = ps.executeQuery()) {
                    while (rs.next()) {
                        String parkName = rs.getString("park_name");
                        int canceledCount = rs.getInt("total_canceled");
@@ -275,14 +238,10 @@ public class DBreports {
                        
                        reportList.add(new CancellationReportRow(parkName,  canceledCount, noshowCount,avgCanceledPerDay));
                    }
-
+               }
            } catch (SQLException e) {
                e.printStackTrace();
-           }finally {
-   			if (rs != null) { try { rs.close(); } catch (SQLException e) { e.printStackTrace(); } }
-   			if (ps != null) { try { ps.close(); } catch (SQLException e) { e.printStackTrace(); } }
-   			if (conn != null) { db.DBconnection.release(conn); }
-   		}
+           }
     	return reportList;
     }
 }

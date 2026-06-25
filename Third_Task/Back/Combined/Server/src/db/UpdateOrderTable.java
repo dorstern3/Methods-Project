@@ -22,10 +22,8 @@ public class UpdateOrderTable {
 	 * @return true if the order was successfully added, false otherwise.
 	 */
 	public static boolean saveToWaitingList(Order orderData) {
-		Connection conn = null;
 		try {
-			conn = DBconnection.getConnection();
-			PreparedStatement stmt = conn.prepareStatement(
+			PreparedStatement stmt = DBconnection.getConnection().prepareStatement(
 					"INSERT INTO gonature_db_new.order (park_name, order_date, entry_time, number_of_visitors, email, phone_number, id, type_of_visitor, status, date_of_placing_order) "
 							+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'On waiting list', CURDATE())");
 
@@ -45,7 +43,7 @@ public class UpdateOrderTable {
 
 				if (visitorType.equals("Subscriber")) {
 					try {
-						PreparedStatement idStmt = conn.prepareStatement(
+						PreparedStatement idStmt = DBconnection.getConnection().prepareStatement(
 								"SELECT id FROM gonature_db_new.subscriber WHERE id = ? OR sub_number = ?");
 						idStmt.setInt(1, realId);
 						idStmt.setInt(2, realId);
@@ -77,10 +75,6 @@ public class UpdateOrderTable {
 			System.out.println("Error saving to waiting list: " + e.getMessage());
 			e.printStackTrace();
 			return false;
-		}finally {
-			if (conn != null) {
-				db.DBconnection.release(conn);
-			}
 		}
 	}
 
@@ -90,10 +84,8 @@ public class UpdateOrderTable {
 	 * @return The generated QR code string if successful, or null if failed.
 	 */
 	public static String saveNewOrder(Order orderData) {
-		Connection conn = null;
 		try {
-			conn = DBconnection.getConnection();
-			PreparedStatement stmt = conn.prepareStatement(
+			PreparedStatement stmt = DBconnection.getConnection().prepareStatement(
 					"INSERT INTO gonature_db_new.`order` (park_name, order_date, entry_time, number_of_visitors, email, phone_number, id, type_of_visitor, status, date_of_placing_order) "
 							+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())",
 					Statement.RETURN_GENERATED_KEYS);
@@ -112,7 +104,7 @@ public class UpdateOrderTable {
 				realId = Integer.parseInt(orderData.getId());
 				if (orderData.getVisitorType().equals("Subscriber")) {
 					try {
-						PreparedStatement idStmt = conn.prepareStatement(
+						PreparedStatement idStmt = DBconnection.getConnection().prepareStatement(
 								"SELECT id FROM gonature_db_new.subscriber WHERE id = ? OR sub_number = ?");
 						idStmt.setInt(1, realId);
 						idStmt.setInt(2, realId);
@@ -137,7 +129,7 @@ public class UpdateOrderTable {
 				if (rs.next()) {
 					int generatedOrderNumber = rs.getInt(1);
 					String qrCode = "QR-" + generatedOrderNumber;
-					PreparedStatement updateStmt = conn
+					PreparedStatement updateStmt = DBconnection.getConnection()
 							.prepareStatement("UPDATE gonature_db_new.`order` SET QR_code = ? WHERE order_number = ?");
 					updateStmt.setString(1, qrCode);
 					updateStmt.setInt(2, generatedOrderNumber);
@@ -152,10 +144,6 @@ public class UpdateOrderTable {
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return null;
-		}finally {
-			if (conn != null) {
-				db.DBconnection.release(conn);
-			}
 		}
 	}
 
@@ -172,10 +160,8 @@ public class UpdateOrderTable {
 		boolean isUpdated = false;
 		String waitingListMsg = null;
 
-		Connection conn = null;
-
 		try {
-			conn = DBconnection.getConnection();
+			Connection conn = DBconnection.getConnection();
 			PreparedStatement ps;
 
 			if (status.equals("Booked")) {
@@ -191,22 +177,15 @@ public class UpdateOrderTable {
 			}
 
 			int rowsAffected = ps.executeUpdate();
-			ps.close();
 			if (rowsAffected > 0) {
 				isUpdated = true;
 				if (status.equals("Canceled")) {
-					db.DBconnection.release(conn);
-					conn = null;
 					waitingListMsg = DBselect.checkWaitingList(orderNumber);
 				}
 			}
 			ps.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}finally {
-			if (conn != null) {
-				db.DBconnection.release(conn);
-			}
 		}
 		result.add(isUpdated);
 		result.add(waitingListMsg);
@@ -219,9 +198,10 @@ public class UpdateOrderTable {
 	 * * @return The number of rows updated, or -1 if an error occurred.
 	 */
 	public static int cleanWaitingListForToday() {
-		Connection conn = null;
 		try {
-			conn = DBconnection.getConnection();
+			Connection conn = DBconnection.getConnection();
+			
+			// שינינו ל-gonature_db_new.`order` כדי לשמור על תקינות ועקביות מול שאר הקובץ
 			PreparedStatement stmt = conn.prepareStatement(
 					"UPDATE gonature_db_new.`order` SET status = 'Canceled' WHERE order_date = CURDATE() AND status = 'On waiting list'"
 			);
@@ -234,10 +214,6 @@ public class UpdateOrderTable {
 			System.out.println("Error cleaning today's waiting list: " + " - " + e.getMessage());
 			e.printStackTrace();
 			return -1;
-		}finally {
-			if (conn != null) {
-				db.DBconnection.release(conn);
-			}
 		}
 	}
 }

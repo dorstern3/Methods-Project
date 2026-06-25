@@ -302,7 +302,16 @@ public class ServiceRepController {
             showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Family Subscription Registered!\nSub Number: " + subNum);
             famFname.clear(); famLname.clear(); famId.clear(); famPhone.clear(); famEmail.clear(); famMembers.clear();
         } else {
-            showAlert(Alert.AlertType.ERROR, "Registration Failed", "Server rejected family subscription registration.");
+            // Check if the server provided a specific error reason string due to database constraint violation
+            String errorReason = (response != null && response.getData() != null) ? (String) response.getData() : "";
+            
+            if ("DUPLICATE_ID".equals(errorReason)) {
+                showAlert(Alert.AlertType.ERROR, "Registration Failed", 
+                    "Operation Aborted: This National ID Number is already registered to an active subscriber in the database!");
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Registration Failed", 
+                    "Server Error: Internal database constraint failure or network drop encountered.");
+            }
         }
     }
     
@@ -356,7 +365,16 @@ public class ServiceRepController {
             showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Single Subscription Registered!\nSub Number: " + subNum);
             sFname.clear(); sLname.clear(); sId.clear(); sPhone.clear(); sEmail.clear();
         } else {
-            showAlert(Alert.AlertType.ERROR, "Registration Failed", "Server rejected single subscription registration.");
+            // Check if the server provided a specific error reason string due to database constraint violation
+            String errorReason = (response != null && response.getData() != null) ? (String) response.getData() : "";
+            
+            if ("DUPLICATE_ID".equals(errorReason)) {
+                showAlert(Alert.AlertType.ERROR, "Registration Failed", 
+                    "Operation Aborted: This National ID Number is already registered to an active subscriber in the database!");
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Registration Failed", 
+                    "Server Error: Internal database constraint failure or network drop encountered.");
+            }
         }
     }
     
@@ -409,7 +427,16 @@ public class ServiceRepController {
             showAlert(Alert.AlertType.INFORMATION, "Registration Success", "Group Guide Registered Successfully!");
             gFname.clear(); gLname.clear(); gId.clear(); gPhone.clear(); gEmail.clear();
         } else {
-            showAlert(Alert.AlertType.ERROR, "Registration Failed", "Server rejected guide registration.");
+            // Check if the server provided a specific error reason string due to database constraint violation
+            String errorReason = (response != null && response.getData() != null) ? (String) response.getData() : "";
+            
+            if ("DUPLICATE_ID".equals(errorReason)) {
+                showAlert(Alert.AlertType.ERROR, "Registration Failed", 
+                    "Operation Aborted: This Guide ID Number is already registered to an active group guide in the database!");
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Registration Failed", 
+                    "Server Error: Internal database constraint failure or network drop encountered.");
+            }
         }
     }
 

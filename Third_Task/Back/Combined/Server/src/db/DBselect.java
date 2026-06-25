@@ -26,21 +26,14 @@ public class DBselect {
 	 *         error message if the format does not match existing records.
 	 */
 	public static String identifyTravelerInDB(String travelerId) {
-		Connection conn = null;
-		PreparedStatement stmtSub = null;
-		ResultSet rsSub = null;
-		PreparedStatement stmtGuide = null;
-		ResultSet rsGuide = null;
-		PreparedStatement stmtSubId = null;
-		ResultSet rsSubId = null;
-
 		try {
-			conn = DBconnection.getConnection();
+			Connection conn = DBconnection.getConnection();
 
 			if (travelerId.length() == 4) {
-				stmtSub = conn.prepareStatement("SELECT fname, family_members FROM subscriber WHERE sub_number = ?");
+				PreparedStatement stmtSub = conn
+						.prepareStatement("SELECT fname, family_members FROM subscriber WHERE sub_number = ?");
 				stmtSub.setString(1, travelerId);
-				rsSub = stmtSub.executeQuery();
+				ResultSet rsSub = stmtSub.executeQuery();
 
 				if (rsSub.next()) {
 					String name = rsSub.getString("fname");
@@ -56,9 +49,9 @@ public class DBselect {
 			}
 
 			if (travelerId.length() == 5) {
-				stmtGuide = conn.prepareStatement("SELECT fname FROM guide WHERE guide_id = ?");
+				PreparedStatement stmtGuide = conn.prepareStatement("SELECT fname FROM guide WHERE guide_id = ?");
 				stmtGuide.setString(1, travelerId);
-				rsGuide = stmtGuide.executeQuery();
+				ResultSet rsGuide = stmtGuide.executeQuery();
 
 				if (rsGuide.next()) {
 					String name = rsGuide.getString("fname");
@@ -69,10 +62,10 @@ public class DBselect {
 				rsGuide.close();
 				stmtGuide.close();
 
-				stmtSubId = conn
+				PreparedStatement stmtSubId = conn
 						.prepareStatement("SELECT fname, family_members FROM subscriber WHERE id = ?");
 				stmtSubId.setString(1, travelerId);
-				rsSubId = stmtSubId.executeQuery();
+				ResultSet rsSubId = stmtSubId.executeQuery();
 
 				if (rsSubId.next()) {
 					String name = rsSubId.getString("fname");
@@ -81,20 +74,14 @@ public class DBselect {
 					stmtSubId.close();
 					return "Subscriber:" + name + ":" + familyMembers;
 				}
+				rsSubId.close();
+				stmtSubId.close();
 			}
 
 		} catch (Exception e) {
 			System.out.println("Error identifying traveler: " + e.getMessage());
 			e.printStackTrace();
 			return null;
-		}finally {
-			if (rsSub != null) { try { rsSub.close(); } catch (SQLException e) {} }
-			if (stmtSub != null) { try { stmtSub.close(); } catch (SQLException e) {} }
-			if (rsGuide != null) { try { rsGuide.close(); } catch (SQLException e) {} }
-			if (stmtGuide != null) { try { stmtGuide.close(); } catch (SQLException e) {} }
-			if (rsSubId != null) { try { rsSubId.close(); } catch (SQLException e) {} }
-			if (stmtSubId != null) { try { stmtSubId.close(); } catch (SQLException e) {} }
-			if (conn != null) { db.DBconnection.release(conn); }
 		}
 
 		return "Regular Traveler";
@@ -110,20 +97,13 @@ public class DBselect {
 	 *         order is found.
 	 */
 	public static String checkWaitingList(int canceledOrderNum) {
-		Connection conn = null;
-		PreparedStatement ps1 = null;
-		ResultSet rs1 = null;
-		PreparedStatement ps2 = null;
-		ResultSet rs2 = null;
-		PreparedStatement psUpdate = null;
-
 		try {
-			conn = DBconnection.getConnection();
+			Connection conn = DBconnection.getConnection();
 
-			ps1 = conn.prepareStatement(
+			PreparedStatement ps1 = conn.prepareStatement(
 					"SELECT park_name, order_date FROM gonature_db_new.`order` WHERE order_number = ?");
 			ps1.setInt(1, canceledOrderNum);
-			rs1 = ps1.executeQuery();
+			ResultSet rs1 = ps1.executeQuery();
 
 			if (rs1.next()) {
 				String park = rs1.getString("park_name");
@@ -131,7 +111,7 @@ public class DBselect {
 
 				System.out.println("DEBUG: Order cancelled. Checking waitlist for " + park + " on " + date);
 
-				ps2 = conn.prepareStatement(
+				PreparedStatement ps2 = conn.prepareStatement(
 						"SELECT order_number, id, email, phone_number, number_of_visitors, entry_time "
 								+ "FROM gonature_db_new.`order` "
 								+ "WHERE park_name = ? AND order_date = ? AND status = 'On waiting list' "
@@ -139,7 +119,7 @@ public class DBselect {
 
 				ps2.setString(1, park);
 				ps2.setDate(2, date);
-				rs2 = ps2.executeQuery();
+				ResultSet rs2 = ps2.executeQuery();
 
 				while (rs2.next()) {
 					int nextOrderNum = rs2.getInt("order_number");
@@ -156,13 +136,18 @@ public class DBselect {
 							waitingVisitors, travelerId, email, phone, "Regular", "Booked");
 
 					if (checkAvailability(orderDetailsForCheck)) {
-						psUpdate = conn.prepareStatement(
+						PreparedStatement psUpdate = conn.prepareStatement(
 								"UPDATE gonature_db_new.`order` SET status = 'Waiting list unconfirmed' WHERE order_number = ?");
 						psUpdate.setInt(1, nextOrderNum);
 						psUpdate.executeUpdate();
 						psUpdate.close();
 
 						System.out.println("DEBUG: SUCCESS! Space allocated to Order #" + nextOrderNum);
+
+						rs1.close();
+						ps1.close();
+						rs2.close();
+						ps2.close();
 
 						return "To: " + email + " / " + phone + "\nGood news! Space has freed up in " + park
 								+ ".\nPlease confirm your order #" + nextOrderNum + " within 1 hour.";
@@ -171,17 +156,13 @@ public class DBselect {
 								+ ", checking next candidate...");
 					}
 				}
+				rs2.close();
+				ps2.close();
 			}
-
+			rs1.close();
+			ps1.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}finally {
-			if (rs1 != null) { try { rs1.close(); } catch (SQLException e) {} }
-			if (ps1 != null) { try { ps1.close(); } catch (SQLException e) {} }
-			if (rs2 != null) { try { rs2.close(); } catch (SQLException e) {} }
-			if (ps2 != null) { try { ps2.close(); } catch (SQLException e) {} }
-			if (psUpdate != null) { try { psUpdate.close(); } catch (SQLException e) {} }
-			if (conn != null) { db.DBconnection.release(conn); }
 		}
 		return null;
 	}
@@ -198,18 +179,13 @@ public class DBselect {
 		String date = orderDetails.getOrderDate();
 		String time = orderDetails.getEntryTime();
 		int newVisitors = orderDetails.getNumberOfVisitors();
-		Connection conn = null;
-		PreparedStatement stmtPark = null;
-		ResultSet rsPark = null;
-		PreparedStatement stmtOrder = null;
-		ResultSet rsOrder = null;
 
 		try {
-			conn = DBconnection.getConnection();
-			stmtPark = conn.prepareStatement(
+			Connection conn = DBconnection.getConnection();
+			PreparedStatement stmtPark = conn.prepareStatement(
 					"SELECT max_capacity, casual_gap, estimated_staying_time FROM parks WHERE park_name = ?");
 			stmtPark.setString(1, park);
-			rsPark = stmtPark.executeQuery();
+			ResultSet rsPark = stmtPark.executeQuery();
 
 			int maxCapacity = 0, casualGap = 0, estimatedStayingTime = 4;
 			if (rsPark.next()) {
@@ -217,13 +193,15 @@ public class DBselect {
 				casualGap = rsPark.getInt("casual_gap");
 				estimatedStayingTime = rsPark.getInt("estimated_staying_time");
 			}
+			rsPark.close();
+			stmtPark.close();
 
 			int allowedOrdersCapacity = maxCapacity - casualGap;
 			int requestedHour = Integer.parseInt(time.split(":")[0]);
 
 			for (int i = 0; i < estimatedStayingTime; i++) {
 				int currentCheckHour = requestedHour + i;
-				stmtOrder = conn.prepareStatement("SELECT SUM(number_of_visitors) FROM `order` "
+				PreparedStatement stmtOrder = conn.prepareStatement("SELECT SUM(number_of_visitors) FROM `order` "
 						+ "WHERE park_name = ? AND order_date = ? "
 						+ "AND status IN ('Booked', 'Confirmed', 'Pending confirmation', 'Entered', 'Waiting list unconfirmed') "
 						+ "AND HOUR(entry_time) <= ? " + "AND HOUR(entry_time) + ? > ?");
@@ -234,7 +212,7 @@ public class DBselect {
 				stmtOrder.setInt(4, estimatedStayingTime);
 				stmtOrder.setInt(5, currentCheckHour);
 
-				rsOrder = stmtOrder.executeQuery();
+				ResultSet rsOrder = stmtOrder.executeQuery();
 				int existingVisitors = 0;
 				if (rsOrder.next())
 					existingVisitors = rsOrder.getInt(1);
@@ -250,12 +228,6 @@ public class DBselect {
 			return true;
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}finally {
-			if (rsPark != null) { try { rsPark.close(); } catch (SQLException e) {} }
-			if (stmtPark != null) { try { stmtPark.close(); } catch (SQLException e) {} }
-			if (rsOrder != null) { try { rsOrder.close(); } catch (SQLException e) {} }
-			if (stmtOrder != null) { try { stmtOrder.close(); } catch (SQLException e) {} }
-			if (conn != null) { db.DBconnection.release(conn); }
 		}
 		return false;
 	}
@@ -309,18 +281,14 @@ public class DBselect {
 	 * @return The Order object if validation passes, or null if it fails.
 	 */
 	public static Order fetchOrderWithValidation(int orderNumber, String travelerId) {
-		Connection conn = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
 		try {
-			conn = DBconnection.getConnection();
-			ps = conn
+			Connection conn = DBconnection.getConnection();
+			PreparedStatement ps = conn
 					.prepareStatement("SELECT * FROM gonature_db_new.order WHERE order_number = ? AND id = ?");
 			ps.setInt(1, orderNumber);
 			ps.setInt(2, Integer.parseInt(travelerId));
 
-			rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 
 			if (rs.next()) {
 				Order fetchedOrder = new Order(rs.getInt("order_number"), rs.getString("park_name"),
@@ -336,10 +304,6 @@ public class DBselect {
 		} catch (SQLException e) {
 			System.out.println("Error fetching validated order: " + e.getMessage());
 			e.printStackTrace();
-		}finally {
-			if (rs != null) { try { rs.close(); } catch (SQLException e) { e.printStackTrace(); } }
-			if (ps != null) { try { ps.close(); } catch (SQLException e) { e.printStackTrace(); } }
-			if (conn != null) { db.DBconnection.release(conn); }
 		}
 
 		return null;
@@ -347,87 +311,87 @@ public class DBselect {
 	
 	
 	public static String getSubscriberId(String subscriberNum) {
-		Connection conn = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
 		try {
-			conn = DBconnection.getConnection();
-			ps = conn
+			Connection conn = DBconnection.getConnection();
+			PreparedStatement ps = conn
 					.prepareStatement("SELECT id FROM gonature_db_new.subscriber WHERE sub_number = ?");
 			ps.setString(1, subscriberNum);
-			rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery();
 			if (rs.next()) {
 				return rs.getString("id");
 			}
 		} catch (SQLException e) {
 			System.out.println("Error fetching validated order: " + e.getMessage());
 			e.printStackTrace();
-		}finally {
-			if (rs != null) { try { rs.close(); } catch (SQLException e) { e.printStackTrace(); } }
-			if (ps != null) { try { ps.close(); } catch (SQLException e) { e.printStackTrace(); } }
-			if (conn != null) { db.DBconnection.release(conn); }
 		}
 
 		return null;
 	}
 	
 	/**
+	 * Checks if a traveler has an active upcoming or existing order that can be managed.
+	 * Strictly excludes realized (Entered) or canceled states.
+	 */
+	public static boolean hasManageableOrder(String travelerId) {
+	    // Exclude ONLY 'Canceled' and 'Entered' statuses
+	    String query = "SELECT COUNT(*) FROM gonature_db_new.order WHERE id = ? " 
+	            + "AND status NOT IN ('Canceled', 'Entered')";
+	            
+	    try (Connection conn = DBconnection.getConnection();
+	         PreparedStatement ps = conn.prepareStatement(query)) {
+	        ps.setString(1, travelerId);
+	        
+	        try (ResultSet rs = ps.executeQuery()) {
+	            if (rs.next()) {
+	                return rs.getInt(1) > 0;
+	            }
+	        }
+	    } catch (SQLException e) {
+	        System.out.println("Error checking manageable order: " + e.getMessage());
+	        e.printStackTrace();
+	    }
+	    return false;
+	}
+	/**
+	 * Checks if a traveler is currently inside the park (Entered) and has not exited yet.
+	 */
+	public static boolean isCurrentlyInsidePark(String travelerId) {
+	    String query = "SELECT COUNT(*) FROM gonature_db_new.order WHERE id = ? " 
+	            + "AND status = 'Entered' "
+	            + "AND exit_time IS NULL";
+	            
+	    try (Connection conn = DBconnection.getConnection();
+	         PreparedStatement ps = conn.prepareStatement(query)) {
+	        ps.setString(1, travelerId);
+	        
+	        try (ResultSet rs = ps.executeQuery()) {
+	            if (rs.next()) {
+	                return rs.getInt(1) > 0;
+	            }
+	        }
+	    } catch (SQLException e) {
+	        System.out.println("Error checking inside park status: " + e.getMessage());
+	        e.printStackTrace();
+	    }
+	    return false;
+	}
+	/**
 	 * Translates a subscriber number to the corresponding traveler ID.
 	 * @param subNumber The subscriber number to translate.
 	 * @return The traveler ID as a string, or null if not found.
 	 */
 	public static String getTravelerIdBySubNumber(String subNumber) {
-		Connection conn = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-	        conn = DBconnection.getConnection();
-	        ps = conn.prepareStatement("SELECT id FROM gonature_db_new.subscriber WHERE sub_number = ?");
+	    try {
+	        Connection conn = DBconnection.getConnection();
+	        PreparedStatement ps = conn.prepareStatement("SELECT id FROM gonature_db_new.subscriber WHERE sub_number = ?");
 	        ps.setString(1, subNumber);
-	        rs = ps.executeQuery();
+	        ResultSet rs = ps.executeQuery();
 	        if (rs.next()) {
 	            return rs.getString("id");
 	        }
 	    } catch (SQLException e) {
 	        e.printStackTrace();
-	    }finally {
-			if (rs != null) { try { rs.close(); } catch (Exception e) {} }
-			if (ps != null) { try { ps.close(); } catch (Exception e) {} }
-			if (conn != null) { try { DBconnection.release(conn); } catch (Exception e) {} }
-		}
+	    }
 	    return null;
-	}
-	
-	/**
-	 * Checks if a traveler has an active order. Active means: Status is NOT
-	 * 'Canceled', and if status is 'Entered', it must have an exit_time (meaning
-	 * they left). * @param travelerId The ID of the traveler.
-	 * 
-	 * @return true if an active order exists, false otherwise.
-	 */
-	public static boolean hasActiveOrder(String travelerId) {
-		Connection conn = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			conn = DBconnection.getConnection();
-			String query = "SELECT COUNT(*) FROM gonature_db_new.order WHERE id = ? " + "AND status != 'Canceled' "
-					+ "AND NOT (status = 'Entered' AND exit_time IS NULL)";
-			ps = conn.prepareStatement(query);
-			ps.setString(1, travelerId);
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				return rs.getInt(1) > 0;
-			}
-		} catch (SQLException e) {
-			System.out.println("Error checking active order: " + e.getMessage());
-			e.printStackTrace();
-		}finally {
-			if (rs != null) { try { rs.close(); } catch (Exception e) {} }
-			if (ps != null) { try { ps.close(); } catch (Exception e) {} }
-			if (conn != null) { try { DBconnection.release(conn); } catch (Exception e) {} }
-		}
-		return false;
 	}
 }

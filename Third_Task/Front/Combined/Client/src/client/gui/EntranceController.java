@@ -1,7 +1,5 @@
 package client.gui;
 
-
-
 import java.util.ArrayList;
 
 import client.logic.CurUser;
@@ -22,723 +20,647 @@ import javafx.scene.control.TextField;
 
 import javafx.scene.layout.VBox;
 
-
-
 /**
-
+ * 
  * Controller class for the Park Entrance screen.
-
- * Manages the UI for processing park entries, validating both pre-booked orders 
-
- * and casual drop-in visitors, calculating prices, and tracking real-time park occupancy.
-
+ * 
+ * Manages the UI for processing park entries, validating both pre-booked orders
+ * 
+ * and casual drop-in visitors, calculating prices, and tracking real-time park
+ * occupancy.
+ * 
  */
 
 public class EntranceController {
 
+	@FXML
 
+	private TextField orderIdInput;
 
-    @FXML
+	@FXML
 
-    private TextField orderIdInput; 
+	private ComboBox<String> visitorTypeCombo;
 
+	@FXML
 
+	private TextField casualAmountInput;
 
-    @FXML
+	@FXML
 
-    private ComboBox<String> visitorTypeCombo;
+	private TextField casualIdInput;
 
-    @FXML
+	@FXML
 
-    private TextField casualAmountInput;
+	private Label messageLabel;
 
-    @FXML
+	@FXML
 
-    private TextField casualIdInput;
+	private VBox invoiceSection;
 
+	@FXML
 
+	private Label finalPriceLabel;
 
-    @FXML
+	// --- New field for real-time occupancy tracking ---
 
-    private Label messageLabel;
+	@FXML
 
-    @FXML
+	private Label lblLiveCapacity;
 
-    private VBox invoiceSection;
+	private EntranceLogic entranceLogic;
 
-    @FXML
+	// --- Memory variables for the current transaction ---
 
-    private Label finalPriceLabel;
+	private int currentTransactionAmount = 0;
 
-    
+	private String currentTransactionOrderId = null;
 
-    // --- New field for real-time occupancy tracking ---
+	private String currentVisitorType = null;
 
-    @FXML
+	private String currentParkName = CurUser.getParkName();
 
-    private Label lblLiveCapacity;
+	/**
+	 * 
+	 * Initializes the controller class.
+	 * 
+	 * Automatically called after the FXML file is loaded.
+	 * 
+	 * Configures combo boxes, sets dynamic prompt behaviors for the ID input fields
+	 * 
+	 * based on visitor type, hides the invoice section, and fetches the initial
+	 * live park capacity.
+	 * 
+	 */
 
+	@FXML
 
+	public void initialize() {
 
-    private EntranceLogic entranceLogic;
+		entranceLogic = new EntranceLogic();
 
-    
+		if (invoiceSection != null) {
 
-    // --- Memory variables for the current transaction ---
+			invoiceSection.setVisible(false);
 
-    private int currentTransactionAmount = 0;
+		}
 
-    private String currentTransactionOrderId = null;
+		if (visitorTypeCombo != null) {
 
-    private String currentVisitorType = null; 
+			visitorTypeCombo.getItems().addAll("Regular", "Subscriber", "Group");
 
-    private String currentParkName = CurUser.getParkName(); 
+			if (casualIdInput != null) {
 
+				// UNBLOCKED: Keep it enabled initially so it is accessible
 
+				casualIdInput.setDisable(false);
 
-    /**
+				casualIdInput.setPromptText("Select Visitor Type First");
 
-     * Initializes the controller class. 
+				// Dynamically swap prompt instructions based on the selected classification
 
-     * Automatically called after the FXML file is loaded.
+				visitorTypeCombo.setOnAction(event -> {
 
-     * Configures combo boxes, sets dynamic prompt behaviors for the ID input fields 
+					String selected = visitorTypeCombo.getValue();
 
-     * based on visitor type, hides the invoice section, and fetches the initial live park capacity.
+					if (selected != null) {
 
-     */
+						casualIdInput.setDisable(false); // Always enabled for all types now!
 
-    @FXML
+						if ("Subscriber".equals(selected)) {
 
-    public void initialize() {
+							casualIdInput.setPromptText("Enter Subscriber Number (Required)");
 
-        entranceLogic = new EntranceLogic();
+						} else if ("Group".equals(selected)) {
 
-        
+							casualIdInput.setPromptText("Enter Guide ID (Required)");
 
-        if (invoiceSection != null) {
+						} else {
 
-            invoiceSection.setVisible(false);
+							// Prompt configuration updated for Regular casual visitors
 
-        }
+							casualIdInput.setPromptText("Enter Visitor ID (Required)");
 
+						}
 
+					}
 
-        if (visitorTypeCombo != null) {
+				});
 
-            visitorTypeCombo.getItems().addAll("Regular", "Subscriber", "Group");
+			}
 
-            
+		}
 
-            if (casualIdInput != null) {
+		// Fetch initial park capacity when screen loads
 
-                // UNBLOCKED: Keep it enabled initially so it is accessible
+		updateLiveCapacity();
 
-                casualIdInput.setDisable(false); 
+	}
 
-                casualIdInput.setPromptText("Select Visitor Type First");
+	/**
+	 * 
+	 * Handles the validation process for a pre-booked order when the "Verify Order"
+	 * button is clicked.
+	 * 
+	 * Communicates with the logic layer to verify the order details, date, and
+	 * entry time constraints.
+	 * 
+	 * If valid, it calculates the required payment and displays the invoice.
+	 * 
+	 * * @param event The ActionEvent triggered by clicking the verify button.
+	 * 
+	 */
 
-                
+	@FXML
 
-                // Dynamically swap prompt instructions based on the selected classification
+	public void onCheckOrderClicked(ActionEvent event) {
 
-                visitorTypeCombo.setOnAction(event -> {
+		resetTransactionState();
 
-                    String selected = visitorTypeCombo.getValue();
+		hideInvoice();
 
-                    
+		String inputId = orderIdInput.getText().trim();
 
-                    if (selected != null) {
+		if (inputId.isEmpty()) {
 
-                        casualIdInput.setDisable(false); // Always enabled for all types now!
+			showMessage("Please enter an Order ID or scan/enter a QR Code.", "red");
 
-                        
+			return;
 
-                        if ("Subscriber".equals(selected)) {
+		}
 
-                            casualIdInput.setPromptText("Enter Subscriber Number (Required)");
+		Object result = entranceLogic.validateOrder(inputId);
 
-                        } else if ("Group".equals(selected)) {
+		// Check if the result is a successful array
 
-                            casualIdInput.setPromptText("Enter Guide ID (Required)");
+		if (result instanceof Object[]) {
 
-                        } else {
+			Object[] orderDetails = (Object[]) result;
 
-                            // Prompt configuration updated for Regular casual visitors
+			int visitorsInOrder = (int) orderDetails[0];
 
-                            casualIdInput.setPromptText("Enter Visitor ID (Required)");
+			String dynamicVisitorType = (String) orderDetails[1];
 
-                        }
+			currentTransactionOrderId = inputId;
 
-                    }
+			currentTransactionAmount = visitorsInOrder;
 
-                });
+			currentVisitorType = dynamicVisitorType;
 
-            }
+			showMessage("Order verified! Type identified as: " + dynamicVisitorType, "green");
 
-        }
+			double calculatedPrice = entranceLogic.calculatePrice(dynamicVisitorType, currentTransactionAmount, true);
 
-        
+			showInvoice(String.format("%.2f NIS", calculatedPrice));
 
-        // Fetch initial park capacity when screen loads
+		}
 
-        updateLiveCapacity();
+		// Check if the result is an error string from the server
 
-    }
+		else if (result instanceof String) {
 
+			hideInvoice();
 
+			String errorType = (String) result;
 
-    /**
+			switch (errorType) {
 
-     * Handles the validation process for a pre-booked order when the "Verify Order" button is clicked.
+			case "NOT_FOUND":
 
-     * Communicates with the logic layer to verify the order details, date, and entry time constraints.
+				showMessage("Error: Invalid Order ID or QR Code.", "red");
 
-     * If valid, it calculates the required payment and displays the invoice.
+				break;
 
-     * * @param event The ActionEvent triggered by clicking the verify button.
+			case "WRONG_DATE":
 
-     */
+				showMessage("Error: This order is not scheduled for today.", "red");
 
-    @FXML
+				break;
 
-    public void onCheckOrderClicked(ActionEvent event) {
+			case "TIME_PASSED":
 
-    resetTransactionState();
+				showMessage("Error: More than an hour has passed since the scheduled entry time.", "red");
 
-    hideInvoice();
+				break;
 
-        String inputId = orderIdInput.getText().trim();
+			case "TOO_EARLY":
 
+				showMessage("Error: Early entrance is only permitted 1 hour before the booked time.", "red");
 
+				break;
 
-        if (inputId.isEmpty()) {
+			case "NOT_CONFIRMED":
 
-            showMessage("Please enter an Order ID or scan/enter a QR Code.", "red");
+				showMessage("Error: This order has not been confirmed yet.", "red");
 
-            return;
+				break;
 
-        }
+			case "INVALID_FORMAT":
 
+				showMessage("Error: Please enter a valid numeric Order number", "red");
 
+				break;
 
-        Object result = entranceLogic.validateOrder(inputId);
+			default:
 
+				showMessage("System Error: Could not validate the order.", "red");
 
+				break;
 
-        // Check if the result is a successful array
+			}
 
-        if (result instanceof Object[]) { 
+		}
 
-            Object[] orderDetails = (Object[]) result;
+	}
 
-            int visitorsInOrder = (int) orderDetails[0];
+	/**
+	 * Handles the validation and capacity check for casual (unplanned) visitors.
+	 * Verifies specific ID requirements (e.g., Guide ID, Subscriber ID) and
+	 * enforces subscriber family member limits. If space is available and rules are
+	 * met, it calculates the price and displays the invoice. * @param event The
+	 * ActionEvent triggered by clicking the "Check Capacity & Price" button.
+	 */
+	@FXML
+	public void onCheckCasualClicked(ActionEvent event) {
+		resetTransactionState();
+		hideInvoice();
+		String type = visitorTypeCombo.getValue();
+		String amountStr = casualAmountInput.getText().trim();
+		String casualId = casualIdInput.getText().trim();
 
-            String dynamicVisitorType = (String) orderDetails[1]; 
+		if (type == null || amountStr.isEmpty()) {
+			showMessage("Please select visitor type and amount.", "red");
+			return;
+		}
 
-            
+		if (casualId.isEmpty()) {
+			showMessage("Visitor ID / Subscriber Number is required.", "red");
+			return;
+		}
 
-            currentTransactionOrderId = inputId;
+		// Basic validation: Ensure the ID contains only numbers
+		if (!casualId.matches("[0-9]+")) {
+			hideInvoice();
+			showMessage("Error: ID must contain only numbers.", "red");
+			return;
+		}
 
-            currentTransactionAmount = visitorsInOrder; 
+		// Parse amount early to use in validations
+		int amount;
+		try {
+			amount = Integer.parseInt(amountStr);
+			if (amount <= 0 || amount > 15) {
+				hideInvoice();
+				showMessage("Error: Amount must be between 1 and 15.", "red");
+				return;
+			}
+		} catch (NumberFormatException e) {
+			showMessage("Please enter a valid number of visitors.", "red");
+			return;
+		}
 
-            currentVisitorType = dynamicVisitorType; 
+		if (amount > 1 && "Regular".equals(type)) {
+			hideInvoice();
+			showMessage("Regular invite is limited to one person.", "red");
+			return;
+		}
 
-            
+		// Enforcement validation checks based on visitor type
+		if ("Subscriber".equals(type)) {
+			if (casualId.length() != 4) {
+				hideInvoice();
+				showMessage("Error: Subscriber Number must be exactly 4 digits.", "red");
+				return;
+			}
 
-            showMessage("Order verified! Type identified as: " + dynamicVisitorType, "green");
+			// Retrieve subscriber data from the logic layer
+			ArrayList<Object> subData = entranceLogic.verifySubscriber(casualId);
 
-            
+			if (subData == null || !(boolean) subData.get(0)) {
+				hideInvoice();
+				showMessage("Verification Failed: Subscriber ID not found.", "red");
+				return;
+			}
 
-            double calculatedPrice = entranceLogic.calculatePrice(dynamicVisitorType, currentTransactionAmount, true);
+			// --- NEW ENFORCEMENT: Check Family Limit ---
+			int familyLimit = (int) subData.get(1);
+			if (amount > familyLimit) {
+				hideInvoice();
+				showMessage("Error: Subscriber plan allows only " + familyLimit + " members.", "red");
+				return;
+			}
 
-            showInvoice(String.format("%.2f NIS", calculatedPrice));
+		} else if ("Group".equals(type)) {
+			if (casualId.length() != 5) {
+				hideInvoice();
+				showMessage("Error: Guide ID must be exactly 5 digits.", "red");
+				return;
+			}
+			if (!entranceLogic.verifyGuide(casualId)) {
+				hideInvoice();
+				showMessage("Verification Failed: Invalid Guide ID.", "red");
+				return;
+			}
+		} else {
+			// Regular visitor
+			if (casualId.length() != 5) {
+				hideInvoice();
+				showMessage("Error: Visitor ID must be exactly 5 digits.", "red");
+				return;
+			}
+		}
 
-            
+		// Proceed to capacity check
+		if (entranceLogic.checkCasualAvailability(amount, currentParkName)) {
+			currentTransactionAmount = amount;
+			currentTransactionOrderId = null;
+			currentVisitorType = type;
 
-        } 
+			showMessage("Space available! Proceed to payment.", "green");
+			double calculatedPrice = entranceLogic.calculatePrice(type, amount, false);
+			showInvoice(String.format("%.2f NIS", calculatedPrice));
+		} else {
+			hideInvoice();
+			showMessage("Notice: The park is currently at maximum capacity.", "red");
+		}
+	}
 
-        // Check if the result is an error string from the server
+	/**
+	 * 
+	 * Finalizes the entry process after payment confirmation.
+	 * 
+	 * Sends the transaction details to the server to register the entry and update
+	 * the database.
+	 * 
+	 * Upon success, it clears the form, hides the invoice, and refreshes the live
+	 * park capacity.
+	 * 
+	 * * @param event The ActionEvent triggered by clicking the "Confirm Payment &
+	 * Register Entry" button.
+	 * 
+	 */
 
-        else if (result instanceof String) {
+	@FXML
 
-            hideInvoice();
+	public void onConfirmPaymentClicked(ActionEvent event) {
 
-            String errorType = (String) result;
+		String visitorId = casualIdInput.getText().trim();
 
-            
+		if (currentTransactionOrderId == null || currentTransactionOrderId.isEmpty()) {
 
-            switch (errorType) {
-            	
+			if (visitorId.isEmpty()) {
 
-                case "NOT_FOUND":
+				showMessage("Please enter a valid ID / Subscriber Number first!", "red");
 
-                    showMessage("Error: Invalid Order ID or QR Code.", "red");
+				return;
 
-                    break;
+			}
 
-                case "WRONG_DATE":
+		} else {
 
-                    showMessage("Error: This order is not scheduled for today.", "red");
+			visitorId = "";
 
-                    break;
+		}
 
-                case "TIME_PASSED":
+		String generatedOrderId = entranceLogic.confirmPayment(
 
-                    showMessage("Error: More than an hour has passed since the scheduled entry time.", "red");
+				currentTransactionAmount,
 
-                    break;
+				currentTransactionOrderId,
 
-                case "TOO_EARLY":
+				currentParkName,
 
-                    showMessage("Error: Early entrance is only permitted 1 hour before the booked time.", "red");
+				currentVisitorType,
 
-                    break;
+				visitorId
 
-                case "NOT_CONFIRMED":
+		);
 
-                    showMessage("Error: This order has not been confirmed yet.", "red");
+		if (generatedOrderId != null) {
 
-                    break;
+			if (currentTransactionOrderId == null || currentTransactionOrderId.isEmpty()) {
 
-                case "INVALID_FORMAT":
+				// Formulate the matched QR string format based on the generated ID
+				String computedQrCode = "QR-" + generatedOrderId;
 
-                    showMessage("Error: Please enter a valid numeric Order number", "red");
+				showMessage("Payment registered. Casual Entry confirmed! Order ID: " + generatedOrderId + " | QR Code: " + computedQrCode, "green");
 
-                    break;
+			} else {
 
-                default:
+				showMessage("Payment registered. Pre-booked Entry confirmed successfully!", "green");
 
-                    showMessage("System Error: Could not validate the order.", "red");
+			}
 
-                    break;
+			hideInvoice();
 
-            }
+			resetTransactionState();
 
-        }
+			casualAmountInput.clear();
 
-    }
+			casualIdInput.clear();
 
+			if (orderIdInput != null) {
 
+				orderIdInput.clear();
 
-    /**
-     * Handles the validation and capacity check for casual (unplanned) visitors.
-     * Verifies specific ID requirements (e.g., Guide ID, Subscriber ID) and enforces
-     * subscriber family member limits. If space is available and rules are met, 
-     * it calculates the price and displays the invoice.
-     * * @param event The ActionEvent triggered by clicking the "Check Capacity & Price" button.
-     */
-    @FXML
-    public void onCheckCasualClicked(ActionEvent event) {
-        resetTransactionState();
-        hideInvoice();
-        String type = visitorTypeCombo.getValue();
-        String amountStr = casualAmountInput.getText().trim();
-        String casualId = casualIdInput.getText().trim(); 
+			}
 
-        if (type == null || amountStr.isEmpty()) {
-            showMessage("Please select visitor type and amount.", "red");
-            return;
-        }
+			if (visitorTypeCombo != null) {
 
-        if (casualId.isEmpty()) {
-            showMessage("Visitor ID / Subscriber Number is required.", "red");
-            return;
-        }
+				visitorTypeCombo.getSelectionModel().clearSelection();
 
-        // Basic validation: Ensure the ID contains only numbers
-        if (!casualId.matches("[0-9]+")) {
-            hideInvoice();
-            showMessage("Error: ID must contain only numbers.", "red");
-            return;
-        }
+			}
 
-        // Parse amount early to use in validations
-        int amount;
-        try {
-            amount = Integer.parseInt(amountStr);
-            if (amount <= 0 || amount > 15) {
-                hideInvoice();
-                showMessage("Error: Amount must be between 1 and 15.", "red");
-                return;
-            }
-        } catch (NumberFormatException e) {
-            showMessage("Please enter a valid number of visitors.", "red");
-            return;
-        }
+			// Auto-refresh the capacity after a successful entry
 
-        if (amount > 1 && "Regular".equals(type)) {
-            hideInvoice();
-            showMessage("Regular invite is limited to one person.", "red");
-            return;
-        }
+			updateLiveCapacity();
 
-        // Enforcement validation checks based on visitor type
-        if ("Subscriber".equals(type)) {
-            if (casualId.length() != 4) {
-                hideInvoice();
-                showMessage("Error: Subscriber Number must be exactly 4 digits.", "red");
-                return;
-            }
-            
-            // Retrieve subscriber data from the logic layer
-            ArrayList<Object> subData = entranceLogic.verifySubscriber(casualId);
-            
-            if (subData == null || !(boolean) subData.get(0)) {
-                hideInvoice();
-                showMessage("Verification Failed: Subscriber ID not found.", "red");
-                return;
-            }
-            
-            // --- NEW ENFORCEMENT: Check Family Limit ---
-            int familyLimit = (int) subData.get(1);
-            if (amount > familyLimit) {
-                hideInvoice();
-                showMessage("Error: Subscriber plan allows only " + familyLimit + " members.", "red");
-                return;
-            }
-            
-        } else if ("Group".equals(type)) {
-            if (casualId.length() != 5) {
-                hideInvoice();
-                showMessage("Error: Guide ID must be exactly 5 digits.", "red");
-                return;
-            }
-            if (!entranceLogic.verifyGuide(casualId)) {
-                hideInvoice();
-                showMessage("Verification Failed: Invalid Guide ID.", "red");
-                return;
-            }
-        } else {
-            // Regular visitor
-            if (casualId.length() != 5) {
-                hideInvoice();
-                showMessage("Error: Visitor ID must be exactly 5 digits.", "red");
-                return;
-            }
-        }
+		} else {
 
-        // Proceed to capacity check
-        if (entranceLogic.checkCasualAvailability(amount, currentParkName)) {
-            currentTransactionAmount = amount;
-            currentTransactionOrderId = null; 
-            currentVisitorType = type; 
-            
-            showMessage("Space available! Proceed to payment.", "green");
-            double calculatedPrice = entranceLogic.calculatePrice(type, amount, false);
-            showInvoice(String.format("%.2f NIS", calculatedPrice));
-        } else {
-            hideInvoice();
-            showMessage("Notice: The park is currently at maximum capacity.", "red");
-        }
-    }
+			showMessage("System Error: Could not complete registration updates.", "red");
 
+		}
 
+	}
 
-    /**
+	/**
+	 * 
+	 * Handles the click event for the manual refresh button to update park
+	 * occupancy.
+	 * 
+	 * * @param event The ActionEvent triggered by clicking the refresh button.
+	 * 
+	 */
 
-     * Finalizes the entry process after payment confirmation.
+	@FXML
 
-     * Sends the transaction details to the server to register the entry and update the database.
+	public void onRefreshCapacityClicked(ActionEvent event) {
 
-     * Upon success, it clears the form, hides the invoice, and refreshes the live park capacity.
+		updateLiveCapacity();
 
-     * * @param event The ActionEvent triggered by clicking the "Confirm Payment & Register Entry" button.
+	}
 
-     */
+	/**
+	 * 
+	 * Sends a request to the server to fetch the current live occupancy and maximum
+	 * capacity of the park.
+	 * 
+	 * Runs the network request on a background thread to prevent UI freezing.
+	 * 
+	 * Updates the UI labels dynamically based on capacity limits using the JavaFX
+	 * Application Thread.
+	 * 
+	 */
 
-    @FXML
+	private void updateLiveCapacity() {
 
-    public void onConfirmPaymentClicked(ActionEvent event) {
+		if (lblLiveCapacity == null) {
 
-        String visitorId = casualIdInput.getText().trim();
+			return;
 
-        
+		}
 
-        if (currentTransactionOrderId == null || currentTransactionOrderId.isEmpty()) {
+		// Creating a new background Thread to prevent UI freezing while waiting for the
+		// server response
 
-            if (visitorId.isEmpty()) {
+		new Thread(() -> {
 
-                showMessage("Please enter a valid ID / Subscriber Number first!", "red");
+			try {
 
-                return; 
+				String parkName = CurUser.getParkName();
 
-            }
+				if (parkName == null || parkName.isEmpty()) {
 
-        } else {
+					parkName = "Banias"; // Fallback
 
-            visitorId = ""; 
+				}
 
-        }
+				common.Message request = new common.Message(common.MessageType.GET_PARK_OCCUPANCY, parkName);
 
+				common.Message response = (common.Message) client.ClientUI.clientChat.accept(request);
 
+				if (response != null && response.getType() == common.MessageType.GET_PARK_OCCUPANCY_RESPONSE) {
 
-        String generatedOrderId = entranceLogic.confirmPayment(
+					int[] capacityData = (int[]) response.getData();
 
-            currentTransactionAmount, 
+					int current = capacityData[0];
 
-            currentTransactionOrderId, 
+					int max = capacityData[1];
 
-            currentParkName, 
+					final String finalParkName = parkName;
 
-            currentVisitorType,
+					// Platform.runLater forces the UI update to run on the main JavaFX Application
+					// Thread
 
-            visitorId 
+					javafx.application.Platform.runLater(() -> {
 
-        );
+						lblLiveCapacity.setText(
+								String.format("Current Park Occupancy (%s): %d / %d", finalParkName, current, max));
 
-        
+						if (current >= max) {
 
-        if (generatedOrderId != null) {
+							lblLiveCapacity.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: red;");
 
-            if (currentTransactionOrderId == null || currentTransactionOrderId.isEmpty()) {
+						} else {
 
-                showMessage("Payment registered. Casual Entry confirmed! Order ID: " + generatedOrderId, "green");
+							lblLiveCapacity
+									.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2e7d32;");
 
-            } else {
+						}
 
-                showMessage("Payment registered. Pre-booked Entry confirmed successfully!", "green");
+					});
 
-            }
+				}
 
-            
+			} catch (Exception e) {
 
-            hideInvoice();
+				System.err.println("Client Controller: Failed to fetch capacity updates.");
 
-            resetTransactionState();
+				e.printStackTrace();
 
-            
+			}
 
-            casualAmountInput.clear();
+		}).start();
 
-            casualIdInput.clear();
+	}
 
-            if (orderIdInput != null) {
+	/**
+	 * 
+	 * Navigates the user back to the Employee Dashboard screen.
+	 * 
+	 * * @param event The ActionEvent triggered by clicking the "Back" button.
+	 * 
+	 */
 
-                orderIdInput.clear();
+	@FXML
 
-            }
+	public void onBackButtonClicked(ActionEvent event) {
 
-            if (visitorTypeCombo != null) {
+		ScreenSwitch.switchScreen("/client/gui/EmployeeDashboard.fxml", "Employee Dashboard");
 
-                visitorTypeCombo.getSelectionModel().clearSelection();
+	}
 
-            }
+	/**
+	 * 
+	 * Displays a feedback message to the user in a specified color.
+	 * 
+	 * * @param text The text of the message to display.
+	 * 
+	 * @param color The CSS color string (e.g., "red", "green") for the text.
+	 * 
+	 */
 
-            
+	private void showMessage(String text, String color) {
 
-            // Auto-refresh the capacity after a successful entry
+		messageLabel.setStyle("-fx-text-fill: " + color + "; -fx-font-weight: bold;");
 
-            updateLiveCapacity();
+		messageLabel.setText(text);
 
-            
+	}
 
-        } else {
+	/**
+	 * 
+	 * Displays the invoice section with the calculated final price.
+	 * 
+	 * * @param priceText The formatted price string to display (e.g., "45.00 NIS").
+	 * 
+	 */
 
-            showMessage("System Error: Could not complete registration updates.", "red");
+	private void showInvoice(String priceText) {
 
-        }
+		invoiceSection.setVisible(true);
 
-    }
+		finalPriceLabel.setText("Total to pay: " + priceText);
 
+	}
 
+	/**
+	 * 
+	 * Resets the current transaction memory variables to prevent state leakage
+	 * 
+	 * between different entry attempts.
+	 * 
+	 */
 
-    /**
+	private void resetTransactionState() {
 
-     * Handles the click event for the manual refresh button to update park occupancy.
+		currentTransactionAmount = 0;
 
-     * * @param event The ActionEvent triggered by clicking the refresh button.
+		currentTransactionOrderId = null;
 
-     */
+		currentVisitorType = null;
 
-    @FXML
+	}
 
-    public void onRefreshCapacityClicked(ActionEvent event) {
+	/**
+	 * 
+	 * Hides the invoice and payment confirmation section from the screen.
+	 * 
+	 */
 
-        updateLiveCapacity();
+	private void hideInvoice() {
 
-    }
+		invoiceSection.setVisible(false);
 
-
-
-    /**
-
-     * Sends a request to the server to fetch the current live occupancy and maximum capacity of the park.
-
-     * Runs the network request on a background thread to prevent UI freezing.
-
-     * Updates the UI labels dynamically based on capacity limits using the JavaFX Application Thread.
-
-     */
-
-    private void updateLiveCapacity() {
-
-        if (lblLiveCapacity == null) {
-
-            return;
-
-        }
-
-        
-
-        // Creating a new background Thread to prevent UI freezing while waiting for the server response
-
-        new Thread(() -> {
-
-            try {
-
-                String parkName = CurUser.getParkName();
-
-                if (parkName == null || parkName.isEmpty()) {
-
-                    parkName = "Banias"; // Fallback
-
-                }
-
-
-
-                common.Message request = new common.Message(common.MessageType.GET_PARK_OCCUPANCY, parkName);
-
-                common.Message response = (common.Message) client.ClientUI.clientChat.accept(request);
-
-
-
-                if (response != null && response.getType() == common.MessageType.GET_PARK_OCCUPANCY_RESPONSE) {
-
-                    int[] capacityData = (int[]) response.getData();
-
-                    int current = capacityData[0];
-
-                    int max = capacityData[1];
-
-
-
-                    final String finalParkName = parkName;
-
-
-
-                    // Platform.runLater forces the UI update to run on the main JavaFX Application Thread
-
-                    javafx.application.Platform.runLater(() -> {
-
-                        lblLiveCapacity.setText(String.format("Current Park Occupancy (%s): %d / %d", finalParkName, current, max));
-
-                        
-
-                        if (current >= max) {
-
-                            lblLiveCapacity.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: red;");
-
-                        } else {
-
-                            lblLiveCapacity.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2e7d32;");
-
-                        }
-
-                    });
-
-                }
-
-            } catch (Exception e) {
-
-                System.err.println("Client Controller: Failed to fetch capacity updates.");
-
-                e.printStackTrace();
-
-            }
-
-        }).start(); 
-
-    }
-
-
-
-    /**
-
-     * Navigates the user back to the Employee Dashboard screen.
-
-     * * @param event The ActionEvent triggered by clicking the "Back" button.
-
-     */
-
-    @FXML
-
-    public void onBackButtonClicked(ActionEvent event) {
-
-        ScreenSwitch.switchScreen("/client/gui/EmployeeDashboard.fxml","Employee Dashboard");
-
-    }
-
-
-
-    /**
-
-     * Displays a feedback message to the user in a specified color.
-
-     * * @param text  The text of the message to display.
-
-     * @param color The CSS color string (e.g., "red", "green") for the text.
-
-     */
-
-    private void showMessage(String text, String color) {
-
-        messageLabel.setStyle("-fx-text-fill: " + color + "; -fx-font-weight: bold;");
-
-        messageLabel.setText(text);
-
-    }
-
-
-
-    /**
-
-     * Displays the invoice section with the calculated final price.
-
-     * * @param priceText The formatted price string to display (e.g., "45.00 NIS").
-
-     */
-
-    private void showInvoice(String priceText) {
-
-        invoiceSection.setVisible(true);
-
-        finalPriceLabel.setText("Total to pay: " + priceText);
-
-    }
-
-    
-
-    /**
-
-     * Resets the current transaction memory variables to prevent state leakage
-
-     * between different entry attempts.
-
-     */
-
-    private void resetTransactionState() {
-
-        currentTransactionAmount = 0;
-
-        currentTransactionOrderId = null;
-
-        currentVisitorType = null;
-
-    }
-
-
-
-    /**
-
-     * Hides the invoice and payment confirmation section from the screen.
-
-     */
-
-    private void hideInvoice() {
-
-        invoiceSection.setVisible(false);
-
-    }
+	}
 
 }

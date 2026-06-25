@@ -66,8 +66,10 @@ public class TravelerEntryController {
 		lblError.setText("");
 		String travelerId = txtTravelerId.getText();
 		OrderLogic orderLogic = new OrderLogic();
-	    if (!orderLogic.checkOrderExists(travelerId)) {
-	        lblError.setText("Error: Only travelers with an active order can access Manage Order.");
+		
+		
+	    if (!orderLogic.checkManageableOrderExists(travelerId)) {
+	        lblError.setText("Error: Only travelers with an active upcoming order can access Manage Order.");
 	        return;
 	    }
 		if (travelerId == null || travelerId.trim().isEmpty()) {
@@ -165,8 +167,10 @@ public class TravelerEntryController {
 		lblError.setText("");
 		String travelerId = txtTravelerId.getText();
 		OrderLogic orderLogic = new OrderLogic();
-	    if (!orderLogic.checkOrderExists(travelerId)) {
-	        lblError.setText("Error: Only travelers with an active order can access Exit Park.");
+		
+		// FIXED: Call the current inside-park validator
+	    if (!orderLogic.checkActiveCheckInExists(travelerId)) {
+	        lblError.setText("Error: Only travelers currently inside the park can access Exit Park.");
 	        return;
 	    }
 		if (travelerId == null || travelerId.trim().isEmpty()) {

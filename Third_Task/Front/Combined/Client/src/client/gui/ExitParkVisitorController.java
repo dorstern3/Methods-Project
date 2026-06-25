@@ -50,7 +50,7 @@ public class ExitParkVisitorController {
         // 1. Check if the input field is empty
         if (orderIdStr.isEmpty()) {
             statusLabel.setStyle("-fx-text-fill: red;");
-            statusLabel.setText("Please enter your Order ID.");
+            statusLabel.setText("Please enter your Order Number.");
             return;
         }
 
